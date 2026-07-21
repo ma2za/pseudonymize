@@ -78,6 +78,19 @@ def test_phone_rejects_repeated_digits() -> None:
     assert PhoneDetector().detect("+11 111 111 111") == []
 
 
+@pytest.mark.parametrize("suffix", [".", '."', ".)", ".\n"])
+def test_ip_address_accepts_sentence_terminators(suffix: str) -> None:
+    text = f"Host 192.0.2.10{suffix}"
+    detections = IpAddressDetector().detect(text)
+    assert len(detections) == 1
+    assert text[detections[0].start : detections[0].end] == "192.0.2.10"
+
+
+@pytest.mark.parametrize("text", ["192.0.2.10.5", "192.0.2.10.example"])
+def test_ip_address_rejects_partial_dotted_values(text: str) -> None:
+    assert IpAddressDetector().detect(text) == []
+
+
 def test_url_detects_username_and_empty_sensitive_value_safely() -> None:
     text = "https://user@example.com/?token=&api_key=present"
     values = [text[item.start : item.end] for item in UrlDetector().detect(text)]
