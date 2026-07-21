@@ -6,6 +6,8 @@ from pseudonymize.result import EntityType
 
 def normalize(value: str, entity_type: EntityType) -> str:
     value = unicodedata.normalize("NFKC", value).strip()
+    if entity_type in {EntityType.PERSON, EntityType.ORGANIZATION, EntityType.LOCATION}:
+        return " ".join(value.split()).casefold()
     if entity_type is EntityType.EMAIL:
         local, separator, domain = value.rpartition("@")
         return f"{local}{separator}{domain.lower()}"

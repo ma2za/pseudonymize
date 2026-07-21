@@ -1,12 +1,12 @@
 # Quickstart
 
 ```python
-from pseudonymize import Pseudonymizer, generate_key
+from pseudonymize import Pseudonymizer
 
-engine = Pseudonymizer(key=generate_key(), namespace="tenant-a")
+engine = Pseudonymizer()
 result = engine.process("Contact maria@example.com")
 print(result.text)
 ```
 
-Store the generated key in a secret manager. Reusing a key and namespace makes equal normalized
-values produce equal aliases.
+The result is `Contact <EMAIL_1>`. Numbering resets for each call; use `new_scope()` to share aliases
+across calls. Deterministic aliases require `mode="deterministic"` and a securely managed key.

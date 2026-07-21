@@ -10,6 +10,9 @@ _ENTITY_PRIORITY = {
     EntityType.URL_CREDENTIAL: 50,
     EntityType.SECRET: 50,
     EntityType.PHONE: 40,
+    EntityType.PERSON: 30,
+    EntityType.ORGANIZATION: 30,
+    EntityType.LOCATION: 30,
 }
 
 

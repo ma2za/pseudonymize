@@ -4,41 +4,54 @@ import pytest
 
 from pseudonymize import Detection, EntityType, generate_key
 from pseudonymize.exceptions import InvalidKeyError
-from pseudonymize.transforms import HmacTransformer, RedactTransformer
+from pseudonymize.resolution import ResolvedEntity
+from pseudonymize.transforms import (
+    AliasContext,
+    DeterministicAliasAssigner,
+    GenericAliasAssigner,
+    NumberedAliasAssigner,
+    PlaceholderTransformer,
+    RedactTransformer,
+)
 
 
-def detection(entity_type: EntityType = EntityType.EMAIL) -> Detection:
-    return Detection(entity_type, 0, 17, 1.0, "test")
+def entity(
+    entity_type: EntityType = EntityType.EMAIL, normalized: str = "maria@example.com"
+) -> ResolvedEntity:
+    return ResolvedEntity(Detection(entity_type, 0, 17, 1.0, "test"), normalized)
 
 
-def test_hmac_is_deterministic_and_domain_separated() -> None:
+def test_numbered_assigner_reuses_normalized_identity() -> None:
+    assigner = NumberedAliasAssigner()
+    context = AliasContext()
+    first = assigner.assign(entity(), context)
+    assert assigner.assign(entity(), context) == first
+    assert assigner.assign(entity(normalized="other@example.com"), context).identifier == "2"
+    assert assigner.assign(entity(EntityType.PERSON, "maria"), context).identifier == "1"
+    assert "maria@example.com" not in repr(context)
+
+
+def test_generic_and_placeholder_rendering() -> None:
+    resolved = entity()
+    alias = GenericAliasAssigner().assign(resolved, AliasContext())
+    assert PlaceholderTransformer().render(resolved, alias) == "<EMAIL>"
+
+
+def test_deterministic_assigner_is_domain_separated() -> None:
     key = b"k" * 32
-    first = HmacTransformer(key, "a").transform("Maria@EXAMPLE.com", detection())
-    assert first == HmacTransformer(key, "a").transform("Maria@example.com", detection())
-    assert first != HmacTransformer(key, "b").transform("Maria@example.com", detection())
-    assert re.fullmatch(r"<PZ1:EMAIL:[A-Z2-7]{16}>", first)
-
-
-def test_normalization_for_structured_types() -> None:
-    transformer = HmacTransformer(b"k" * 32)
-    iban = detection(EntityType.IBAN)
-    card = detection(EntityType.PAYMENT_CARD)
-    phone = detection(EntityType.PHONE)
-    ip = detection(EntityType.IP_ADDRESS)
-    assert transformer.transform("GB82 WEST 1234", iban) == transformer.transform(
-        "gb82west1234", iban
-    )
-    assert transformer.transform("4111-1111", card) == transformer.transform("41111111", card)
-    assert transformer.transform("+39 333", phone) == transformer.transform("+39333", phone)
-    assert transformer.transform("2001:0db8::1", ip) == transformer.transform("2001:db8::1", ip)
-    secret = detection(EntityType.SECRET)
-    assert transformer.transform(" token ", secret) == transformer.transform("token", secret)
+    first = DeterministicAliasAssigner(key, "a").assign(entity(), AliasContext())
+    assert first == DeterministicAliasAssigner(key, "a").assign(entity(), AliasContext())
+    assert first != DeterministicAliasAssigner(key, "b").assign(entity(), AliasContext())
+    assert re.fullmatch(r"[A-Z2-7]{12}", first.identifier or "")
 
 
 def test_key_validation_generation_and_redaction() -> None:
     with pytest.raises(InvalidKeyError):
-        HmacTransformer(b"short")
+        DeterministicAliasAssigner(b"short")
     with pytest.raises(ValueError, match="namespace"):
-        HmacTransformer(b"k" * 32, "invalid\0namespace")
+        DeterministicAliasAssigner(b"k" * 32, "invalid\0namespace")
     assert len(generate_key()) == 32
-    assert RedactTransformer().transform("anything", detection()) == "<EMAIL>"
+    resolved = entity()
+    alias = GenericAliasAssigner().assign(resolved, AliasContext())
+    assert RedactTransformer().render(resolved, alias) == "[REDACTED]"
+    assert RedactTransformer(typed=True).render(resolved, alias) == "[REDACTED_EMAIL]"

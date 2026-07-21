@@ -44,7 +44,7 @@ Run the `Release` workflow manually from the merged commit. Manual dispatch publ
 ```console
 python -m venv test-install
 test-install/bin/python -m pip install --index-url https://test.pypi.org/simple/ pseudonymize==0.1.0a1
-test-install/bin/python -c "from pseudonymize import redact; assert redact('maria@example.com') == '<EMAIL>'"
+test-install/bin/python -c "from pseudonymize import pseudonymize; assert pseudonymize('maria@example.com') == '<EMAIL_1>'"
 test-install/bin/pseudonymize keygen
 ```
 

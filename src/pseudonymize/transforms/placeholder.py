@@ -5,9 +5,7 @@ from pseudonymize.transforms.alias import Alias
 
 
 @dataclass(frozen=True, slots=True)
-class RedactTransformer:
-    typed: bool = False
-
+class PlaceholderTransformer:
     def render(self, entity: ResolvedEntity, alias: Alias) -> str:
-        suffix = f"_{entity.detection.entity_type.value}" if self.typed else ""
-        return f"[REDACTED{suffix}]"
+        suffix = f"_{alias.identifier}" if alias.identifier is not None else ""
+        return f"<{alias.entity_type.value}{suffix}>"

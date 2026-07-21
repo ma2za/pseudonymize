@@ -2,7 +2,6 @@ import base64
 import io
 import json
 import os
-import re
 import subprocess
 import sys
 from argparse import Namespace
@@ -24,20 +23,18 @@ def test_keygen_and_detectors(capsys: object) -> None:
 
 
 def test_text_cli(monkeypatch: object, capsys: object) -> None:
-    monkeypatch.setenv("PZ_KEY", KEY)  # type: ignore[attr-defined]
-    assert main(["text", "--key-env", "PZ_KEY", "maria@example.com"]) == 0
-    assert re.fullmatch(r"<PZ1:EMAIL:[A-Z2-7]{16}>\n", capsys.readouterr().out)  # type: ignore[attr-defined]
+    assert main(["text", "maria@example.com"]) == 0
+    assert capsys.readouterr().out == "<EMAIL_1>\n"  # type: ignore[attr-defined]
     monkeypatch.setattr(sys, "stdin", io.StringIO("maria@example.com"))  # type: ignore[attr-defined]
-    assert main(["text", "--key-env", "PZ_KEY", "--redact", "-"]) == 0
-    assert capsys.readouterr().out == "<EMAIL>\n"  # type: ignore[attr-defined]
+    assert main(["text", "--redact", "-"]) == 0
+    assert capsys.readouterr().out == "[REDACTED]\n"  # type: ignore[attr-defined]
 
 
 def test_json_cli(monkeypatch: object, capsys: object) -> None:
-    monkeypatch.setenv("PZ_KEY", KEY)  # type: ignore[attr-defined]
     monkeypatch.setattr(  # type: ignore[attr-defined]
         sys, "stdin", io.StringIO(json.dumps({"content": "maria@example.com"}))
     )
-    assert main(["json", "--key-env", "PZ_KEY"]) == 0
+    assert main(["json"]) == 0
     assert "maria@example.com" not in capsys.readouterr().out  # type: ignore[attr-defined]
 
 
@@ -63,7 +60,10 @@ def test_key_file_and_file_descriptor(tmp_path: Path) -> None:
         )
 
 
-def test_cli_reports_bad_key(monkeypatch: object) -> None:
+def test_cli_reports_missing_or_bad_key(monkeypatch: object) -> None:
+    with pytest.raises(SystemExit) as missing:
+        main(["text", "--mode", "deterministic", "text"])
+    assert missing.value.code == 2
     monkeypatch.delenv("MISSING_KEY", raising=False)  # type: ignore[attr-defined]
     with pytest.raises(SystemExit) as error:
         main(["text", "--key-env", "MISSING_KEY", "text"])
@@ -78,8 +78,8 @@ def test_read_key_rejects_invalid_base64(monkeypatch: object) -> None:
 
 def test_key_from_standard_input(monkeypatch: object, capsys: object) -> None:
     monkeypatch.setattr(sys, "stdin", io.StringIO(KEY))  # type: ignore[attr-defined]
-    assert main(["text", "--key-stdin", "maria@example.com"]) == 0
+    assert main(["text", "--mode", "deterministic", "--key-stdin", "maria@example.com"]) == 0
     assert "maria@example.com" not in capsys.readouterr().out  # type: ignore[attr-defined]
     monkeypatch.setattr(sys, "stdin", io.StringIO(KEY))  # type: ignore[attr-defined]
     with pytest.raises(SystemExit):
-        main(["text", "--key-stdin", "-"])
+        main(["text", "--mode", "deterministic", "--key-stdin", "-"])

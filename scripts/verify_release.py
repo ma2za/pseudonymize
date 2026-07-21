@@ -86,7 +86,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--dist", type=Path, default=Path("dist"))
-    parser.add_argument("--tag", default=os.environ.get("GITHUB_REF_NAME"))
+    inferred_tag = (
+        os.environ.get("GITHUB_REF_NAME") if os.environ.get("GITHUB_REF_TYPE") == "tag" else None
+    )
+    parser.add_argument("--tag", default=inferred_tag)
     parser.add_argument("--check-tag-only", action="store_true")
     arguments = parser.parse_args()
     if arguments.check_tag_only:

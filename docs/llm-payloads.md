@@ -4,3 +4,6 @@
 primitive values through unchanged. Use path inclusion rules when only selected fields should be
 processed. Tool arguments, tool outputs, retrieved documents, metadata, logs, and traces need the
 same protection as chat content.
+
+One alias scope covers the complete payload, so repeated normalized entities in different fields
+receive the same numbered placeholder.

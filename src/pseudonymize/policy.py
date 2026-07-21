@@ -12,11 +12,12 @@ _STRUCTURED = frozenset(
         EntityType.PAYMENT_CARD,
     }
 )
+_SEMANTIC = frozenset({EntityType.PERSON, EntityType.ORGANIZATION, EntityType.LOCATION})
 
 
 @dataclass(frozen=True, slots=True)
 class Policy:
-    entity_types: Set[EntityType] = _STRUCTURED
+    entity_types: Set[EntityType] = _STRUCTURED | _SEMANTIC
     minimum_confidence: float = 0.8
     detector_priority: tuple[str, ...] = ()
     include_paths: tuple[str, ...] = ()

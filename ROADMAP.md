@@ -10,6 +10,8 @@ Alpha releases may change public APIs. Compatibility commitments begin with `0.1
 - Strings, nested dictionaries, lists, and tuples
 - Email, phone, IP, IBAN, payment-card, URL-credential, and common-secret detectors
 - Deterministic HMAC aliases, redaction, policies, safe reports, batch processing, and CLI
+- Numbered semantic aliases by default, plus generic, deterministic, and redacted modes
+- Exact normalized entity resolution, explicit reusable scopes, and opt-in reversible mappings
 - Python 3.11 through 3.14, typed wheel, and zero runtime dependencies
 
 Exit: strict quality checks pass, branch coverage is at least 95%, artifacts install in a clean

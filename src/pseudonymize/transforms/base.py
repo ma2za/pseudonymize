@@ -1,7 +1,8 @@
 from typing import Protocol
 
-from pseudonymize.result import Detection
+from pseudonymize.resolution import ResolvedEntity
+from pseudonymize.transforms.alias import Alias
 
 
 class Transformer(Protocol):
-    def transform(self, value: str, detection: Detection) -> str: ...
+    def render(self, entity: ResolvedEntity, alias: Alias) -> str: ...

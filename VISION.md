@@ -6,6 +6,9 @@ supports explicitly configured remote detection providers.
 
 **Local by default. Format-aware. Backend-agnostic.**
 
+**Detect once, transform in different ways.** Numbered semantic pseudonyms are the default;
+generic, deterministic, and redacted transformation modes reuse the same detections.
+
 ## Product principles
 
 1. **Keep the core small.** Text, JSON-compatible data, policies, deterministic transformations,

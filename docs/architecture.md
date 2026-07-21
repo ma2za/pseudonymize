@@ -1,6 +1,17 @@
 # Architecture
 
-The long-term pipeline has five independent layers:
+Text processing separates identity and presentation:
+
+```text
+Input -> detection -> overlap resolution -> entity resolution
+      -> alias assignment -> transformation rendering -> result
+```
+
+Exact normalized matching is the initial entity resolver. It deliberately does not merge partial
+names or other ambiguous references. Alias assignment owns numbered or deterministic identity;
+rendering owns placeholder or redaction syntax.
+
+The long-term multimodal pipeline has five independent layers:
 
 ```text
 Input adapter
