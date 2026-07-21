@@ -3,6 +3,24 @@
 Alpha releases may change public APIs. Compatibility commitments begin with `0.1.0` and expand at
 `1.0.0`. A release ships only after its exit criteria pass on every supported platform.
 
+## Quality ratchet for every release
+
+The following requirements are part of the exit criteria for every release in this roadmap:
+
+- Branch coverage remains at least 95% and does not fall below the previous tagged release.
+- Every new capability adds tests with greater behavioral depth: realistic workflows, boundary
+  conditions, interacting features, malformed inputs, and adversarial cases where appropriate.
+- New tests must fail for plausible regressions or incomplete implementations. Tests written only
+  to execute uncovered lines, repeat trivial assertions, or mirror implementation details do not
+  satisfy the release gate.
+- Contract, property, cross-platform, clean-installation, security, and format-integrity suites
+  expand as their corresponding surfaces expand.
+- Test difficulty comes from stronger invariants and more complex behavior, not timing sensitivity,
+  environmental fragility, randomness, or other sources of flakiness.
+
+Each release review records the coverage result, compares it with the previous tagged release, and
+identifies the meaningful failure modes added to the test suite.
+
 ## 0.1.0: dependency-free core and machine-readable content
 
 ### 0.1.0a1: reserve the package and publish the tested core

@@ -25,6 +25,10 @@ generic, deterministic, and redacted transformation modes reuse the same detecti
    rewriting. PDF support must remove underlying content rather than draw visual overlays.
 7. **Keep optional dependencies optional.** Importing `pseudonymize` must never import document,
    OCR, model, or HTTP packages.
+8. **Raise the verification bar with every release.** Branch coverage stays at or above 95% and
+   must not regress from the previous release. New tests must exercise increasingly realistic,
+   adversarial, and cross-feature behavior that would fail under plausible broken implementations;
+   executing lines or repeating easy cases does not count as stronger verification.
 
 ## Modalities
 
