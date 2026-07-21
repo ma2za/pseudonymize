@@ -53,6 +53,6 @@ jobs:
           if [[ "$GITHUB_REF_NAME" =~ (a|b|rc)[0-9]+$ ]]; then
             release_flags+=(--prerelease --latest=false)
           fi
-          gh release create "$GITHUB_REF_NAME" dist/* "${release_flags[@]}"
+          gh release create "$GITHUB_REF_NAME" dist/* "${release_flags[@]}" --repo "$GITHUB_REPOSITORY"
         env:
           GH_TOKEN: ${{ github.token }}
