@@ -1,0 +1,29 @@
+name: Package
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: "3.14"
+      - run: uv sync --frozen --group release
+      - run: uv build
+      - run: uv run twine check dist/*
+      - run: uv run python scripts/verify_release.py
+      - run: uv venv --python 3.14 .wheel-venv
+      - run: uv pip install --python .wheel-venv/bin/python dist/*.whl
+      - run: .wheel-venv/bin/python -c "from pseudonymize import redact; assert redact('maria@example.com') == '<EMAIL>'"
+      - run: .wheel-venv/bin/pseudonymize detectors
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: distributions
+          path: dist/

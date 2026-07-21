@@ -1,0 +1,17 @@
+name: Feature request
+description: Propose a scoped capability
+title: "feat: "
+labels: [api]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
