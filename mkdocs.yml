@@ -1,0 +1,35 @@
+site_name: Pseudonymize
+site_url: https://ma2za.github.io/pseudonymize/
+repo_url: https://github.com/ma2za/pseudonymize
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - API: api.md
+  - Policies: policies.md
+  - Detectors: detectors.md
+  - LLM payloads: llm-payloads.md
+  - Architecture: architecture.md
+  - Releasing: releasing.md
+  - Security: security.md
+  - Threat model: threat-model.md
+  - Limitations: limitations.md
+  - Benchmarks: benchmarks.md
+  - Contributing: contributing.md
+  - Decisions:
+      - Dependency-free core: adr/0001-dependency-free-core.md
+      - Token format: adr/0002-token-format.md
+      - No reversible storage: adr/0003-no-reversible-storage.md
+      - Optional NER backend: adr/0004-optional-ner-backend.md
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+strict: true

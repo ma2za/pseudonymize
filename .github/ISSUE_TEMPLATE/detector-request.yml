@@ -1,0 +1,23 @@
+name: Detector request
+description: Request structured-value detection using synthetic examples
+title: "detector: "
+labels: [detector]
+body:
+  - type: input
+    id: entity
+    attributes:
+      label: Entity format
+    validations:
+      required: true
+  - type: textarea
+    id: valid
+    attributes:
+      label: Synthetic valid examples
+    validations:
+      required: true
+  - type: textarea
+    id: invalid
+    attributes:
+      label: Similar values that must remain unchanged
+    validations:
+      required: true

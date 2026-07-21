@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pseudonymize"
+version = "0.1.0a1"
+description = "Fast local PII pseudonymization for text, JSON and LLM payloads."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Paolo" }]
+keywords = ["pii", "pseudonymization", "redaction", "privacy", "gdpr", "llm", "security"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+  "Topic :: Security",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/ma2za/pseudonymize"
+Documentation = "https://ma2za.github.io/pseudonymize/"
+Repository = "https://github.com/ma2za/pseudonymize"
+Issues = "https://github.com/ma2za/pseudonymize/issues"
+Changelog = "https://github.com/ma2za/pseudonymize/blob/main/CHANGELOG.md"
+Security = "https://github.com/ma2za/pseudonymize/security/policy"
+
+[project.scripts]
+pseudonymize = "pseudonymize.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pseudonymize"]
+
+[dependency-groups]
+test = ["hypothesis>=6", "pytest>=8", "pytest-benchmark>=5", "pytest-cov>=5"]
+quality = ["mypy>=1.11", "pre-commit>=4", "ruff>=0.9"]
+docs = ["mkdocs-material>=9", "mkdocstrings[python]>=0.27"]
+release = ["build>=1", "twine>=6"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "PIE", "SIM", "PERF", "RUF", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+show_error_codes = true
+pretty = true
+files = ["src", "tests", "scripts"]
+
+[tool.pytest.ini_options]
+minversion = "8"
+testpaths = ["tests"]
+pythonpath = ["."]
+python_files = ["test_*.py", "benchmark_*.py"]
+addopts = ["--strict-config", "--strict-markers", "-ra", "--cov=pseudonymize", "--cov-report=term-missing", "--cov-branch", "--cov-fail-under=95"]
+markers = ["benchmark: performance benchmark", "integration: integration test", "slow: deliberately slow test"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+source = ["pseudonymize"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "\\.\\.\\.",
+  "class .*\\bProtocol\\):",
+  "if __name__ == .__main__.:",
+]
+
+[tool.pytest-benchmark]
+disable_gc = true
+warmup = true
