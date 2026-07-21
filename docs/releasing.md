@@ -9,7 +9,9 @@ PyPI token in repository or environment secrets.
 2. On TestPyPI, configure a pending trusted publisher for owner `ma2za`, repository
    `pseudonymize`, workflow `release.yml`, and environment `testpypi`.
 3. On PyPI, configure the same pending publisher with environment `pypi`.
-4. Enable GitHub private vulnerability reporting and Pages through GitHub Actions.
+4. When the repository plan supports Pages, enable Pages through GitHub Actions and
+   set the repository variable `ENABLE_PAGES` to `true`. Until then, documentation
+   builds remain required while deployment is skipped.
 5. Protect `main`: require pull requests and CI, resolved conversations, and linear history; block
    force pushes and deletion.
 
