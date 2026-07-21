@@ -28,6 +28,14 @@ def test_process_is_idempotent() -> None:
     )
 
 
+def test_sentence_terminated_ip_wins_over_phone_candidate() -> None:
+    engine = Pseudonymizer()
+    text = "Server 192.0.2.10."
+    detections = engine.detect(text)
+    assert [item.entity_type.value for item in detections] == ["IP_ADDRESS"]
+    assert engine.process(text).text == "Server <IP_ADDRESS_1>."
+
+
 def test_nested_data_preserves_structure_and_primitives() -> None:
     engine = Pseudonymizer(policy=Policy.llm())
     payload = {

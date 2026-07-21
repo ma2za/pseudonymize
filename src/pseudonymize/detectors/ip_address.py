@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from pseudonymize.result import Detection, EntityType
 
 _IP_CANDIDATE = re.compile(
-    r"(?<![\w:.])(?:\d{1,3}(?:\.\d{1,3}){3}|[0-9A-Fa-f]{0,4}:[0-9A-Fa-f:]+)(?![\w:.])"
+    r"(?<![\w:.])(?:\d{1,3}(?:\.\d{1,3}){3}|[0-9A-Fa-f]{0,4}:[0-9A-Fa-f:]+)"
+    r"(?![\w:]|\.[\w:])"
 )
 
 
