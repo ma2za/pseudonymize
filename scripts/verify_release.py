@@ -9,12 +9,15 @@ from pathlib import Path
 MAXIMUM_WHEEL_BYTES = 250 * 1024
 REQUIRED_SDIST_FILES = frozenset(
     {
+        "CHANGELOG.md",
         "LICENSE",
         "README.md",
         "ROADMAP.md",
         "VISION.md",
         "docs/architecture.md",
+        "docs/migration-a2.md",
         "docs/releasing.md",
+        "docs/releases/0.1.0a2.md",
         "pyproject.toml",
         "src/pseudonymize/py.typed",
     }

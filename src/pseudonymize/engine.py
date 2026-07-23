@@ -1,12 +1,41 @@
+import os
 import re
+import tempfile
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, replace
+from pathlib import Path
 from types import MappingProxyType
 from typing import TypeAlias, cast
 
-from pseudonymize.backends import DetectionBackend, RulesBackend
+from pseudonymize.adapters import InputAdapter, OutputAdapter
+from pseudonymize.backends import (
+    BackendCapabilities,
+    DetectionBackend,
+    RulesBackend,
+    backend_capabilities,
+    leaf_backends,
+)
+from pseudonymize.backends.base import invoke_backend
 from pseudonymize.detectors import DEFAULT_DETECTORS, Detector
-from pseudonymize.exceptions import InvalidKeyError, UnsupportedDataError
+from pseudonymize.document import (
+    ContentBlock,
+    Document,
+    JSONPathLocation,
+    TextOffsetLocation,
+)
+from pseudonymize.exceptions import (
+    AdapterContractError,
+    AdapterExecutionError,
+    FileProcessingError,
+    InvalidKeyError,
+    UnsupportedDataError,
+)
 from pseudonymize.policy import Policy
+from pseudonymize.processing import (
+    DetectionReport,
+    ProcessingResult,
+    ProcessingStatistics,
+)
 from pseudonymize.resolution import EntityResolver, ExactEntityResolver, ResolvedEntity
 from pseudonymize.result import Detection, EntityType, Replacement, Result
 from pseudonymize.spans import resolve_overlaps
@@ -62,16 +91,32 @@ class Pseudonymizer:
         self.backends = (
             tuple(backends) if backends is not None else (RulesBackend(configured_detectors),)
         )
+        self.backends = leaf_backends(self.backends)
         self.resolver = resolver or ExactEntityResolver()
         self.assigner = assigner or _assigner_for(self.mode, key, namespace)
         self.transformer = transformer or _transformer_for(self.mode, typed_redaction)
 
     def detect(self, text: str) -> tuple[Detection, ...]:
+        block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
+        return self._detect_block(block, _OperationStatistics())
+
+    def _detect_block(
+        self, block: ContentBlock, statistics: "_OperationStatistics"
+    ) -> tuple[Detection, ...]:
+        statistics.blocks_processed += 1
+        candidates: list[Detection] = []
+        for backend in self.backends:
+            capabilities = backend_capabilities(backend)
+            if not capabilities.entity_types.intersection(self.policy.entity_types):
+                continue
+            detections = invoke_backend(backend, block, self.policy)
+            statistics.record_backend(capabilities)
+            candidates.extend(detections)
+        text = block.text
         protected = tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
-        detections = (
+        filtered = (
             detection
-            for backend in self.backends
-            for detection in backend.detect(text)
+            for detection in candidates
             if detection.entity_type in self.policy.entity_types
             and detection.confidence >= self.policy.minimum_confidence
             and not any(
@@ -79,10 +124,17 @@ class Pseudonymizer:
                 for token_start, token_end in protected
             )
         )
-        return resolve_overlaps(detections, self.policy.detector_priority)
+        return resolve_overlaps(filtered, self.policy.detector_priority)
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
         return self._process(text, AliasContext(), include_mapping)
+
+    def process_with_report(self, text: str) -> ProcessingResult[str]:
+        statistics = _OperationStatistics()
+        reports: list[DetectionReport] = []
+        block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
+        result = self._process_block(block, AliasContext(), False, statistics, reports)
+        return ProcessingResult(result.text, tuple(reports), statistics.finish(reports))
 
     def process_batch(
         self, texts: Sequence[str], *, include_mapping: bool = False
@@ -91,18 +143,105 @@ class Pseudonymizer:
         return tuple(self._process(text, context, include_mapping) for text in texts)
 
     def process_data(self, data: Data | object, *, serializer: Serializer | None = None) -> Data:
-        return self._process_data(data, (), serializer, AliasContext())
+        return self._process_data(
+            data, (), serializer, AliasContext(), _OperationStatistics(), [], [0]
+        )
+
+    def process_data_with_report(
+        self, data: Data | object, *, serializer: Serializer | None = None
+    ) -> ProcessingResult[Data]:
+        statistics = _OperationStatistics()
+        reports: list[DetectionReport] = []
+        output = self._process_data(data, (), serializer, AliasContext(), statistics, reports, [0])
+        return ProcessingResult(output, tuple(reports), statistics.finish(reports))
+
+    def process_document(self, document: Document) -> ProcessingResult[Document]:
+        statistics = _OperationStatistics()
+        reports: list[DetectionReport] = []
+        context = AliasContext()
+        blocks: list[ContentBlock] = []
+        for block in document.blocks:
+            if self._allows_block(block):
+                result = self._process_block(block, context, False, statistics, reports)
+                blocks.append(replace(block, text=result.text))
+            else:
+                statistics.blocks_processed += 1
+                blocks.append(block)
+        output = replace(document, blocks=tuple(blocks))
+        return ProcessingResult(output, tuple(reports), statistics.finish(reports))
+
+    def inspect_document(self, document: Document) -> ProcessingResult[None]:
+        statistics = _OperationStatistics()
+        reports: list[DetectionReport] = []
+        for block in document.blocks:
+            if self._allows_block(block):
+                detections = self._detect_block(block, statistics)
+                reports.extend(_detection_reports(block, detections))
+            else:
+                statistics.blocks_processed += 1
+        return ProcessingResult(None, tuple(reports), statistics.finish(reports))
+
+    def process_file(
+        self,
+        source: str | os.PathLike[str],
+        input_adapter: InputAdapter[Path],
+        output_adapter: OutputAdapter,
+        destination: str | os.PathLike[str] | None = None,
+        *,
+        overwrite: bool = False,
+    ) -> ProcessingResult[Path]:
+        source_path = Path(source)
+        destination_path = (
+            Path(destination)
+            if destination is not None
+            else source_path.with_name(f"{source_path.stem}.safe{source_path.suffix}")
+        )
+        if source_path.resolve() == destination_path.resolve():
+            raise ValueError("file processing never overwrites its source")
+        if destination_path.exists() and not overwrite:
+            raise FileExistsError("destination already exists")
+        processed = self.process_document(_extract_document(input_adapter, source_path))
+        rendered = _render_document(output_adapter, processed.output)
+        try:
+            _atomic_write(destination_path, rendered, overwrite)
+        except FileExistsError:
+            raise FileExistsError("destination already exists") from None
+        except Exception:
+            raise FileProcessingError("atomic output publication failed") from None
+        return ProcessingResult(
+            destination_path,
+            processed.detections,
+            processed.statistics,
+            processed.warnings,
+        )
+
+    def inspect_file(
+        self, source: str | os.PathLike[str], input_adapter: InputAdapter[Path]
+    ) -> ProcessingResult[None]:
+        return self.inspect_document(_extract_document(input_adapter, Path(source)))
 
     def new_scope(self) -> "ProcessingScope":
         return ProcessingScope(self)
 
     def _process(self, text: str, context: AliasContext, include_mapping: bool) -> Result:
+        block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
+        return self._process_block(block, context, include_mapping, _OperationStatistics(), [])
+
+    def _process_block(
+        self,
+        block: ContentBlock,
+        context: AliasContext,
+        include_mapping: bool,
+        statistics: "_OperationStatistics",
+        reports: list[DetectionReport],
+    ) -> Result:
         if include_mapping and self.mode not in {
             TransformationMode.NUMBERED,
             TransformationMode.DETERMINISTIC,
         }:
             raise ValueError("mappings are available only in numbered and deterministic modes")
-        detections = self.detect(text)
+        text = block.text
+        detections = self._detect_block(block, statistics)
         entities = self.resolver.resolve(text, detections)
         aliases = tuple(self.assigner.assign(entity, context) for entity in entities)
         tokens = tuple(
@@ -114,20 +253,28 @@ class Pseudonymizer:
             detection = entity.detection
             output = output[: detection.start] + token + output[detection.end :]
         replacements = _replacement_reports(entities, tokens)
+        reports.extend(_replacement_detection_reports(block, replacements))
         mapping = _mapping(text, entities, aliases, tokens) if include_mapping else None
         return Result(output, replacements, mapping)
 
     def _process_data(
         self,
         data: Data | object,
-        path: tuple[str, ...],
+        path: tuple[str | int, ...],
         serializer: Serializer | None,
         context: AliasContext,
+        statistics: "_OperationStatistics",
+        reports: list[DetectionReport],
+        block_counter: list[int],
     ) -> Data:
         if isinstance(data, str):
-            return (
-                self._process(data, context, False).text if self.policy.allows_path(path) else data
-            )
+            block_id = f"block-{block_counter[0]:06d}"
+            block_counter[0] += 1
+            block = ContentBlock(block_id, data, JSONPathLocation(path))
+            if not self.policy.allows_path(tuple(str(part) for part in path)):
+                statistics.blocks_processed += 1
+                return data
+            return self._process_block(block, context, False, statistics, reports).text
         if data is None or isinstance(data, (bool, int, float)):
             return data
         if isinstance(data, Mapping):
@@ -135,23 +282,53 @@ class Pseudonymizer:
                 raise UnsupportedDataError("dictionary keys must be strings")
             return {
                 cast(str, key): self._process_data(
-                    value, (*path, cast(str, key)), serializer, context
+                    value,
+                    (*path, cast(str, key)),
+                    serializer,
+                    context,
+                    statistics,
+                    reports,
+                    block_counter,
                 )
                 for key, value in data.items()
             }
         if isinstance(data, list):
             return [
-                self._process_data(value, (*path, str(index)), serializer, context)
+                self._process_data(
+                    value,
+                    (*path, index),
+                    serializer,
+                    context,
+                    statistics,
+                    reports,
+                    block_counter,
+                )
                 for index, value in enumerate(data)
             ]
         if isinstance(data, tuple):
             return tuple(
-                self._process_data(value, (*path, str(index)), serializer, context)
+                self._process_data(
+                    value,
+                    (*path, index),
+                    serializer,
+                    context,
+                    statistics,
+                    reports,
+                    block_counter,
+                )
                 for index, value in enumerate(data)
             )
         if serializer is not None:
-            return self._process_data(serializer(data), path, None, context)
+            return self._process_data(
+                serializer(data), path, None, context, statistics, reports, block_counter
+            )
         raise UnsupportedDataError(f"unsupported data type: {type(data).__name__}")
+
+    def _allows_block(self, block: ContentBlock) -> bool:
+        location = block.location
+        if isinstance(location, JSONPathLocation):
+            return self.policy.allows_path(tuple(str(part) for part in location.path))
+        return True
 
 
 class ProcessingScope:
@@ -163,7 +340,107 @@ class ProcessingScope:
         return self._engine._process(text, self._context, include_mapping)
 
     def process_data(self, data: Data | object, *, serializer: Serializer | None = None) -> Data:
-        return self._engine._process_data(data, (), serializer, self._context)
+        return self._engine._process_data(
+            data, (), serializer, self._context, _OperationStatistics(), [], [0]
+        )
+
+
+@dataclass(slots=True)
+class _OperationStatistics:
+    blocks_processed: int = 0
+    backend_invocations: int = 0
+    local_block_calls: int = 0
+    remote_block_calls: int = 0
+
+    def record_backend(self, capabilities: BackendCapabilities) -> None:
+        self.backend_invocations += 1
+        if capabilities.remote:
+            self.remote_block_calls += 1
+        else:
+            self.local_block_calls += 1
+
+    def finish(self, reports: Sequence[DetectionReport]) -> ProcessingStatistics:
+        return ProcessingStatistics(
+            blocks_processed=self.blocks_processed,
+            detections_found=len(reports),
+            replacements_applied=sum(report.token is not None for report in reports),
+            backend_invocations=self.backend_invocations,
+            local_block_calls=self.local_block_calls,
+            remote_block_calls=self.remote_block_calls,
+        )
+
+
+def _detection_reports(
+    block: ContentBlock, detections: Sequence[Detection]
+) -> tuple[DetectionReport, ...]:
+    return tuple(_detection_report(block, detection) for detection in detections)
+
+
+def _replacement_detection_reports(
+    block: ContentBlock, replacements: Sequence[Replacement]
+) -> tuple[DetectionReport, ...]:
+    return tuple(
+        _detection_report(block, replacement.detection, replacement.token)
+        for replacement in replacements
+    )
+
+
+def _detection_report(
+    block: ContentBlock, detection: Detection, token: str | None = None
+) -> DetectionReport:
+    return DetectionReport(
+        entity_type=detection.entity_type,
+        block_id=block.id,
+        location=block.location,
+        start=detection.start,
+        end=detection.end,
+        confidence=detection.confidence,
+        backend=detection.backend,
+        detector=detection.detector,
+        token=token,
+    )
+
+
+def _atomic_write(destination: Path, rendered: bytes, overwrite: bool) -> None:
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.",
+        suffix=".tmp",
+        dir=destination.parent,
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(rendered)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if overwrite:
+            os.replace(temporary, destination)
+        else:
+            os.link(temporary, destination)
+            temporary.unlink()
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _extract_document(input_adapter: InputAdapter[Path], source: Path) -> Document:
+    try:
+        document = input_adapter.extract(source)
+    except Exception:
+        raise AdapterExecutionError("input adapter failed during extraction") from None
+    if not isinstance(document, Document):
+        raise AdapterContractError("input adapter must extract a Document")
+    return document
+
+
+def _render_document(output_adapter: OutputAdapter, document: Document) -> bytes:
+    try:
+        rendered = output_adapter.render(document)
+    except Exception:
+        raise AdapterExecutionError("output adapter failed during rendering") from None
+    if not isinstance(rendered, bytes):
+        raise AdapterContractError("output adapter must render bytes")
+    return rendered
 
 
 def _assigner_for(mode: TransformationMode, key: bytes | None, namespace: str) -> AliasAssigner:
