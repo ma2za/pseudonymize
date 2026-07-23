@@ -1,9 +1,10 @@
 # Pseudonymize
 
 [![PyPI](https://img.shields.io/pypi/v/pseudonymize.svg)](https://pypi.org/project/pseudonymize/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/pseudonymize.svg)](https://pypistats.org/packages/pseudonymize)
 [![Python](https://img.shields.io/pypi/pyversions/pseudonymize.svg)](https://pypi.org/project/pseudonymize/)
 [![CI](https://github.com/ma2za/pseudonymize/actions/workflows/ci.yml/badge.svg)](https://github.com/ma2za/pseudonymize/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/ma2za/pseudonymize.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Typed](https://img.shields.io/badge/typing-py.typed-blue.svg)](src/pseudonymize/py.typed)
 
 Typed, dependency-free, local-first PII pseudonymization for Python applications and LLM
