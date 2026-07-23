@@ -1,122 +1,169 @@
 # Release roadmap
 
-Alpha releases may change public APIs. Compatibility commitments begin with `0.1.0` and expand at
-`1.0.0`. A release ships only after its exit criteria pass on every supported platform.
+The roadmap is intentionally staged. Each release must leave the core usable, documented, and
+publishable without requiring unfinished later layers.
 
-## Quality ratchet for every release
+## Current position
 
-The following requirements are part of the exit criteria for every release in this roadmap:
+| Release | Status | Outcome |
+| --- | --- | --- |
+| `0.1.0a1` | Published | Dependency-free text and nested-data core |
+| `0.1.0a2` | Published | Document representation, extension contracts, safe reports, and generic file orchestration |
+| `0.1.0a3` | Next | Built-in dependency-free text and machine-readable file adapters |
+| `0.1.0b1` | Planned | Core API freeze and production-oriented examples |
+| `0.1.0rc1` | Planned | External installation and release validation |
+| `0.1.0` | Planned | First stable text and machine-readable release |
 
-- Branch coverage meets the release-specific floor and does not fall below the previous tagged
-  release. The enforced `0.1.0a2` floor is 97.29%.
-- Every new capability adds tests with greater behavioral depth: realistic workflows, boundary
-  conditions, interacting features, malformed inputs, and adversarial cases where appropriate.
-- New tests must fail for plausible regressions or incomplete implementations. Tests written only
-  to execute uncovered lines, repeat trivial assertions, or mirror implementation details do not
-  satisfy the release gate.
-- Contract, property, cross-platform, clean-installation, security, and format-integrity suites
-  expand as their corresponding surfaces expand.
-- Test difficulty comes from stronger invariants and more complex behavior, not timing sensitivity,
-  environmental fragility, randomness, or other sources of flakiness.
+Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
+remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
+but compatibility guarantees start only with `0.1.0`.
 
-Each release review records the coverage result, compares it with the previous tagged release, and
-identifies the meaningful failure modes added to the test suite.
+## Release gate for every milestone
 
-## 0.1.0: dependency-free core and machine-readable content
+- Ruff formatting and linting pass.
+- Strict mypy passes for source, tests, benchmarks, and scripts.
+- Supported Python versions pass on Linux, macOS, and Windows.
+- Branch coverage meets the release floor and never falls below the previous tagged baseline.
+  The current enforced floor is 97.29%.
+- Property, contract, clean-wheel, documentation, and packaging checks pass.
+- The base wheel remains typed and declares zero runtime dependencies.
+- Importing `pseudonymize` does not load optional document, OCR, model, or HTTP packages.
+- Reports, warnings, exceptions, logs, CLI output, and representations do not expose matched
+  values.
+- New tests add meaningful failure modes: realistic workflows, boundary conditions, interacting
+  features, malformed inputs, and adversarial cases.
+- Release artifacts install cleanly and the installed wheel passes API and CLI smoke tests.
 
-### 0.1.0a1: reserve the package and publish the tested core
+Coverage alone is not a quality target. A release should become harder to fake with an incomplete
+or unsafe implementation.
 
-- Strings, nested dictionaries, lists, and tuples
-- Email, phone, IP, IBAN, payment-card, URL-credential, and common-secret detectors
-- Deterministic HMAC aliases, redaction, policies, safe reports, batch processing, and CLI
-- Numbered semantic aliases by default, plus generic, deterministic, and redacted modes
-- Exact normalized entity resolution, explicit reusable scopes, and opt-in reversible mappings
-- Python 3.11 through 3.14, typed wheel, and zero runtime dependencies
+## `0.1.0`: dependency-free core and machine-readable content
 
-Exit: strict quality checks pass, branch coverage is at least 95%, artifacts install in a clean
-environment, TestPyPI rehearsal succeeds, and the tagged artifact is published through OIDC.
+### `0.1.0a1`: core and package reservation
 
-### 0.1.0a2: representation and extension contracts
+Delivered:
+
+- String, batch, dictionary, list, and tuple processing
+- Structured email, phone, IP, IBAN, payment-card, URL-credential, and secret detection
+- Numbered, generic, deterministic, and redacted transformations
+- HMAC-SHA256 aliases with explicit key and namespace boundaries
+- Policies, reusable alias scopes, opt-in reversible mappings, CLI, and typed packaging
+- Python 3.11 through 3.14 with zero runtime dependencies
+
+### `0.1.0a2`: representation and extension contracts
+
+Delivered:
 
 - Immutable `Document` and `ContentBlock`
-- Typed text-offset, JSON-path, and CSV-cell locations
-- `InputAdapter`, `DetectionBackend`, and `OutputAdapter` protocols
-- `RulesBackend` and `CompositeBackend`
-- `ProcessingResult`, safe reports, statistics, warnings, and `NetworkPolicy`
-- Generic inspection and atomic file orchestration with explicit caller-provided adapters
-- No built-in file-format adapter or automatic suffix selection
+- Text-offset, JSON-path, and zero-based CSV-cell locations
+- Block-aware `DetectionBackend`, `RulesBackend`, and `CompositeBackend`
+- `InputAdapter` and `OutputAdapter` protocols
+- `ProcessingResult`, safe detection reports, statistics, and warnings
+- `NetworkPolicy` with deny, configured allowlist, and allow-all modes
+- Generic inspection and atomic file processing with explicit adapters
+- Source overwrite protection, no-clobber defaults, and failure cleanup
+- Deterministic backend merging and provenance
 
-Exit: contract tests prove stable extraction, deterministic backend merging, safe representations,
-that `NetworkPolicy.DENY` cannot invoke a remote-capable backend, and branch coverage is at least
-97.29%.
+### `0.1.0a3`: dependency-free file adapters
 
-### 0.1.0a3: dependency-free file adapters
+Planned:
 
-- `.txt`, `.md`, `.log`, JSON, JSONL, and CSV
-- Built-in detection-only inspection and sanitized-copy adapters
-- Explicit format selection before suffix-based selection
-- Atomic output with `<stem>.safe<suffix>` defaults and opt-in overwrite
+- TXT, Markdown, log, JSON, JSONL, and CSV adapters
+- Explicit format selection followed by recognized-suffix selection
+- Unknown-format rejection rather than content guessing
+- Encoding policy and byte-order-mark behavior
+- Stable extraction, typed locations, inspection, and sanitized-copy round trips
 
-Exit: cross-platform fixtures cover encoding, malformed records, Unicode locations, symlinks,
-large fields, interrupted writes, destination collisions, and supported round trips.
+Exit criteria:
 
-### 0.1.0b1: API freeze
+- Cross-platform fixtures cover malformed JSONL and CSV, Unicode paths and offsets, large fields,
+  symlinks, interrupted writes, destination races, and encoding failures.
+- Every adapter passes extraction and location contracts before rendering is accepted.
+- Built-in file APIs preserve the same safe-result and non-overwrite guarantees as caller adapters.
 
-- Public API and compatibility policy frozen
-- Alpha migration notes and complete architecture documentation
-- Realistic LLM request, tool-call, tool-output, and retrieval examples
-- Published limitations, threat model, and reference benchmarks
+### `0.1.0b1`: freeze the core API
 
-Exit: no unresolved public-API decisions and all documented examples run from the built wheel.
+Planned:
 
-### 0.1.0rc1: external release validation
+- Freeze text, nested-data, document, policy, result, backend, and adapter contracts
+- Publish a compatibility policy for the stable line
+- Complete LLM gateway examples for prompts, retrieval, tool calls, and tool output
+- Expand the threat model and document operational deployment patterns
+- Publish reference performance and wheel-size measurements
+
+Exit criteria:
+
+- No unresolved core API decisions.
+- Every documented example runs against the built wheel.
+- Alpha-era contracts that should not become stable have been removed rather than deprecated.
+
+### `0.1.0rc1`: external release validation
+
+Planned:
 
 - Clean installation tests across supported operating systems and Python versions
-- Packaging, import-time, dependency, and bundled-file audit
-- TestPyPI rehearsal and external integration feedback
+- Packaging, import-time, bundled-file, licence, and dependency audit
+- Cross-platform file corpus and external integration feedback
+- Complete release rehearsal through Trusted Publishing
 
-Exit: only release-blocking defects may change code; any API change returns the project to beta.
+Exit criteria:
 
-### 0.1.0: first stable release
+- Only release-blocking defects may change code.
+- Any public API redesign returns the project to beta.
 
-Stable text, nested data, and plain or machine-readable file processing with no runtime dependency.
+### `0.1.0`: first stable release
+
+Stable local processing for text, nested Python data, and plain or machine-readable files, with a
+documented compatibility policy and zero base runtime dependencies.
 
 ## Later capabilities
 
-### 0.2.0: optional local NER
+### `0.2.0`: optional local NER
 
-Add explicitly installed ONNX models for people, organizations, locations, and contextual
-addresses. Benchmark English, German, and Italian. Model revisions and checksums are pinned; model
-downloads never occur during import or first inference.
+- Explicitly installed ONNX models for people, organizations, locations, and contextual addresses
+- Initial English, German, and Italian benchmarks
+- Pinned model revisions, checksums, licences, memory, and latency measurements
+- No model download during import or inference
 
-### 0.3.0: document inspection
+### `0.3.0`: document inspection
 
-Add optional PDF, DOCX, XLSX, and PPTX extraction with coordinate or structural locations.
-Support is detection-only so the representation can mature before document mutation is trusted.
+- Optional PDF, DOCX, XLSX, and PPTX extraction
+- Structural or coordinate-aware locations
+- Detection-only output while representation fixtures mature
 
-### 0.4.0: format-preserving documents
+### `0.4.0`: format-preserving documents
 
-Produce sanitized DOCX, XLSX, and PPTX copies, securely redact text PDFs, remove relevant document
-metadata, and validate output integrity with application-specific fixtures.
+- Sanitized DOCX, XLSX, and PPTX copies
+- Secure text-PDF redaction with underlying content removal
+- Relevant metadata cleaning and format-integrity tests
 
-### 0.5.0: OCR and scanned documents
+### `0.5.0`: OCR and scanned documents
 
-Add local OCR for images, scanned PDFs, and mixed PDFs with bounding-box transformations. Native
-text remains preferred whenever it is reliable.
+- Local OCR for images, scanned PDFs, and mixed PDFs
+- Bounding-box transformations
+- No OCR when reliable native text exists
 
-### 0.6.0: remote detection
+### `0.6.0`: remote detection
 
-Add a vendor-neutral provider protocol, optional HTTP transport, explicit dual consent, timeouts,
-bounded retries, provider capability declarations, remote audit statistics, and a mode that locally
-replaces structured identifiers before permitted blocks are sent remotely.
+- Vendor-neutral provider protocol and optional HTTP transport
+- Explicit dual consent, bounded timeouts, and bounded retries
+- Provider capability reporting and remote-block statistics
+- Local structured-value replacement before permitted remote processing
+- Offset mapping after local preprocessing
 
-### 1.0.0: mature compatibility commitment
+### `1.0.0`: mature compatibility commitment
 
-Commit to long-term interfaces after core processing, document rewriting, OCR, and remote-security
-contracts have production fixtures, published benchmarks, and independent user feedback.
+Long-term compatibility begins after core processing, document rewriting, OCR, and remote-security
+contracts have production fixtures, published benchmarks, and independent usage feedback.
 
 ## Optional dependency policy
 
-Extras appear only with their owning release: `ner`, `pdf`, `office`, `ocr`, `documents`, `docling`,
-and `remote`. An `all` extra may exist for testing, but documentation will recommend the narrowest
-extra that satisfies the user's workload.
+Extras appear only with the release that owns them: `ner`, `pdf`, `office`, `ocr`, `documents`,
+`docling`, and `remote`. An `all` extra may exist for CI and integration testing, but user
+documentation recommends the narrowest installation that satisfies the workload.
+
+## Deliberately uncommitted work
+
+Audio, video, reversible vaults, databases, Parquet, SQLite, framework wrappers, and generic
+"process any file" claims remain outside the committed roadmap. New proposals must show that they
+fit the layer boundaries and can meet the same safety and test standards.
