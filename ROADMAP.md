@@ -7,7 +7,8 @@ Alpha releases may change public APIs. Compatibility commitments begin with `0.1
 
 The following requirements are part of the exit criteria for every release in this roadmap:
 
-- Branch coverage remains at least 95% and does not fall below the previous tagged release.
+- Branch coverage meets the release-specific floor and does not fall below the previous tagged
+  release. The enforced `0.1.0a2` floor is 97.29%.
 - Every new capability adds tests with greater behavioral depth: realistic workflows, boundary
   conditions, interacting features, malformed inputs, and adversarial cases where appropriate.
 - New tests must fail for plausible regressions or incomplete implementations. Tests written only
@@ -42,14 +43,17 @@ environment, TestPyPI rehearsal succeeds, and the tagged artifact is published t
 - `InputAdapter`, `DetectionBackend`, and `OutputAdapter` protocols
 - `RulesBackend` and `CompositeBackend`
 - `ProcessingResult`, safe reports, statistics, warnings, and `NetworkPolicy`
+- Generic inspection and atomic file orchestration with explicit caller-provided adapters
+- No built-in file-format adapter or automatic suffix selection
 
 Exit: contract tests prove stable extraction, deterministic backend merging, safe representations,
-and that `NetworkPolicy.DENY` cannot invoke a remote-capable backend.
+that `NetworkPolicy.DENY` cannot invoke a remote-capable backend, and branch coverage is at least
+97.29%.
 
 ### 0.1.0a3: dependency-free file adapters
 
 - `.txt`, `.md`, `.log`, JSON, JSONL, and CSV
-- Detection-only inspection and sanitized-copy APIs
+- Built-in detection-only inspection and sanitized-copy adapters
 - Explicit format selection before suffix-based selection
 - Atomic output with `<stem>.safe<suffix>` defaults and opt-in overwrite
 

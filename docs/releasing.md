@@ -8,15 +8,16 @@ PyPI token in repository or environment secrets.
 1. Create protected GitHub environments named `testpypi` and `pypi`.
 2. On TestPyPI, configure a pending trusted publisher for owner `ma2za`, repository
    `pseudonymize`, workflow `release.yml`, and environment `testpypi`.
-3. On PyPI, configure the same pending publisher with environment `pypi`.
+3. On PyPI, configure the pending publisher for owner `ma2za`, repository `pseudonymize`, and
+   workflow `release.yml`. Keep the publisher's optional environment field blank. The workflow
+   still uses the GitHub `pypi` environment.
 4. When the repository plan supports Pages, enable Pages through GitHub Actions and
    set the repository variable `ENABLE_PAGES` to `true`. Until then, documentation
    builds remain required while deployment is skipped.
 5. Protect `main`: require pull requests and CI, resolved conversations, and linear history; block
    force pushes and deletion.
 
-Pending publishers are required for the first upload because the project does not yet exist on the
-package index.
+After the first upload, verify that the pending publisher became an ordinary project publisher.
 
 ## Prepare a release
 
@@ -45,7 +46,7 @@ Run the `Release` workflow manually from the merged commit. Manual dispatch publ
 
 ```console
 python -m venv test-install
-test-install/bin/python -m pip install --index-url https://test.pypi.org/simple/ pseudonymize==0.1.0a1
+test-install/bin/python -m pip install --index-url https://test.pypi.org/simple/ pseudonymize==0.1.0a2
 test-install/bin/python -c "from pseudonymize import pseudonymize; assert pseudonymize('maria@example.com') == '<EMAIL_1>'"
 test-install/bin/pseudonymize keygen
 ```
@@ -57,8 +58,8 @@ On Windows, use `test-install\Scripts\python.exe` and `test-install\Scripts\pseu
 1. Create an annotated tag whose version exactly matches `pyproject.toml`:
 
    ```console
-   git tag -a v0.1.0a1 -m "Release 0.1.0a1"
-   git push origin v0.1.0a1
+   git tag -a v0.1.0a2 -m "Release 0.1.0a2"
+   git push origin v0.1.0a2
    ```
 
 2. The tag workflow reruns quality, tests, documentation, and artifact validation.
@@ -69,3 +70,6 @@ On Windows, use `test-install\Scripts\python.exe` and `test-install\Scripts\pseu
    `py.typed`, and absence of runtime dependencies.
 
 Never reuse a published version. Fixes require a new prerelease or patch version.
+
+For `0.1.0a2`, the approved release path skips TestPyPI and proceeds directly from a fully green
+release PR to the production tag workflow.

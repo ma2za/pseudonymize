@@ -24,6 +24,7 @@ class Detection:
     end: int
     confidence: float
     detector: str
+    backend: str = ""
 
     def __post_init__(self) -> None:
         if self.start < 0 or self.end <= self.start:

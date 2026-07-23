@@ -14,7 +14,7 @@ Person detection requires an optional local NER or custom detection backend. The
 core detects structured entities such as the email in this example. Pseudonymize processes data
 locally by default; remote processing is disabled unless explicitly configured in a future backend.
 
-The `0.1.0a1` API is a prerelease and may change before `0.1.0`.
+The `0.1.0a2` API is a prerelease and may change before `0.1.0`.
 
 ## Installation
 
@@ -113,6 +113,29 @@ safe_payload = engine.process_data(payload)
 Both occurrences become `<EMAIL_1>`. Container structure and non-string values remain unchanged,
 and the input is not mutated.
 
+## Safe reports and documents
+
+Detailed APIs return transformed output together with reports that never copy matched values:
+
+```python
+from pseudonymize import Pseudonymizer
+
+result = Pseudonymizer().process_with_report("Email paolo@example.com")
+
+assert result.output == "Email <EMAIL_1>"
+assert result.detections[0].entity_type == "EMAIL"
+assert result.detections[0].backend == "rules"
+assert result.statistics.replacements_applied == 1
+```
+
+`process_data_with_report`, `process_document`, and `inspect_document` use the same safe report
+model. Documents contain immutable content blocks with stable identifiers, typed source locations,
+and immutable JSON-scalar metadata.
+
+`process_file` and `inspect_file` require caller-provided input and output adapters in `0.1.0a2`.
+There is no built-in suffix detection or file-format adapter yet. Dependency-free TXT, JSON,
+JSONL, and CSV adapters arrive in `0.1.0a3`.
+
 ## Detection backends
 
 The core includes validated rules for email addresses, phone numbers, IPv4 and IPv6 addresses,
@@ -128,6 +151,10 @@ No person detector based on capitalization heuristics is included. Exact normali
 as `Paolo Mazza` and `Paolo   Mazza` share an alias, but ambiguous references such as `Paolo` and
 `Mr. Mazza` are not merged automatically.
 
+Backends receive one `ContentBlock` and the active `Policy`, declare supported entity types and
+remote capability, and return relative offsets. See the
+[alpha migration guide](docs/migration-a2.md) for the complete contract.
+
 ## Security and limitations
 
 Pseudonymize performs pseudonymization, not guaranteed anonymization. Pseudonymized data can remain
@@ -139,12 +166,19 @@ Deterministic mode uses HMAC-SHA256 over a versioned, domain-separated input. It
 at least 32 bytes; the package never generates or persists one silently. Different tenants should
 use different keys or namespaces.
 
+The default `NetworkPolicy.DENY` prevents remote-capable backends from being called. Permitting a
+remote backend also requires a configured network policy and
+`allow_remote_processing=True` on that backend. `0.1.0a2` defines and enforces this contract but
+does not ship an HTTP client or remote provider.
+
 ## Migration from the initial prototype
 
 - Numbered mode is now the default. Use `mode="deterministic"` when providing `key` and `namespace`.
 - Generic mode produces typed placeholders such as `<EMAIL>`.
 - `redact(...)` now produces `[REDACTED]`; use `typed=True` for `[REDACTED_EMAIL]`.
 - Existing `<PZ1:TYPE:IDENTIFIER>` placeholders remain protected from reprocessing.
+- The provisional text-only backend protocol is replaced by the block-aware contract in the
+  [0.1.0a2 migration guide](docs/migration-a2.md). There is no compatibility shim.
 
 ## Roadmap and contributing
 
