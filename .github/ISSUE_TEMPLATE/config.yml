@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/ma2za/pseudonymize/security/advisories/new
+    about: Report vulnerabilities privately. Never include sensitive data in a public issue.
+  - name: Support and project scope
+    url: https://github.com/ma2za/pseudonymize/blob/main/SUPPORT.md
+    about: Read the support policy before opening an issue.
