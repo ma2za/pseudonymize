@@ -32,6 +32,7 @@ def resolve_overlaps(
             detection.start,
             detection.end,
             detection.detector,
+            detection.backend,
         ),
     )
     selected: list[Detection] = []

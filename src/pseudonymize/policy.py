@@ -1,5 +1,6 @@
 from collections.abc import Set
 from dataclasses import dataclass
+from enum import StrEnum
 
 from pseudonymize.result import EntityType
 
@@ -15,6 +16,12 @@ _STRUCTURED = frozenset(
 _SEMANTIC = frozenset({EntityType.PERSON, EntityType.ORGANIZATION, EntityType.LOCATION})
 
 
+class NetworkPolicy(StrEnum):
+    DENY = "deny"
+    ALLOW_CONFIGURED = "allow_configured"
+    ALLOW_ALL = "allow_all"
+
+
 @dataclass(frozen=True, slots=True)
 class Policy:
     entity_types: Set[EntityType] = _STRUCTURED | _SEMANTIC
@@ -22,12 +29,16 @@ class Policy:
     detector_priority: tuple[str, ...] = ()
     include_paths: tuple[str, ...] = ()
     exclude_paths: tuple[str, ...] = ()
+    network_policy: NetworkPolicy = NetworkPolicy.DENY
+    allowed_remote_backends: Set[str] = frozenset()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "entity_types", frozenset(self.entity_types))
         object.__setattr__(self, "detector_priority", tuple(self.detector_priority))
         object.__setattr__(self, "include_paths", tuple(self.include_paths))
         object.__setattr__(self, "exclude_paths", tuple(self.exclude_paths))
+        object.__setattr__(self, "network_policy", NetworkPolicy(self.network_policy))
+        object.__setattr__(self, "allowed_remote_backends", frozenset(self.allowed_remote_backends))
         if not 0 <= self.minimum_confidence <= 1:
             raise ValueError("minimum_confidence must be between 0 and 1")
 

@@ -21,8 +21,8 @@ Input adapter
     -> output adapter
 ```
 
-The dependency-free `0.1.0a1` release implements text and nested-data processing directly. The
-interfaces below land during later `0.1.0` prereleases and remain provisional until beta.
+The dependency-free `0.1.0a2` release routes text, nested data, documents, and caller-supplied file
+adapters through this representation. These interfaces remain provisional until beta.
 
 ## Content representation
 
@@ -37,13 +37,15 @@ the block location without carrying the matched value.
 
 ## Adapters
 
-`InputAdapter` identifies a supported source and extracts a `Document`. `OutputAdapter` renders a
-sanitized copy from a document and applied transformations. Adapters understand serialization and
-layout, but never choose entity types or detection thresholds.
+`InputAdapter` extracts a `Document` from a caller-defined source type. `OutputAdapter` renders
+bytes from a transformed document. Adapters understand serialization and layout, but never choose
+entity types or detection thresholds.
 
-An explicit format takes precedence over suffix lookup. Unknown or ambiguous formats fail rather
-than being guessed. File transformation writes atomically, never overwrites the source, defaults to
-`<stem>.safe<suffix>`, and requires `overwrite=True` for an existing destination.
+In `0.1.0a2`, file APIs require explicit caller-provided adapters and perform no format selection.
+File transformation writes atomically, never overwrites the source, defaults to
+`<stem>.safe<suffix>`, and requires `overwrite=True` for an existing destination. Built-in format
+selection begins in `0.1.0a3`; explicit format then takes precedence over recognized suffixes, and
+unknown formats fail rather than being guessed.
 
 Extraction support always precedes rendering support. Office and PDF adapters first provide
 detection-only inspection. A PDF renderer is accepted only when tests prove the underlying content
@@ -51,9 +53,10 @@ is removed rather than merely covered.
 
 ## Detection backends
 
-`DetectionBackend` accepts content blocks and a policy. `RulesBackend` adapts the existing
-structured detectors. `CompositeBackend` invokes configured backends and sends all candidates
-through one deterministic overlap resolver.
+`DetectionBackend.detect(block, policy)` accepts one content block and the active policy.
+`RulesBackend` adapts the existing structured detectors. `CompositeBackend` invokes leaf backends
+through the same policy-enforcing executor and sends all candidates through one deterministic
+overlap resolver. Each detection records both detector and backend provenance.
 
 Backends declare capabilities and provenance. They do not transform content, write files, log
 matched text, or silently perform network calls. Local NER and OCR are optional backends with
@@ -68,6 +71,10 @@ of source format. Existing HMAC normalization and token versioning remain the al
 The network policy is `DENY`, `ALLOW_CONFIGURED`, or `ALLOW_ALL`, with `DENY` as the default. A
 remote-capable backend must additionally be constructed with `allow_remote_processing=True`.
 Possessing an API key never enables network access.
+
+`ALLOW_CONFIGURED` additionally requires the backend name in the policy's immutable allowlist.
+`ALLOW_ALL` removes only that allowlist check. Both modes still require the backend's explicit
+`allow_remote_processing=True` consent.
 
 ## Results
 
@@ -88,5 +95,5 @@ The root package imports only the standard-library core. Optional imports occur 
 adapter or backend loader and raise a targeted missing-extra error. PDF, Office, OCR, NER, Docling,
 and HTTP dependencies are never imported by `import pseudonymize`.
 
-See the [release roadmap](https://github.com/ma2za/pseudonymize/blob/main/ROADMAP.md) for when each
-layer becomes public.
+See the [0.1.0a2 migration guide](migration-a2.md) for the backend change and the
+[release roadmap](https://github.com/ma2za/pseudonymize/blob/main/ROADMAP.md) for later adapters.

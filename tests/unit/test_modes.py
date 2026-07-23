@@ -8,12 +8,17 @@ from pseudonymize import (
     Detection,
     EntityType,
     Pseudonymizer,
+    ResolvedEntity,
     RulesBackend,
     TransformationMode,
     pseudonymize,
     redact,
 )
+from pseudonymize.backends import BackendCapabilities
+from pseudonymize.document import ContentBlock
 from pseudonymize.exceptions import InvalidKeyError
+from pseudonymize.policy import Policy
+from pseudonymize.transforms import Alias, AliasContext
 
 KEY = b"k" * 32
 
@@ -21,11 +26,13 @@ KEY = b"k" * 32
 @dataclass(frozen=True, slots=True)
 class PersonBackend:
     name: str = "test_person"
+    capabilities = BackendCapabilities(frozenset({EntityType.PERSON}))
+    allow_remote_processing = False
 
-    def detect(self, text: str) -> tuple[Detection, ...]:
+    def detect(self, block: ContentBlock, policy: Policy) -> tuple[Detection, ...]:
         return tuple(
             Detection(EntityType.PERSON, match.start(), match.end(), 0.98, self.name)
-            for match in re.finditer(r"Paolo\s+Mazza|Maria\s+Rossi", text)
+            for match in re.finditer(r"Paolo\s+Mazza|Maria\s+Rossi", block.text)
         )
 
 
@@ -64,6 +71,19 @@ def test_deterministic_configuration_is_explicit() -> None:
         Pseudonymizer(namespace="tenant")
     with pytest.raises(ValueError, match="typed_redaction"):
         Pseudonymizer(typed_redaction=True)
+    with pytest.raises(ValueError, match="detectors or backends"):
+        Pseudonymizer(detectors=[], backends=[])
+
+    class CustomAssigner:
+        def assign(self, entity: ResolvedEntity, context: AliasContext) -> Alias:
+            return Alias(entity.detection.entity_type, None)
+
+    with pytest.raises(ValueError, match="custom alias assigner"):
+        Pseudonymizer(assigner=CustomAssigner(), key=KEY)
+    result = Pseudonymizer(assigner=CustomAssigner()).process(
+        "paolo@example.com", include_mapping=True
+    )
+    assert result.mapping == {}
 
 
 def test_redacted_mode() -> None:
@@ -82,6 +102,7 @@ def test_explicit_scope_preserves_aliases_across_calls() -> None:
     scope = Pseudonymizer().new_scope()
     assert scope.process("paolo@example.com").text == "<EMAIL_1>"
     assert scope.process("maria@example.com paolo@example.com").text == ("<EMAIL_2> <EMAIL_1>")
+    assert scope.process_data({"email": "paolo@example.com"}) == {"email": "<EMAIL_1>"}
 
 
 def test_batch_uses_one_scope() -> None:
@@ -159,9 +180,11 @@ def test_structured_entity_wins_overlap() -> None:
     @dataclass(frozen=True, slots=True)
     class BroadPersonBackend:
         name: str = "broad_person"
+        capabilities = BackendCapabilities(frozenset({EntityType.PERSON}))
+        allow_remote_processing = False
 
-        def detect(self, text: str) -> tuple[Detection, ...]:
-            return (Detection(EntityType.PERSON, 0, len(text), 0.99, self.name),)
+        def detect(self, block: ContentBlock, policy: Policy) -> tuple[Detection, ...]:
+            return (Detection(EntityType.PERSON, 0, len(block.text), 0.99, self.name),)
 
     result = Pseudonymizer(backends=[RulesBackend(), BroadPersonBackend()]).process(
         "paolo@example.com"
