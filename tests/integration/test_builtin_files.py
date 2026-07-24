@@ -166,6 +166,15 @@ def test_invalid_encoding_and_malformed_inputs_are_sanitized(tmp_path: Path) -> 
         Pseudonymizer().inspect_file(duplicate)
     assert source_value not in str(duplicated.value)
 
+    blank_jsonl = tmp_path / "blank.jsonl"
+    blank_jsonl.write_text(
+        f'{{"value":"{source_value}"}}\n\n{{"value":"other"}}\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(AdapterExecutionError, match="JSONL line 2") as blank:
+        Pseudonymizer().inspect_file(blank_jsonl)
+    assert source_value not in str(blank.value)
+
 
 @pytest.mark.parametrize(
     ("suffix", "accepted"),
