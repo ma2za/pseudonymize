@@ -4,6 +4,30 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.0a3] - 2026-07-24
+
+### Added
+
+- Dependency-free TXT, Markdown, log, JSON, JSONL, and CSV adapters.
+- Explicit-format and recognized-suffix file selection without content guessing.
+- Strict encoding controls with UTF-8 byte-order-mark preservation.
+- CLI file transformation and machine-readable safe inspection.
+- Stable JSON-path and CSV-cell extraction fixtures with semantic round-trip coverage.
+
+### Changed
+
+- Redesigned the provisional file methods around optional built-in or keyword-only custom
+  adapters.
+- Normalized JSON, JSONL, and CSV rendering while preserving value types and structure.
+- Extended installed-wheel smoke tests to built-in file processing and inspection.
+- Raised the enforced branch-coverage floor from 97.29% to 99.36%.
+
+### Security
+
+- Kept source-specific rendering context out of documents, reports, metadata, and
+  representations.
+- Sanitized unsupported-format, decoding, parsing, rendering, and CLI failures.
+
 ## [0.1.0a2] - 2026-07-23
 
 ### Added
@@ -49,6 +73,7 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Deterministic processing now requires `mode="deterministic"` in addition to a key.
 - `redact()` now emits `[REDACTED]` by default; generic mode emits typed placeholders.
 
-[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0a2...HEAD
+[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0a3...HEAD
+[0.1.0a3]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a3
 [0.1.0a2]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a2
 [0.1.0a1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a1

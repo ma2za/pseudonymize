@@ -21,8 +21,9 @@ Input adapter
     -> output adapter
 ```
 
-The dependency-free `0.1.0a2` release routes text, nested data, documents, and caller-supplied file
-adapters through this representation. These interfaces remain provisional until beta.
+The dependency-free `0.1.0a3` release routes text, nested data, documents, built-in file formats,
+and caller-supplied adapters through this representation. These interfaces remain provisional
+until beta.
 
 ## Content representation
 
@@ -41,11 +42,20 @@ the block location without carrying the matched value.
 bytes from a transformed document. Adapters understand serialization and layout, but never choose
 entity types or detection thresholds.
 
-In `0.1.0a2`, file APIs require explicit caller-provided adapters and perform no format selection.
-File transformation writes atomically, never overwrites the source, defaults to
-`<stem>.safe<suffix>`, and requires `overwrite=True` for an existing destination. Built-in format
-selection begins in `0.1.0a3`; explicit format then takes precedence over recognized suffixes, and
-unknown formats fail rather than being guessed.
+Built-in selection gives an explicit format precedence over a recognized, case-insensitive suffix.
+Unknown formats fail rather than being guessed from content. TXT, Markdown, log, JSON, JSONL, and
+CSV use only the standard library. File transformation writes atomically, never overwrites the
+source, defaults to `<stem>.safe<suffix>`, and requires `overwrite=True` for an existing
+destination.
+
+JSON and JSONL expose string values as JSON-path blocks while retaining types and container
+structure inside the adapter operation. CSV exposes every cell with a zero-based cell location.
+Source-specific rendering context never enters document metadata or processing results.
+
+Structured output is semantic rather than lexical: JSON whitespace, JSONL spacing, CSV quoting,
+and record endings may be normalized. Text-like formats preserve decoded content and newline
+sequences outside replacements. UTF-8 is strict by default and an existing UTF-8 BOM is
+preserved; callers may choose an explicit codec without fallback detection.
 
 Extraction support always precedes rendering support. Office and PDF adapters first provide
 detection-only inspection. A PDF renderer is accepted only when tests prove the underlying content
@@ -95,5 +105,5 @@ The root package imports only the standard-library core. Optional imports occur 
 adapter or backend loader and raise a targeted missing-extra error. PDF, Office, OCR, NER, Docling,
 and HTTP dependencies are never imported by `import pseudonymize`.
 
-See the [0.1.0a2 migration guide](migration-a2.md) for the backend change and the
+See the [0.1.0a3 migration guide](migration-a3.md) for the file API change and the
 [release roadmap](https://github.com/ma2za/pseudonymize/blob/main/ROADMAP.md) for later adapters.

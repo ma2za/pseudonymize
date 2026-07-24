@@ -16,8 +16,10 @@ REQUIRED_SDIST_FILES = frozenset(
         "VISION.md",
         "docs/architecture.md",
         "docs/migration-a2.md",
+        "docs/migration-a3.md",
         "docs/releasing.md",
         "docs/releases/0.1.0a2.md",
+        "docs/releases/0.1.0a3.md",
         "pyproject.toml",
         "src/pseudonymize/py.typed",
     }

@@ -46,8 +46,8 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 | Nested Python data | Shipped | Dictionaries, lists, tuples, JSON scalars, and path policies |
 | Structured detection | Shipped | Email, phone, IP, IBAN, payment card, URL credentials, and common secrets |
 | Document representation | Shipped | Immutable blocks, typed locations, sanitized metadata, and inspection |
-| Generic file orchestration | Shipped | Explicit caller-provided adapters and atomic safe-copy output |
-| Built-in text, JSON, JSONL, and CSV adapters | Planned for `0.1.0a3` | No automatic format guessing yet |
+| Generic file orchestration | Shipped | Built-in or caller-provided adapters and atomic safe-copy output |
+| TXT, Markdown, log, JSON, JSONL, and CSV files | Shipped | Explicit format or recognized suffix; no content guessing |
 | Names, organizations, and locations | Planned | Requires a custom backend today; optional local NER is planned |
 | PDF, Office, images, and OCR | Planned | Not supported by the current package |
 | Remote providers | Contract only | No HTTP client or provider implementation is included |
@@ -162,10 +162,33 @@ the block text.
 `process_document()` returns a transformed document. `inspect_document()` returns detections
 without transformed output.
 
-`process_file()` and `inspect_file()` require explicit adapters in the current release. The core
+`process_file()` selects a built-in adapter from an explicit format or a recognized suffix. It
 never overwrites the source, defaults to `<stem>.safe<suffix>`, refuses an existing destination
-unless `overwrite=True`, and publishes rendered bytes atomically. Built-in format adapters arrive
-in `0.1.0a3`.
+unless `overwrite=True`, and publishes rendered bytes atomically:
+
+```python
+from pseudonymize import Pseudonymizer
+
+result = Pseudonymizer().process_file("requests.json")
+
+assert result.output.name == "requests.safe.json"
+assert result.statistics.replacements_applied >= 0
+```
+
+TXT, Markdown, log, JSON, JSONL, and strict comma-separated CSV files are dependency-free.
+`inspect_file()` reports detections without writing output. Pass `format="json"` to override an
+unknown suffix or use `input_adapter` and `output_adapter` for a custom format.
+
+JSON, JSONL, and CSV outputs preserve data semantics but normalize insignificant whitespace,
+quoting, and record endings. UTF-8 is strict by default, an existing UTF-8 BOM is preserved, and
+an explicit codec can be supplied with `encoding=`.
+
+The CLI exposes the same workflow:
+
+```console
+pseudonymize file requests.json
+pseudonymize inspect-file requests.json
+```
 
 ## Detection backends
 

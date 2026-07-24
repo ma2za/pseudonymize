@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pseudonymize"
-version = "0.1.0a2"
+version = "0.1.0a3"
 description = "Local-first PII pseudonymization for text, structured data, and LLM payloads."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -75,7 +75,7 @@ minversion = "8"
 testpaths = ["tests"]
 pythonpath = ["."]
 python_files = ["test_*.py", "benchmark_*.py"]
-addopts = ["--strict-config", "--strict-markers", "-ra", "--cov=pseudonymize", "--cov-report=term-missing", "--cov-branch", "--cov-fail-under=97.29"]
+addopts = ["--strict-config", "--strict-markers", "-ra", "--cov=pseudonymize", "--cov-report=term-missing", "--cov-branch", "--cov-fail-under=99.36"]
 markers = ["benchmark: performance benchmark", "integration: integration test", "slow: deliberately slow test"]
 filterwarnings = ["error"]
 
@@ -86,6 +86,7 @@ source = ["pseudonymize"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+precision = 2
 exclude_also = [
   "if TYPE_CHECKING:",
   "raise NotImplementedError",
