@@ -38,6 +38,78 @@ def test_json_cli(monkeypatch: object, capsys: object) -> None:
     assert "maria@example.com" not in capsys.readouterr().out  # type: ignore[attr-defined]
 
 
+def test_file_and_inspection_cli(tmp_path: Path, capsys: object) -> None:
+    source = tmp_path / "payload.json"
+    source.write_text('{"value":"maria@example.com"}', encoding="utf-8")
+
+    assert main(["inspect-file", str(source)]) == 0
+    inspected = json.loads(capsys.readouterr().out)  # type: ignore[attr-defined]
+    assert inspected["detections"][0] == {
+        "entity_type": "EMAIL",
+        "block_id": "block-000000",
+        "location": {"kind": "json_path", "path": ["value"]},
+        "start": 0,
+        "end": 17,
+        "confidence": 0.99,
+        "backend": "rules",
+        "detector": "email",
+    }
+    assert inspected["statistics"]["replacements_applied"] == 0
+    assert "maria@example.com" not in json.dumps(inspected)
+
+    destination = tmp_path / "output.json"
+    assert (
+        main(
+            [
+                "file",
+                str(source),
+                "--output",
+                str(destination),
+                "--redact",
+            ]
+        )
+        == 0
+    )
+    assert capsys.readouterr().out.strip() == str(destination)  # type: ignore[attr-defined]
+    assert json.loads(destination.read_text(encoding="utf-8")) == {"value": "[REDACTED]"}
+
+
+def test_file_cli_format_override_and_sanitized_failure(tmp_path: Path, capsys: object) -> None:
+    source = tmp_path / "payload.data"
+    source.write_text("maria@example.com", encoding="utf-8")
+    assert main(["file", str(source), "--format", "text"]) == 0
+    assert "maria@example.com" not in capsys.readouterr().out  # type: ignore[attr-defined]
+
+    malformed = tmp_path / "malformed.json"
+    malformed.write_text('{"value":"maria@example.com"', encoding="utf-8")
+    with pytest.raises(SystemExit) as failure:
+        main(["inspect-file", str(malformed)])
+    assert failure.value.code == 2
+    assert "maria@example.com" not in capsys.readouterr().err  # type: ignore[attr-defined]
+
+
+def test_inspection_cli_serializes_text_and_csv_locations(tmp_path: Path, capsys: object) -> None:
+    text_source = tmp_path / "payload.txt"
+    text_source.write_text("maria@example.com", encoding="utf-8")
+    assert main(["inspect-file", str(text_source)]) == 0
+    text_report = json.loads(capsys.readouterr().out)  # type: ignore[attr-defined]
+    assert text_report["detections"][0]["location"] == {
+        "kind": "text_offset",
+        "start": 0,
+        "end": 17,
+    }
+
+    csv_source = tmp_path / "payload.csv"
+    csv_source.write_text("maria@example.com\n", encoding="utf-8")
+    assert main(["inspect-file", str(csv_source)]) == 0
+    csv_report = json.loads(capsys.readouterr().out)  # type: ignore[attr-defined]
+    assert csv_report["detections"][0]["location"] == {
+        "kind": "csv_cell",
+        "row": 0,
+        "column": 0,
+    }
+
+
 def test_installed_console_entrypoint() -> None:
     result = subprocess.run(
         [sys.executable, "-m", "pseudonymize.cli", "keygen"],

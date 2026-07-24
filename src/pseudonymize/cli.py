@@ -10,9 +10,12 @@ from pathlib import Path
 
 from pseudonymize.api import generate_key
 from pseudonymize.detectors import DEFAULT_DETECTORS
+from pseudonymize.document import CSVCellLocation, JSONPathLocation, TextOffsetLocation
 from pseudonymize.engine import Data, Pseudonymizer
 from pseudonymize.exceptions import PseudonymizeError
+from pseudonymize.formats import FileFormat
 from pseudonymize.policy import Policy
+from pseudonymize.processing import DetectionReport, ProcessingResult
 from pseudonymize.transforms import TransformationMode
 
 
@@ -32,6 +35,23 @@ def _parser() -> argparse.ArgumentParser:
     _add_key_options(json_parser)
     json_parser.add_argument("--namespace", default="default")
     _add_mode_options(json_parser)
+
+    file_parser = subparsers.add_parser("file", help="process a supported file")
+    file_parser.add_argument("source", type=Path)
+    file_parser.add_argument("--output", type=Path)
+    file_parser.add_argument("--format", choices=tuple(FileFormat))
+    file_parser.add_argument("--encoding")
+    file_parser.add_argument("--overwrite", action="store_true")
+    _add_key_options(file_parser, allow_stdin=True)
+    file_parser.add_argument("--namespace", default="default")
+    _add_mode_options(file_parser)
+
+    inspect_parser = subparsers.add_parser(
+        "inspect-file", help="inspect a supported file without writing output"
+    )
+    inspect_parser.add_argument("source", type=Path)
+    inspect_parser.add_argument("--format", choices=tuple(FileFormat))
+    inspect_parser.add_argument("--encoding")
     return parser
 
 
@@ -81,7 +101,7 @@ def _read_key(arguments: argparse.Namespace) -> bytes:
         with os.fdopen(os.dup(arguments.key_fd), encoding="ascii") as stream:
             encoded = stream.read().strip()
     else:
-        if arguments.text == "-":
+        if getattr(arguments, "text", None) == "-":
             raise ValueError("standard input cannot provide both the key and text")
         encoded = sys.stdin.read().strip()
     try:
@@ -100,6 +120,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("\n".join(detector.name for detector in DEFAULT_DETECTORS))
         return 0
     try:
+        if arguments.command == "inspect-file":
+            inspected = Pseudonymizer().inspect_file(
+                arguments.source,
+                format=arguments.format,
+                encoding=arguments.encoding,
+            )
+            json.dump(_inspection_payload(inspected), sys.stdout, ensure_ascii=False)
+            sys.stdout.write("\n")
+            return 0
         key = _read_key(arguments) if _has_key_source(arguments) else None
         engine = Pseudonymizer(
             mode=arguments.mode,
@@ -112,13 +141,65 @@ def main(argv: Sequence[str] | None = None) -> int:
             source = sys.stdin.read() if arguments.text == "-" else arguments.text
             print(engine.process(source).text)
             return 0
+        if arguments.command == "file":
+            result = engine.process_file(
+                arguments.source,
+                arguments.output,
+                format=arguments.format,
+                encoding=arguments.encoding,
+                overwrite=arguments.overwrite,
+            )
+            print(result.output)
+            return 0
         payload = json.load(sys.stdin)
         output: Data = engine.process_data(payload)
         json.dump(output, sys.stdout, ensure_ascii=False)
         sys.stdout.write("\n")
         return 0
-    except (OSError, ValueError, json.JSONDecodeError, PseudonymizeError) as error:
+    except (LookupError, OSError, ValueError, json.JSONDecodeError, PseudonymizeError) as error:
         parser.exit(2, f"pseudonymize: error: {error}\n")
+
+
+def _inspection_payload(result: ProcessingResult[None]) -> dict[str, object]:
+    return {
+        "detections": [_detection_payload(report) for report in result.detections],
+        "statistics": {
+            "blocks_processed": result.statistics.blocks_processed,
+            "detections_found": result.statistics.detections_found,
+            "replacements_applied": result.statistics.replacements_applied,
+            "backend_invocations": result.statistics.backend_invocations,
+            "local_block_calls": result.statistics.local_block_calls,
+            "remote_block_calls": result.statistics.remote_block_calls,
+        },
+        "warnings": [
+            {"code": warning.code, "message": warning.message, "block_id": warning.block_id}
+            for warning in result.warnings
+        ],
+    }
+
+
+def _detection_payload(report: DetectionReport) -> dict[str, object]:
+    return {
+        "entity_type": report.entity_type.value,
+        "block_id": report.block_id,
+        "location": _location_payload(report),
+        "start": report.start,
+        "end": report.end,
+        "confidence": report.confidence,
+        "backend": report.backend,
+        "detector": report.detector,
+    }
+
+
+def _location_payload(report: DetectionReport) -> dict[str, object]:
+    location = report.location
+    if isinstance(location, TextOffsetLocation):
+        return {"kind": "text_offset", "start": location.start, "end": location.end}
+    if isinstance(location, JSONPathLocation):
+        return {"kind": "json_path", "path": location.path}
+    if isinstance(location, CSVCellLocation):
+        return {"kind": "csv_cell", "row": location.row, "column": location.column}
+    raise TypeError("unsupported report location")
 
 
 if __name__ == "__main__":

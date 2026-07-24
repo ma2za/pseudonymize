@@ -30,6 +30,7 @@ from pseudonymize.exceptions import (
     InvalidKeyError,
     UnsupportedDataError,
 )
+from pseudonymize.formats import BuiltinFileAdapter, FileFormat, select_file_format
 from pseudonymize.policy import Policy
 from pseudonymize.processing import (
     DetectionReport,
@@ -184,13 +185,22 @@ class Pseudonymizer:
     def process_file(
         self,
         source: str | os.PathLike[str],
-        input_adapter: InputAdapter[Path],
-        output_adapter: OutputAdapter,
         destination: str | os.PathLike[str] | None = None,
         *,
+        format: FileFormat | str | None = None,
+        encoding: str | None = None,
         overwrite: bool = False,
+        input_adapter: InputAdapter[Path] | None = None,
+        output_adapter: OutputAdapter | None = None,
     ) -> ProcessingResult[Path]:
         source_path = Path(source)
+        selected_input, selected_output = _processing_adapters(
+            source_path,
+            format,
+            encoding,
+            input_adapter,
+            output_adapter,
+        )
         destination_path = (
             Path(destination)
             if destination is not None
@@ -200,8 +210,8 @@ class Pseudonymizer:
             raise ValueError("file processing never overwrites its source")
         if destination_path.exists() and not overwrite:
             raise FileExistsError("destination already exists")
-        processed = self.process_document(_extract_document(input_adapter, source_path))
-        rendered = _render_document(output_adapter, processed.output)
+        processed = self.process_document(_extract_document(selected_input, source_path))
+        rendered = _render_document(selected_output, processed.output)
         try:
             _atomic_write(destination_path, rendered, overwrite)
         except FileExistsError:
@@ -216,9 +226,16 @@ class Pseudonymizer:
         )
 
     def inspect_file(
-        self, source: str | os.PathLike[str], input_adapter: InputAdapter[Path]
+        self,
+        source: str | os.PathLike[str],
+        *,
+        format: FileFormat | str | None = None,
+        encoding: str | None = None,
+        input_adapter: InputAdapter[Path] | None = None,
     ) -> ProcessingResult[None]:
-        return self.inspect_document(_extract_document(input_adapter, Path(source)))
+        source_path = Path(source)
+        selected_input = _inspection_adapter(source_path, format, encoding, input_adapter)
+        return self.inspect_document(_extract_document(selected_input, source_path))
 
     def new_scope(self) -> "ProcessingScope":
         return ProcessingScope(self)
@@ -426,11 +443,45 @@ def _atomic_write(destination: Path, rendered: bytes, overwrite: bool) -> None:
 def _extract_document(input_adapter: InputAdapter[Path], source: Path) -> Document:
     try:
         document = input_adapter.extract(source)
+    except AdapterExecutionError:
+        if isinstance(input_adapter, BuiltinFileAdapter):
+            raise
+        raise AdapterExecutionError("input adapter failed during extraction") from None
     except Exception:
         raise AdapterExecutionError("input adapter failed during extraction") from None
     if not isinstance(document, Document):
         raise AdapterContractError("input adapter must extract a Document")
     return document
+
+
+def _processing_adapters(
+    source: Path,
+    format: FileFormat | str | None,
+    encoding: str | None,
+    input_adapter: InputAdapter[Path] | None,
+    output_adapter: OutputAdapter | None,
+) -> tuple[InputAdapter[Path], OutputAdapter]:
+    if input_adapter is None and output_adapter is None:
+        adapter = BuiltinFileAdapter(select_file_format(source, format), encoding)
+        return adapter, adapter
+    if input_adapter is None or output_adapter is None:
+        raise ValueError("custom file processing requires input and output adapters")
+    if format is not None or encoding is not None:
+        raise ValueError("custom adapters cannot be combined with format or encoding")
+    return input_adapter, output_adapter
+
+
+def _inspection_adapter(
+    source: Path,
+    format: FileFormat | str | None,
+    encoding: str | None,
+    input_adapter: InputAdapter[Path] | None,
+) -> InputAdapter[Path]:
+    if input_adapter is None:
+        return BuiltinFileAdapter(select_file_format(source, format), encoding)
+    if format is not None or encoding is not None:
+        raise ValueError("custom adapters cannot be combined with format or encoding")
+    return input_adapter
 
 
 def _render_document(output_adapter: OutputAdapter, document: Document) -> bytes:

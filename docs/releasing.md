@@ -46,7 +46,7 @@ Run the `Release` workflow manually from the merged commit. Manual dispatch publ
 
 ```console
 python -m venv test-install
-test-install/bin/python -m pip install --index-url https://test.pypi.org/simple/ pseudonymize==0.1.0a2
+test-install/bin/python -m pip install --index-url https://test.pypi.org/simple/ pseudonymize==0.1.0a3
 test-install/bin/python -c "from pseudonymize import pseudonymize; assert pseudonymize('maria@example.com') == '<EMAIL_1>'"
 test-install/bin/pseudonymize keygen
 ```
@@ -58,8 +58,8 @@ On Windows, use `test-install\Scripts\python.exe` and `test-install\Scripts\pseu
 1. Create an annotated tag whose version exactly matches `pyproject.toml`:
 
    ```console
-   git tag -a v0.1.0a2 -m "Release 0.1.0a2"
-   git push origin v0.1.0a2
+   git tag -a v0.1.0a3 -m "Release 0.1.0a3"
+   git push origin v0.1.0a3
    ```
 
 2. The tag workflow reruns quality, tests, documentation, and artifact validation.
@@ -71,5 +71,5 @@ On Windows, use `test-install\Scripts\python.exe` and `test-install\Scripts\pseu
 
 Never reuse a published version. Fixes require a new prerelease or patch version.
 
-For `0.1.0a2`, the approved release path skips TestPyPI and proceeds directly from a fully green
+For `0.1.0a3`, the approved release path skips TestPyPI and proceeds directly from a fully green
 release PR to the production tag workflow.

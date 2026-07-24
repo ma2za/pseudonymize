@@ -22,6 +22,10 @@ class FileProcessingError(PseudonymizeError, OSError):
     pass
 
 
+class UnsupportedFormatError(PseudonymizeError, ValueError):
+    pass
+
+
 class BackendContractError(PseudonymizeError, TypeError):
     pass
 

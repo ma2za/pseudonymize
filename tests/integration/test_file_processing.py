@@ -38,8 +38,8 @@ def test_generic_file_processing_uses_explicit_adapters_and_safe_destination(
 
     result = Pseudonymizer().process_file(
         source,
-        CustomInputAdapter(),
-        CustomOutputAdapter(),
+        input_adapter=CustomInputAdapter(),
+        output_adapter=CustomOutputAdapter(),
     )
 
     assert result.output == tmp_path / "entrée.safe.custom"
@@ -60,18 +60,18 @@ def test_destination_collision_requires_explicit_overwrite(tmp_path: Path) -> No
     with pytest.raises(FileExistsError, match="already exists"):
         engine.process_file(
             source,
-            CustomInputAdapter(),
-            CustomOutputAdapter(),
             destination,
+            input_adapter=CustomInputAdapter(),
+            output_adapter=CustomOutputAdapter(),
         )
     assert destination.read_text(encoding="utf-8") == "existing"
 
     result = engine.process_file(
         source,
-        CustomInputAdapter(),
-        CustomOutputAdapter(),
         destination,
         overwrite=True,
+        input_adapter=CustomInputAdapter(),
+        output_adapter=CustomOutputAdapter(),
     )
     assert result.output == destination
     assert destination.read_text(encoding="utf-8") == "<EMAIL_1>"
@@ -85,10 +85,10 @@ def test_source_overwrite_is_always_forbidden(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="never overwrites"):
         Pseudonymizer().process_file(
             source,
-            CustomInputAdapter(),
-            CustomOutputAdapter(),
             source,
             overwrite=True,
+            input_adapter=CustomInputAdapter(),
+            output_adapter=CustomOutputAdapter(),
         )
     assert source.read_text(encoding="utf-8") == "maria@example.com"
 
@@ -105,10 +105,10 @@ def test_source_symlink_cannot_bypass_overwrite_protection(tmp_path: Path) -> No
     with pytest.raises(ValueError, match="never overwrites"):
         Pseudonymizer().process_file(
             source,
-            CustomInputAdapter(),
-            CustomOutputAdapter(),
             target,
             overwrite=True,
+            input_adapter=CustomInputAdapter(),
+            output_adapter=CustomOutputAdapter(),
         )
     assert target.read_text(encoding="utf-8") == "maria@example.com"
 
@@ -117,7 +117,7 @@ def test_inspect_file_does_not_create_output(tmp_path: Path) -> None:
     source = tmp_path / "input.custom"
     source.write_text("maria@example.com", encoding="utf-8")
 
-    result = Pseudonymizer().inspect_file(source, CustomInputAdapter())
+    result = Pseudonymizer().inspect_file(source, input_adapter=CustomInputAdapter())
 
     assert result.output is None
     assert result.detections[0].token is None
@@ -138,7 +138,15 @@ def test_adapter_failures_are_sanitized_and_leave_no_temporary_file(
             raise RuntimeError(source_value)
 
     with pytest.raises(AdapterExecutionError) as captured:
-        Pseudonymizer().inspect_file(source, FailingInput())
+        Pseudonymizer().inspect_file(source, input_adapter=FailingInput())
+    assert source_value not in str(captured.value)
+
+    class LeakingAdapterError:
+        def extract(self, source: Path) -> Document:
+            raise AdapterExecutionError(source_value)
+
+    with pytest.raises(AdapterExecutionError) as captured:
+        Pseudonymizer().inspect_file(source, input_adapter=LeakingAdapterError())
     assert source_value not in str(captured.value)
 
     class FailingOutput:
@@ -148,7 +156,11 @@ def test_adapter_failures_are_sanitized_and_leave_no_temporary_file(
             raise RuntimeError(source_value)
 
     with pytest.raises(AdapterExecutionError) as captured:
-        Pseudonymizer().process_file(source, CustomInputAdapter(), FailingOutput())
+        Pseudonymizer().process_file(
+            source,
+            input_adapter=CustomInputAdapter(),
+            output_adapter=FailingOutput(),
+        )
     assert source_value not in str(captured.value)
     assert not tuple(tmp_path.glob(".*.tmp"))
 
@@ -170,9 +182,13 @@ def test_adapter_return_types_are_enforced(tmp_path: Path) -> None:
             return cast(bytes, "not-bytes")
 
     with pytest.raises(AdapterContractError, match="Document"):
-        Pseudonymizer().inspect_file(source, BadInput())
+        Pseudonymizer().inspect_file(source, input_adapter=BadInput())
     with pytest.raises(AdapterContractError, match="bytes"):
-        Pseudonymizer().process_file(source, CustomInputAdapter(), BadOutput())
+        Pseudonymizer().process_file(
+            source,
+            input_adapter=CustomInputAdapter(),
+            output_adapter=BadOutput(),
+        )
 
 
 @pytest.mark.parametrize("function_name", ["link", "replace"])
@@ -194,10 +210,10 @@ def test_interrupted_atomic_publish_cleans_temporary_files(
     with pytest.raises(FileProcessingError) as captured:
         Pseudonymizer().process_file(
             source,
-            CustomInputAdapter(),
-            CustomOutputAdapter(),
             destination,
             overwrite=function_name == "replace",
+            input_adapter=CustomInputAdapter(),
+            output_adapter=CustomOutputAdapter(),
         )
 
     assert "maria@example.com" not in str(captured.value)
@@ -223,9 +239,9 @@ def test_atomic_no_clobber_handles_a_destination_race(
     with pytest.raises(FileExistsError, match="already exists"):
         Pseudonymizer().process_file(
             source,
-            CustomInputAdapter(),
-            CustomOutputAdapter(),
             destination,
+            input_adapter=CustomInputAdapter(),
+            output_adapter=CustomOutputAdapter(),
         )
     assert destination.read_text(encoding="utf-8") == "racing writer"
     assert not tuple(tmp_path.glob(".*.tmp"))

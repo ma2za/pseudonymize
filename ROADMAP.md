@@ -9,8 +9,8 @@ publishable without requiring unfinished later layers.
 | --- | --- | --- |
 | `0.1.0a1` | Published | Dependency-free text and nested-data core |
 | `0.1.0a2` | Published | Document representation, extension contracts, safe reports, and generic file orchestration |
-| `0.1.0a3` | Next | Built-in dependency-free text and machine-readable file adapters |
-| `0.1.0b1` | Planned | Core API freeze and production-oriented examples |
+| `0.1.0a3` | Published | Built-in dependency-free text and machine-readable file adapters |
+| `0.1.0b1` | Next | Core API freeze and production-oriented examples |
 | `0.1.0rc1` | Planned | External installation and release validation |
 | `0.1.0` | Planned | First stable text and machine-readable release |
 
@@ -24,7 +24,7 @@ but compatibility guarantees start only with `0.1.0`.
 - Strict mypy passes for source, tests, benchmarks, and scripts.
 - Supported Python versions pass on Linux, macOS, and Windows.
 - Branch coverage meets the release floor and never falls below the previous tagged baseline.
-  The current enforced floor is 97.29%.
+  The current enforced floor is 99.36%.
 - Property, contract, clean-wheel, documentation, and packaging checks pass.
 - The base wheel remains typed and declares zero runtime dependencies.
 - Importing `pseudonymize` does not load optional document, OCR, model, or HTTP packages.
@@ -66,13 +66,15 @@ Delivered:
 
 ### `0.1.0a3`: dependency-free file adapters
 
-Planned:
+Delivered:
 
 - TXT, Markdown, log, JSON, JSONL, and CSV adapters
 - Explicit format selection followed by recognized-suffix selection
 - Unknown-format rejection rather than content guessing
-- Encoding policy and byte-order-mark behavior
-- Stable extraction, typed locations, inspection, and sanitized-copy round trips
+- Strict encoding policy with UTF-8 byte-order-mark preservation
+- Stable extraction, typed locations, inspection, and semantic sanitized-copy round trips
+- File processing and machine-readable inspection through the CLI
+- Normalized JSON, JSONL, and CSV rendering with preserved value semantics
 
 Exit criteria:
 
