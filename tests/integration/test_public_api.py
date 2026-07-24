@@ -16,6 +16,7 @@ def test_top_level_api() -> None:
         "EntityType",
         "EntityResolver",
         "ExactEntityResolver",
+        "FileFormat",
         "InputAdapter",
         "JSONPathLocation",
         "MetadataValue",

@@ -16,6 +16,7 @@ from pseudonymize.document import (
     TextOffsetLocation,
 )
 from pseudonymize.engine import ProcessingScope, Pseudonymizer
+from pseudonymize.formats import FileFormat
 from pseudonymize.policy import NetworkPolicy, Policy
 from pseudonymize.processing import (
     DetectionReport,
@@ -40,6 +41,7 @@ __all__ = [
     "EntityResolver",
     "EntityType",
     "ExactEntityResolver",
+    "FileFormat",
     "InputAdapter",
     "JSONPathLocation",
     "MetadataValue",
