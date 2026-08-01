@@ -24,4 +24,4 @@ policy = Policy(
 )
 ```
 
-The base package provides no remote backend or HTTP dependency in `0.1.0a3`.
+The base package provides no remote backend or HTTP dependency.

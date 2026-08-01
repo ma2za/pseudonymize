@@ -85,6 +85,12 @@ def main() -> None:
         FORBIDDEN_OPTIONAL_IMPORTS.isdisjoint(sys.modules),
         "base import loaded an optional dependency",
     )
+    subprocess.run(
+        [sys.executable, "examples/llm_gateway.py"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
 
 if __name__ == "__main__":
