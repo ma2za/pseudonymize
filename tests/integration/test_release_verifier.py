@@ -13,13 +13,13 @@ from scripts.verify_release import (
 )
 
 
-def _write_project(root: Path, version: str = "0.1.0a3") -> None:
+def _write_project(root: Path, version: str = "0.1.0b1") -> None:
     (root / "pyproject.toml").write_text(
         f'[project]\nname = "pseudonymize"\nversion = "{version}"\n', encoding="utf-8"
     )
 
 
-def _write_wheel(directory: Path, version: str = "0.1.0a3", dependency: bool = False) -> None:
+def _write_wheel(directory: Path, version: str = "0.1.0b1", dependency: bool = False) -> None:
     metadata = email.message.Message()
     metadata["Name"] = "pseudonymize"
     metadata["Version"] = version
@@ -35,7 +35,7 @@ def _write_wheel(directory: Path, version: str = "0.1.0a3", dependency: bool = F
         )
 
 
-def _write_sdist(directory: Path, version: str = "0.1.0a3") -> None:
+def _write_sdist(directory: Path, version: str = "0.1.0b1") -> None:
     path = directory / f"pseudonymize-{version}.tar.gz"
     with tarfile.open(path, "w:gz") as archive:
         for name in REQUIRED_SDIST_FILES:
@@ -51,14 +51,14 @@ def test_release_artifacts_and_tag(tmp_path: Path, capsys: pytest.CaptureFixture
     distribution_directory.mkdir()
     _write_wheel(distribution_directory)
     _write_sdist(distribution_directory)
-    verify_release(tmp_path, distribution_directory, "v0.1.0a3")
+    verify_release(tmp_path, distribution_directory, "v0.1.0b1")
     assert "dependency-free" in capsys.readouterr().out
-    assert project_version(tmp_path / "pyproject.toml") == "0.1.0a3"
+    assert project_version(tmp_path / "pyproject.toml") == "0.1.0b1"
 
 
 def test_release_rejects_mismatched_tag() -> None:
     with pytest.raises(ValueError, match="does not match"):
-        verify_tag("0.1.0a3", "v0.1.0a2")
+        verify_tag("0.1.0b1", "v0.1.0a3")
 
 
 def test_release_rejects_runtime_dependency(tmp_path: Path) -> None:

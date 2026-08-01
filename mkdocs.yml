@@ -10,10 +10,14 @@ nav:
   - Policies: policies.md
   - Detectors: detectors.md
   - LLM payloads: llm-payloads.md
+  - LLM gateway patterns: llm-gateways.md
+  - Deployment: deployment.md
   - Architecture: architecture.md
+  - Compatibility: compatibility.md
   - Migrating to 0.1.0a3: migration-a3.md
   - Migrating to 0.1.0a2: migration-a2.md
   - Release notes:
+      - 0.1.0b1: releases/0.1.0b1.md
       - 0.1.0a3: releases/0.1.0a3.md
       - 0.1.0a2: releases/0.1.0a2.md
   - Releasing: releasing.md

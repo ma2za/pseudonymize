@@ -11,5 +11,5 @@ matched values.
 Start with the [quickstart](quickstart.md), then read the [architecture](architecture.md),
 [policies](policies.md), [security model](security.md), and [limitations](limitations.md).
 
-The API is in active alpha development. Contracts may change without compatibility shims before
-the stable `0.1.0` release.
+The dependency-free core API is frozen from `0.1.0b1` through the stable `0.1.0` release. See the
+[compatibility policy](compatibility.md).

@@ -21,9 +21,9 @@ Input adapter
     -> output adapter
 ```
 
-The dependency-free `0.1.0a3` release routes text, nested data, documents, built-in file formats,
-and caller-supplied adapters through this representation. These interfaces remain provisional
-until beta.
+The dependency-free core routes text, nested data, documents, built-in file formats, and
+caller-supplied adapters through this representation. These interfaces are frozen from
+`0.1.0b1` through the stable `0.1.0` release.
 
 ## Content representation
 

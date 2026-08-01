@@ -4,6 +4,24 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.0b1] - 2026-08-01
+
+### Added
+
+- Compatibility policy for the frozen core API and stable `0.1` line.
+- Executable LLM gateway examples covering prompts, retrieval, tool calls, and tool output.
+- Production deployment guidance and an expanded threat model.
+- Reference performance, import-time, memory, and wheel-size measurements.
+
+### Changed
+
+- Advanced the package from alpha to beta and froze documented core contracts through `0.1.0`.
+- Extended installed-wheel verification to execute the documented gateway example.
+
+### Fixed
+
+- Corrected the deterministic engine configuration used by the published benchmark command.
+
 ## [0.1.0a3] - 2026-07-24
 
 ### Added
@@ -73,7 +91,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Deterministic processing now requires `mode="deterministic"` in addition to a key.
 - `redact()` now emits `[REDACTED]` by default; generic mode emits typed placeholders.
 
-[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0a3...HEAD
+[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0b1...HEAD
+[0.1.0b1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0b1
 [0.1.0a3]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a3
 [0.1.0a2]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a2
 [0.1.0a1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a1

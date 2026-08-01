@@ -1,8 +1,8 @@
 # Contributing
 
-Pseudonymize is in active alpha development. Clean API changes are welcome even when they are
-breaking. Do not add compatibility aliases, deprecation layers, or migration shims unless the
-current roadmap milestone explicitly requires them.
+Pseudonymize is in beta. The dependency-free core API is frozen through `0.1.0`; changes must
+follow the compatibility policy. A necessary breaking core redesign returns the project to beta
+rather than adding an undocumented compatibility shim.
 
 ## Development setup
 
@@ -32,11 +32,11 @@ uv run mkdocs build --strict
 Use only synthetic values in issues, tests, benchmarks, commits, screenshots, and logs. Never paste
 real personal data, credentials, access tokens, production payloads, or private documents.
 
-## Alpha compatibility
+## Compatibility
 
-Until `0.1.0`, contributors should remove obsolete alpha contracts instead of maintaining parallel
-old and new APIs. Release notes document material breaks. The stable compatibility policy will be
-defined before the first stable release.
+Public names, documented constructors and methods, CLI behavior, and token formats remain stable
+from `0.1.0b1` through `0.1.0`. Release candidates accept only release-blocking fixes. See
+[docs/compatibility.md](docs/compatibility.md).
 
 Read [SECURITY.md](SECURITY.md), [SUPPORT.md](SUPPORT.md), and
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.

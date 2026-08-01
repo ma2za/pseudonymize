@@ -229,16 +229,17 @@ assert result.restore("Reply to <EMAIL_1>.") == "Reply to paolo@example.com."
 Mappings contain sensitive source values. They are hidden from `repr`, never persisted by the
 package, and must be protected separately by the application.
 
-## Alpha policy
+## Compatibility
 
-The project is in active alpha development. Until the stable `0.1.0` release:
+The dependency-free core API is frozen from `0.1.0b1` through the stable `0.1.0` release:
 
-- public APIs, token details, adapters, and backend contracts may change between releases;
-- architectural clarity and safe defaults take priority over backward-compatibility shims;
-- deprecated aliases are not retained unless a release milestone explicitly requires them;
-- every release documents material changes and raises or preserves the verification baseline.
+- documented public names, constructors, methods, CLI behavior, and token formats are preserved;
+- a breaking core redesign returns the project to beta;
+- release candidates accept only release-blocking fixes;
+- security fixes may reject unsafe inputs and are called out in release notes.
 
-Pin an exact prerelease when evaluating the package in an application.
+See the [compatibility policy](docs/compatibility.md) and pin an exact prerelease when evaluating
+the package in an application.
 
 ## Development
 
