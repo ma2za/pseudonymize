@@ -54,7 +54,7 @@ from pseudonymize.transforms import (
 )
 
 Data: TypeAlias = (
-    str | int | float | bool | None | dict[str, "Data"] | list["Data"] | tuple["Data", ...]
+    str | int | float | bool | dict[str, "Data"] | list["Data"] | tuple["Data", ...] | None
 )
 Serializer: TypeAlias = Callable[[object], Data]
 _ENTITY_NAMES = "|".join(re.escape(entity_type.value) for entity_type in EntityType)

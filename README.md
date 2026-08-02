@@ -83,9 +83,7 @@ Numbered aliases are the default. Numbering starts from one for each convenience
 ```python
 from pseudonymize import Pseudonymizer
 
-result = Pseudonymizer().process_with_report(
-    "Email paolo@example.com from 192.0.2.10."
-)
+result = Pseudonymizer().process_with_report("Email paolo@example.com from 192.0.2.10.")
 
 assert result.output == "Email <EMAIL_1> from <IP_ADDRESS_1>."
 assert result.statistics.detections_found == 2
@@ -135,9 +133,7 @@ from pseudonymize import Pseudonymizer
 scope = Pseudonymizer().new_scope()
 
 assert scope.process("paolo@example.com").text == "<EMAIL_1>"
-assert scope.process("maria@example.com and paolo@example.com").text == (
-    "<EMAIL_2> and <EMAIL_1>"
-)
+assert scope.process("maria@example.com and paolo@example.com").text == ("<EMAIL_2> and <EMAIL_1>")
 ```
 
 Deterministic mode uses HMAC-SHA256 and requires a key of at least 32 bytes:
