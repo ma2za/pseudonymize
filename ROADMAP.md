@@ -11,7 +11,7 @@ publishable without requiring unfinished later layers.
 | `0.1.0a2` | Published | Document representation, extension contracts, safe reports, and generic file orchestration |
 | `0.1.0a3` | Published | Built-in dependency-free text and machine-readable file adapters |
 | `0.1.0b1` | Published | Core API freeze and production-oriented examples |
-| `0.1.0rc1` | Prepared | External installation and release validation |
+| `0.1.0rc1` | Published | External installation and release validation |
 | `0.1.0` | Next | First stable text and machine-readable release |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
