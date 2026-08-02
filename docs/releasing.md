@@ -5,16 +5,14 @@ PyPI token in repository or environment secrets.
 
 ## One-time setup
 
-1. Create protected GitHub environments named `testpypi` and `pypi`.
-2. On TestPyPI, configure a pending trusted publisher for owner `ma2za`, repository
-   `pseudonymize`, workflow `release.yml`, and environment `testpypi`.
-3. On PyPI, configure the pending publisher for owner `ma2za`, repository `pseudonymize`, and
+1. Create a protected GitHub environment named `pypi`.
+2. On PyPI, configure the pending publisher for owner `ma2za`, repository `pseudonymize`, and
    workflow `release.yml`. Keep the publisher's optional environment field blank. The workflow
    still uses the GitHub `pypi` environment.
-4. When the repository plan supports Pages, enable Pages through GitHub Actions and
+3. When the repository plan supports Pages, enable Pages through GitHub Actions and
    set the repository variable `ENABLE_PAGES` to `true`. Until then, documentation
    builds remain required while deployment is skipped.
-5. Protect `main`: require pull requests and CI, resolved conversations, and linear history; block
+4. Protect `main`: require pull requests and CI, resolved conversations, and linear history; block
    force pushes and deletion.
 
 After the first upload, verify that the pending publisher became an ordinary project publisher.
@@ -39,27 +37,19 @@ After the first upload, verify that the pending publisher became an ordinary pro
 
 4. Open a pull request and merge only after every required check passes.
 
-## TestPyPI rehearsal
+## Artifact rehearsal
 
-Run the `Release` workflow manually from the merged commit. Manual dispatch publishes only to the
-`testpypi` environment. Install from TestPyPI in a clean environment and run both entry points:
-
-```console
-python -m venv test-install
-test-install/bin/python -m pip install --index-url https://test.pypi.org/simple/ pseudonymize==0.1.0b1
-test-install/bin/python -c "from pseudonymize import pseudonymize; assert pseudonymize('maria@example.com') == '<EMAIL_1>'"
-test-install/bin/pseudonymize keygen
-```
-
-On Windows, use `test-install\Scripts\python.exe` and `test-install\Scripts\pseudonymize.exe`.
+Run the `Package` workflow manually from the merged commit. It builds and validates the exact
+artifacts without publishing them, then installs the wheel on every supported operating-system and
+Python-version combination. Download the retained distributions when manual inspection is needed.
 
 ## PyPI publication
 
 1. Create an annotated tag whose version exactly matches `pyproject.toml`:
 
    ```console
-   git tag -a v0.1.0b1 -m "Release 0.1.0b1"
-   git push origin v0.1.0b1
+   git tag -a v0.1.0rc1 -m "Release 0.1.0rc1"
+   git push origin v0.1.0rc1
    ```
 
 2. The tag workflow reruns quality, tests, documentation, and artifact validation.
@@ -68,5 +58,8 @@ On Windows, use `test-install\Scripts\python.exe` and `test-install\Scripts\pseu
 4. Install from PyPI in a new environment and rerun the quickstart and CLI smoke test.
 5. Confirm the PyPI metadata, provenance, Python requirement, licence, project links, wheel size,
    `py.typed`, and absence of runtime dependencies.
+
+The production tag is the only package-publication path. Manual workflow dispatches never publish
+to TestPyPI or PyPI.
 
 Never reuse a published version. Fixes require a new prerelease or patch version.
