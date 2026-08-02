@@ -1,0 +1,59 @@
+[
+  {
+    "name": "text-bom-crlf",
+    "suffix": ".txt",
+    "input_base64": "77u/bWFyaWFAZXhhbXBsZS5jb20NCg==",
+    "expected_base64": "77u/PEVNQUlMXzE+DQo=",
+    "locations": [{"kind": "text_offset", "start": 0, "end": 19}]
+  },
+  {
+    "name": "markdown-lf",
+    "suffix": ".md",
+    "input_base64": "Q29udGFjdCBtYXJpYUBleGFtcGxlLmNvbQo=",
+    "expected_base64": "Q29udGFjdCA8RU1BSUxfMT4K",
+    "locations": [{"kind": "text_offset", "start": 0, "end": 26}]
+  },
+  {
+    "name": "json-unicode",
+    "suffix": ".json",
+    "input_base64": "eyJjaXR5IjoiQnVkYXBlc3Qg4oCTIMOhcnbDrXp0xbFyxZEiLCJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20iLCJlc2NhcGVkIjoibWFyaWFAZXhhbXBsZS5jb20ifQ==",
+    "expected_json": {
+      "city": "Budapest – árvíztűrő",
+      "contact": "<EMAIL_1>",
+      "escaped": "<EMAIL_1>"
+    },
+    "locations": [
+      {"kind": "json_path", "path": ["contact"]},
+      {"kind": "json_path", "path": ["escaped"]}
+    ]
+  },
+  {
+    "name": "jsonl-mixed-newlines",
+    "suffix": ".jsonl",
+    "input_base64": "eyJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20ifQ0KeyJpcCI6IjE5Mi4wLjIuMTAifQo=",
+    "expected_jsonl": [
+      {"contact": "<EMAIL_1>"},
+      {"ip": "<IP_ADDRESS_1>"}
+    ],
+    "locations": [
+      {"kind": "json_path", "path": [0, "contact"]},
+      {"kind": "json_path", "path": [1, "ip"]}
+    ]
+  },
+  {
+    "name": "csv-multiline-crlf",
+    "suffix": ".csv",
+    "input_base64": "ZW1haWwsbm90ZSxlbXB0eQ0KbWFyaWFAZXhhbXBsZS5jb20sImxpbmUgb25lDQpsaW5lIHR3byIsDQo=",
+    "expected_csv": [
+      ["email", "note", "empty"],
+      ["<EMAIL_1>", "line one\r\nline two", ""]
+    ],
+    "locations": [{"kind": "csv_cell", "row": 1, "column": 0}]
+  },
+  {
+    "name": "jsonl-blank-line",
+    "suffix": ".jsonl",
+    "input_base64": "eyJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20ifQ0KDQp7ImlwIjoiMTkyLjAuMi4xMCJ9Cg==",
+    "error": "JSONL line 2"
+  }
+]
