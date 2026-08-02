@@ -48,8 +48,8 @@ Python-version combination. Download the retained distributions when manual insp
 1. Create an annotated tag whose version exactly matches `pyproject.toml`:
 
    ```console
-   git tag -a v0.1.0rc1 -m "Release 0.1.0rc1"
-   git push origin v0.1.0rc1
+   git tag -a v0.1.0 -m "Release 0.1.0"
+   git push origin v0.1.0
    ```
 
 2. The tag workflow reruns quality, tests, documentation, and artifact validation.
