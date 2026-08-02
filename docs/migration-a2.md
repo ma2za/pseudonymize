@@ -11,8 +11,7 @@ A text-only alpha backend previously accepted a string:
 class LocalNames:
     name = "local_names"
 
-    def detect(self, text):
-        ...
+    def detect(self, text): ...
 ```
 
 The block-aware backend declares its capabilities and remote behavior, then accepts a
@@ -33,9 +32,7 @@ class LocalNames:
     capabilities = BackendCapabilities(frozenset({EntityType.PERSON}))
     allow_remote_processing = False
 
-    def detect(
-        self, block: ContentBlock, policy: Policy
-    ) -> tuple[Detection, ...]:
+    def detect(self, block: ContentBlock, policy: Policy) -> tuple[Detection, ...]:
         start = block.text.find("Paolo Mazza")
         if start < 0:
             return ()
