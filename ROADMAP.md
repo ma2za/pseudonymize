@@ -12,7 +12,7 @@ publishable without requiring unfinished later layers.
 | `0.1.0a3` | Published | Built-in dependency-free text and machine-readable file adapters |
 | `0.1.0b1` | Published | Core API freeze and production-oriented examples |
 | `0.1.0rc1` | Published | External installation and release validation |
-| `0.1.0` | Prepared | First stable text and machine-readable release |
+| `0.1.0` | Published | First stable text and machine-readable release |
 | `0.2.0` | Next | Optional local named-entity recognition |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
