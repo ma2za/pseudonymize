@@ -22,7 +22,7 @@ from pseudonymize.exceptions import (
     UnsupportedFormatError,
 )
 
-JSONValue: TypeAlias = str | int | float | bool | None | dict[str, "JSONValue"] | list["JSONValue"]
+JSONValue: TypeAlias = str | int | float | bool | dict[str, "JSONValue"] | list["JSONValue"] | None
 
 
 class FileFormat(StrEnum):
