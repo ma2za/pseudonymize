@@ -10,9 +10,9 @@ publishable without requiring unfinished later layers.
 | `0.1.0a1` | Published | Dependency-free text and nested-data core |
 | `0.1.0a2` | Published | Document representation, extension contracts, safe reports, and generic file orchestration |
 | `0.1.0a3` | Published | Built-in dependency-free text and machine-readable file adapters |
-| `0.1.0b1` | Next | Core API freeze and production-oriented examples |
-| `0.1.0rc1` | Planned | External installation and release validation |
-| `0.1.0` | Planned | First stable text and machine-readable release |
+| `0.1.0b1` | Published | Core API freeze and production-oriented examples |
+| `0.1.0rc1` | Published | External installation and release validation |
+| `0.1.0` | Next | First stable text and machine-readable release |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -85,7 +85,7 @@ Exit criteria:
 
 ### `0.1.0b1`: freeze the core API
 
-Planned:
+Delivered:
 
 - Freeze text, nested-data, document, policy, result, backend, and adapter contracts
 - Publish a compatibility policy for the stable line
@@ -101,7 +101,7 @@ Exit criteria:
 
 ### `0.1.0rc1`: external release validation
 
-Planned:
+Delivered:
 
 - Clean installation tests across supported operating systems and Python versions
 - Packaging, import-time, bundled-file, licence, and dependency audit
