@@ -18,6 +18,7 @@ EXPECTED_PROJECT_URLS = {
 EXPECTED_PYTHON_CLASSIFIERS = {
     f"Programming Language :: Python :: {version}" for version in ("3.11", "3.12", "3.13", "3.14")
 }
+EXPECTED_DEVELOPMENT_CLASSIFIER = "Development Status :: 5 - Production/Stable"
 REQUIRED_SDIST_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -36,6 +37,7 @@ REQUIRED_SDIST_FILES = frozenset(
         "docs/releases/0.1.0a3.md",
         "docs/releases/0.1.0b1.md",
         "docs/releases/0.1.0rc1.md",
+        "docs/releases/0.1.0.md",
         "examples/llm_gateway.py",
         "pyproject.toml",
         "scripts/audit_install.py",
@@ -79,6 +81,8 @@ def verify_wheel(path: Path, version: str, project_root: Path) -> None:
         if project_urls != EXPECTED_PROJECT_URLS:
             raise ValueError("wheel project URLs are invalid")
         classifiers = set(metadata.get_all("Classifier", failobj=[]))
+        if EXPECTED_DEVELOPMENT_CLASSIFIER not in classifiers:
+            raise ValueError("wheel development-status classifier is invalid")
         if not EXPECTED_PYTHON_CLASSIFIERS.issubset(classifiers):
             raise ValueError("wheel Python classifiers are incomplete")
         expected_package_files = {

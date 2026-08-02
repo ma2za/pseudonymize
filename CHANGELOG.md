@@ -4,6 +4,20 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-02
+
+### Added
+
+- Stable compatibility guarantees for the dependency-free `0.1` core, CLI, and token formats.
+- Stable release notes and production package maturity metadata.
+
+### Changed
+
+- Promoted the validated text, nested-data, document, and machine-readable file APIs without
+  changing their public behavior or deterministic tokens.
+- Updated pinned GitHub Actions and the locked development toolchain used to validate releases.
+- Adopted Ruff 0.16 formatting and lint rules for source and documented Python examples.
+
 ## [0.1.0rc1] - 2026-08-02
 
 ### Added
@@ -107,7 +121,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Deterministic processing now requires `mode="deterministic"` in addition to a key.
 - `redact()` now emits `[REDACTED]` by default; generic mode emits typed placeholders.
 
-[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0rc1...HEAD
+[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0
 [0.1.0rc1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0rc1
 [0.1.0b1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0b1
 [0.1.0a3]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0a3

@@ -227,15 +227,16 @@ package, and must be protected separately by the application.
 
 ## Compatibility
 
-The dependency-free core API is frozen from `0.1.0b1` through the stable `0.1.0` release:
+The dependency-free core API is stable throughout the `0.1` release line:
 
 - documented public names, constructors, methods, CLI behavior, and token formats are preserved;
-- a breaking core redesign returns the project to beta;
-- release candidates accept only release-blocking fixes;
+- patch releases preserve documented behavior and token formats;
+- additive capabilities may appear in minor releases;
+- a breaking core redesign requires an incompatible release;
 - security fixes may reject unsafe inputs and are called out in release notes.
 
-See the [compatibility policy](docs/compatibility.md) and pin an exact prerelease when evaluating
-the package in an application.
+See the [compatibility policy](docs/compatibility.md) before upgrading the package in an
+application.
 
 ## Development
 

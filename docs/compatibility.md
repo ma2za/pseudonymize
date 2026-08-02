@@ -1,21 +1,20 @@
 # Compatibility policy
 
-`0.1.0b1` freezes the dependency-free core API for the first stable release. The supported public
+`0.1.0` establishes the stable dependency-free core API. The supported public
 surface is the set of names exported by `pseudonymize.__all__`, their documented constructors and
 methods, the `pseudonymize` command-line interface, and the documented token formats.
 
-## Beta to stable
+## Release-candidate history
 
-From `0.1.0b1` through `0.1.0`, releases preserve documented behavior and accepted inputs. A change
-that would require application code to be rewritten returns the project to a new beta series.
-Release candidates accept only release-blocking fixes.
+From `0.1.0b1` through `0.1.0`, releases preserved documented behavior and accepted inputs.
+Release candidates accepted only release-blocking fixes.
 
 Security fixes may reject input that was previously accepted when accepting it would violate a
 documented safety invariant. Such changes are called out prominently in release notes.
 
 ## Stable `0.1` line
 
-After `0.1.0`, patch releases preserve the public API and token format. New optional parameters,
+Patch releases preserve the public API and token format. New optional parameters,
 methods, entity types, file formats, and additive report fields may appear in a minor release.
 Removing or renaming public names, changing defaults, weakening safety guarantees, or changing a
 deterministic token for the same normalized input requires a later incompatible release.
