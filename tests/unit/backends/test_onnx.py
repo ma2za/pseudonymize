@@ -1,5 +1,6 @@
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -194,13 +195,13 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     original_encode = backend._tokenizer.encode
 
     class FakeEncoding:
-        def __init__(self, original):  # type: ignore
+        def __init__(self, original: Any):
             self.ids = original.ids
             self.attention_mask = original.attention_mask
             self.tokens = original.tokens
             self.offsets = [(1, 1)] * len(original.offsets)
 
-    def fake_encode(t):  # type: ignore
+    def fake_encode(t: str) -> Any:
         encoding = original_encode(t)
         return FakeEncoding(encoding)
 
@@ -226,7 +227,7 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     }
     # Artificially force predictions by monkeypatching the run output
 
-    def fake_run(output_names, input_feed):  # type: ignore
+    def fake_run(output_names: Any, input_feed: Any) -> Any:
         import numpy as np
 
         # Return fake logits where index 1 (B-PER), 3 (B-ORG), and 5 (B-LOC) win
