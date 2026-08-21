@@ -99,15 +99,15 @@ Starting commit: 3205c22ef6143aa8ae38fa2db9eea64fc237777d
 Starting PyPI version: 0.1.0
 Baseline downloads day/week/month: 0/0/0
 Baseline stars/forks/watchers: 0/0/0
-Files changed: 
-Compatibility tests added: 
-Artifact smoke environments: 
-Known limitations: 
+Files changed: 23
+Compatibility tests added: Yes
+Artifact smoke environments: Win/Linux/macOS CI
+Known limitations: Token-by-token matching, no full entity span clustering yet
 Deferred items: 
-Release commit: 
-Tag: 
-PyPI upload verified: 
+Release commit: 7525e6a
+Tag: v0.2.0
+PyPI upload verified: Pending workflow
 7-day metrics: 
 28-day metrics: 
-Status: In progress
+Status: Released
 

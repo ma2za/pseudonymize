@@ -13,7 +13,9 @@ from pseudonymize.policy import NetworkPolicy, Policy
 from pseudonymize.result import EntityType
 
 CACHE_DIR = Path(".pytest_temp/models/distilbert-ml")
-MODEL_URL_BASE = "https://huggingface.co/onnx-community/distilbert_finetuned_ai4privacy_v2-ONNX/resolve/main/"
+MODEL_URL_BASE = (
+    "https://huggingface.co/onnx-community/distilbert_finetuned_ai4privacy_v2-ONNX/resolve/main/"
+)
 MODEL_FILES = {
     "config.json": "config.json",
     "tokenizer.json": "tokenizer.json",
@@ -66,29 +68,30 @@ def test_ml_backend_missing_files() -> None:
 
 def test_ml_backend_missing_optional_dependency(monkeypatch: pytest.MonkeyPatch) -> None:
     import pseudonymize.backends.ml.onnx
+
     monkeypatch.setattr(pseudonymize.backends.ml.onnx, "ort", None)
-    
+
     with pytest.raises(ImportError, match="The 'ml' extra is required"):
         LocalONNXPIIBackend(model_path="model", tokenizer_path="tok")
 
     # Cover Tokenizer missing
     monkeypatch.setattr(pseudonymize.backends.ml.onnx, "ort", "mock_ort")
     monkeypatch.setattr(pseudonymize.backends.ml.onnx, "Tokenizer", None)
-    
+
     with pytest.raises(ImportError, match="The 'ml' extra is required"):
         LocalONNXPIIBackend(model_path="model", tokenizer_path="tok")
 
     # Cover np missing
     monkeypatch.setattr(pseudonymize.backends.ml.onnx, "Tokenizer", "mock_tok")
     monkeypatch.setattr(pseudonymize.backends.ml.onnx, "np", None)
-    
+
     with pytest.raises(ImportError, match="The 'ml' extra is required"):
         LocalONNXPIIBackend(model_path="model", tokenizer_path="tok")
 
 
 def test_ml_detect_config_missing_fallback(distilbert_artifacts: tuple[Path, Path, Path]) -> None:
     _, tokenizer_path, model_path = distilbert_artifacts
-    
+
     # Do not provide config path, this forces _id2label to evaluate to {}
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=None
@@ -106,9 +109,21 @@ def test_ml_detect_empty_block(distilbert_artifacts: tuple[Path, Path, Path]) ->
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
     policy = Policy(network_policy=NetworkPolicy.DENY)
-    
-    assert len(backend.detect(ContentBlock(id="1", text="", location=TextOffsetLocation(0, 0)), policy)) == 0
-    assert len(backend.detect(ContentBlock(id="1", text="   \n", location=TextOffsetLocation(0, 4)), policy)) == 0
+
+    assert (
+        len(
+            backend.detect(ContentBlock(id="1", text="", location=TextOffsetLocation(0, 0)), policy)
+        )
+        == 0
+    )
+    assert (
+        len(
+            backend.detect(
+                ContentBlock(id="1", text="   \n", location=TextOffsetLocation(0, 4)), policy
+            )
+        )
+        == 0
+    )
 
 
 def test_ml_detect_handles_unmapped_labels(
@@ -142,14 +157,14 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
     policy = Policy(network_policy=NetworkPolicy.DENY)
-    
-    # A hardened, highly specific text to test offsets, multiple contiguous entities, 
+
+    # A hardened, highly specific text to test offsets, multiple contiguous entities,
     # punctuation handling, subwords, and mixed entity types all in one string.
     text = "John Smith is currently visiting Microsoft's headquarters in Seattle, Washington!"
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
 
     detections = backend.detect(block, policy)
-    
+
     # Sort detections by offset for deterministic assertion
     sorted_detections = sorted(detections, key=lambda d: d.start)
 
@@ -157,13 +172,13 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     # PERSON: "John" (0,4), "Smith" (5,10) - (backend yields token-by-token right now)
     # LOC: "Seattle" (61,68), "Washington" (70,80)
 
-    # Note: Since the backend returns detections at the token level, 
+    # Note: Since the backend returns detections at the token level,
     # we rigorously assert the exact subword spans mapped correctly to their entity type
     assert len(sorted_detections) >= 4
-    
+
     # Let's map out the exact expected strings for the entities found
-    found_entities = [(d.entity_type, text[d.start:d.end]) for d in sorted_detections]
-    
+    found_entities = [(d.entity_type, text[d.start : d.end]) for d in sorted_detections]
+
     assert (EntityType.PERSON, "John") in found_entities
     assert (EntityType.PERSON, "Smith") in found_entities
     assert (EntityType.LOCATION, "Seattle") in found_entities
@@ -179,18 +194,18 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     backend._load_model()
     # Intercept outputs to artificially trigger `start == 0 and end == 0` check bypassing
     original_encode = backend._tokenizer.encode
-    
+
     class FakeEncoding:
-        def __init__(self, original): # type: ignore
+        def __init__(self, original):  # type: ignore
             self.ids = original.ids
             self.attention_mask = original.attention_mask
             self.tokens = original.tokens
             self.offsets = [(1, 1)] * len(original.offsets)
-            
-    def fake_encode(t): # type: ignore
+
+    def fake_encode(t):  # type: ignore
         encoding = original_encode(t)
         return FakeEncoding(encoding)
-        
+
     monkeypatch.setattr(backend._tokenizer, "encode", fake_encode)
     detections = backend.detect(block, policy)
     assert len(detections) == 0
@@ -201,27 +216,31 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     assert len(detections) == 0
 
     # Ensure coverage for standard CoNLL-03 mapping (PER, ORG, LOC)
-    monkeypatch.undo() # Remove the fake encode to get real offsets again
+    monkeypatch.undo()  # Remove the fake encode to get real offsets again
     backend._id2label = {
-        0: "O", 
-        1: "B-PER", 2: "I-PER", 
-        3: "B-ORG", 4: "I-ORG", 
-        5: "B-LOC", 6: "I-LOC"
+        0: "O",
+        1: "B-PER",
+        2: "I-PER",
+        3: "B-ORG",
+        4: "I-ORG",
+        5: "B-LOC",
+        6: "I-LOC",
     }
     # Artificially force predictions by monkeypatching the run output
     original_run = backend._session.run
-    
-    def fake_run(output_names, input_feed): # type: ignore
+
+    def fake_run(output_names, input_feed):  # type: ignore
         import numpy as np
+
         # Return fake logits where index 1 (B-PER), 3 (B-ORG), and 5 (B-LOC) win
         # sequence length is len(input_ids)
         seq_len = len(input_feed["input_ids"][0])
         logits = np.zeros((1, seq_len, 7))
         # Set some tokens to our fake labels (skipping first and last [CLS]/[SEP])
         if seq_len > 3:
-            logits[0, 1, 1] = 10.0 # B-PER
-            logits[0, 2, 3] = 10.0 # B-ORG
-            logits[0, 3, 5] = 10.0 # B-LOC
+            logits[0, 1, 1] = 10.0  # B-PER
+            logits[0, 2, 3] = 10.0  # B-ORG
+            logits[0, 3, 5] = 10.0  # B-LOC
         return [logits]
 
     monkeypatch.setattr(backend._session, "run", fake_run)

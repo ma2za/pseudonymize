@@ -181,7 +181,6 @@ def test_backend_must_return_declared_detection_values() -> None:
     with pytest.raises(BackendContractError, match="not a Detection"):
         Pseudonymizer(backends=[malformed]).process("maria@example.com")
 
-
     empty_name = StubBackend(
         "",
         (),
@@ -190,43 +189,50 @@ def test_backend_must_return_declared_detection_values() -> None:
     with pytest.raises(BackendContractError, match="backend name must be a non-empty string"):
         Pseudonymizer(backends=[empty_name]).process("maria@example.com")
 
-
     bad_remote = StubBackend(
         "bad",
         (),
         supported=frozenset({EntityType.EMAIL}),
-        allow_remote_processing="True", # type: ignore
+        allow_remote_processing="True",  # type: ignore
     )
     with pytest.raises(BackendContractError, match="backend remote consent must be a boolean"):
         Pseudonymizer(backends=[bad_remote]).process("maria@example.com")
 
-
     class BadCapsBackend:
         name = "bad_caps"
-        capabilities = "True" # type: ignore
+        capabilities = "True"  # type: ignore
         allow_remote_processing = False
+
         def detect(self, block: ContentBlock, policy: Policy) -> Sequence[Detection]:
             return ()
 
     with pytest.raises(BackendContractError, match="backend capabilities are invalid"):
-        Pseudonymizer(backends=[cast(DetectionBackend, BadCapsBackend())]).process("maria@example.com")
-
+        Pseudonymizer(backends=[cast(DetectionBackend, BadCapsBackend())]).process(
+            "maria@example.com"
+        )
 
     class RaisesExceptionBackend:
         @property
         def name(self) -> str:
             raise RuntimeError("broken")
+
         @property
         def capabilities(self) -> BackendCapabilities:
             raise RuntimeError("broken")
+
         @property
         def allow_remote_processing(self) -> bool:
             return False
+
         def detect(self, block: ContentBlock, policy: Policy) -> Sequence[Detection]:
             return ()
 
-    with pytest.raises(BackendContractError, match="backend does not declare the required block-aware contract"):
-        Pseudonymizer(backends=[cast(DetectionBackend, RaisesExceptionBackend())]).process("maria@example.com")
+    with pytest.raises(
+        BackendContractError, match="backend does not declare the required block-aware contract"
+    ):
+        Pseudonymizer(backends=[cast(DetectionBackend, RaisesExceptionBackend())]).process(
+            "maria@example.com"
+        )
 
 
 def test_old_text_only_backend_fails_migration_contract() -> None:
