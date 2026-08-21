@@ -36,7 +36,7 @@ def main() -> None:
     _require(result.output == "<EMAIL_1>", "detailed output smoke test failed")
     _require(result.detections[0].backend == "rules", "backend provenance smoke test failed")
     _require("maria@example.com" not in repr(result), "report representation leaked input")
-    with tempfile.TemporaryDirectory() as directory:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
         source = Path(directory) / "payload.json"
         source.write_text('{"value":"maria@example.com"}', encoding="utf-8")
         file_result = Pseudonymizer().process_file(source)

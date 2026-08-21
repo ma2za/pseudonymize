@@ -1,1 +1,1 @@
-To store local ONNX models for NER.
+To store local ONNX models for ML PII detection.

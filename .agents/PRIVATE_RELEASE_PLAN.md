@@ -50,7 +50,7 @@ Every release in this plan must adhere to the compatibility guidelines:
 
 - Keep existing methods, defaults, JSON keys, and CLI outputs stable unless clearly documented in alpha/beta.
 - Follow the exact roadmap stages laid out in `.agents/ROADMAP.md`.
-- Keep the core dependency-free and add dependencies only via optional extras (e.g., `ner`, `pdf`, `remote`).
+- Keep the core dependency-free and add dependencies only via optional extras (e.g., `ml`, `pdf`, `remote`).
 
 ## Release gate
 
@@ -92,7 +92,7 @@ PyPI upload verified:
 Status:
 ```
 
-### 0.2.0: Optional local NER
+### 0.2.0: Optional local ML
 
 Implementation started: 2026-08-21
 Starting commit: 3205c22ef6143aa8ae38fa2db9eea64fc237777d

@@ -69,7 +69,7 @@ through the same policy-enforcing executor and sends all candidates through one 
 overlap resolver. Each detection records both detector and backend provenance.
 
 Backends declare capabilities and provenance. They do not transform content, write files, log
-matched text, or silently perform network calls. Local NER and OCR are optional backends with
+matched text, or silently perform network calls. Local ML and OCR are optional backends with
 explicit model paths and no import-time or first-inference downloads.
 
 ## Policy and transformation
@@ -102,7 +102,7 @@ detected value. File inspection can return a report before a safe renderer exist
 ## Optional dependency boundary
 
 The root package imports only the standard-library core. Optional imports occur inside their owning
-adapter or backend loader and raise a targeted missing-extra error. PDF, Office, OCR, NER, Docling,
+adapter or backend loader and raise a targeted missing-extra error. PDF, Office, OCR, ML, Docling,
 and HTTP dependencies are never imported by `import pseudonymize`.
 
 See the [0.1.0a3 migration guide](migration-a3.md) for the file API change and the

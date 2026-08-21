@@ -4,27 +4,49 @@
     "suffix": ".txt",
     "input_base64": "77u/bWFyaWFAZXhhbXBsZS5jb20NCg==",
     "expected_base64": "77u/PEVNQUlMXzE+DQo=",
-    "locations": [{"kind": "text_offset", "start": 0, "end": 19}]
+    "locations": [
+      {
+        "kind": "text_offset",
+        "start": 0,
+        "end": 19
+      }
+    ]
   },
   {
     "name": "markdown-lf",
     "suffix": ".md",
     "input_base64": "Q29udGFjdCBtYXJpYUBleGFtcGxlLmNvbQo=",
     "expected_base64": "Q29udGFjdCA8RU1BSUxfMT4K",
-    "locations": [{"kind": "text_offset", "start": 0, "end": 26}]
+    "locations": [
+      {
+        "kind": "text_offset",
+        "start": 0,
+        "end": 26
+      }
+    ]
   },
   {
     "name": "json-unicode",
     "suffix": ".json",
     "input_base64": "eyJjaXR5IjoiQnVkYXBlc3Qg4oCTIMOhcnbDrXp0xbFyxZEiLCJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20iLCJlc2NhcGVkIjoibWFyaWFAZXhhbXBsZS5jb20ifQ==",
     "expected_json": {
-      "city": "Budapest – árvíztűrő",
+      "city": "Budapest \u2013 \u00e1rv\u00edzt\u0171r\u0151",
       "contact": "<EMAIL_1>",
       "escaped": "<EMAIL_1>"
     },
     "locations": [
-      {"kind": "json_path", "path": ["contact"]},
-      {"kind": "json_path", "path": ["escaped"]}
+      {
+        "kind": "json_path",
+        "path": [
+          "contact"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          "escaped"
+        ]
+      }
     ]
   },
   {
@@ -32,12 +54,28 @@
     "suffix": ".jsonl",
     "input_base64": "eyJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20ifQ0KeyJpcCI6IjE5Mi4wLjIuMTAifQo=",
     "expected_jsonl": [
-      {"contact": "<EMAIL_1>"},
-      {"ip": "<IP_ADDRESS_1>"}
+      {
+        "contact": "<EMAIL_1>"
+      },
+      {
+        "ip": "<IP_ADDRESS_1>"
+      }
     ],
     "locations": [
-      {"kind": "json_path", "path": [0, "contact"]},
-      {"kind": "json_path", "path": [1, "ip"]}
+      {
+        "kind": "json_path",
+        "path": [
+          0,
+          "contact"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          1,
+          "ip"
+        ]
+      }
     ]
   },
   {
@@ -45,15 +83,184 @@
     "suffix": ".csv",
     "input_base64": "ZW1haWwsbm90ZSxlbXB0eQ0KbWFyaWFAZXhhbXBsZS5jb20sImxpbmUgb25lDQpsaW5lIHR3byIsDQo=",
     "expected_csv": [
-      ["email", "note", "empty"],
-      ["<EMAIL_1>", "line one\r\nline two", ""]
+      [
+        "email",
+        "note",
+        "empty"
+      ],
+      [
+        "<EMAIL_1>",
+        "line one\r\nline two",
+        ""
+      ]
     ],
-    "locations": [{"kind": "csv_cell", "row": 1, "column": 0}]
+    "locations": [
+      {
+        "kind": "csv_cell",
+        "row": 1,
+        "column": 0
+      }
+    ]
   },
   {
     "name": "jsonl-blank-line",
     "suffix": ".jsonl",
     "input_base64": "eyJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20ifQ0KDQp7ImlwIjoiMTkyLjAuMi4xMCJ9Cg==",
     "error": "JSONL line 2"
+  },
+  {
+    "name": "adversarial-json-deep",
+    "suffix": ".json",
+    "input_base64": "eyJsZXZlbDEiOiB7ImxldmVsMiI6IHsibGV2ZWwzIjogW3siY29udGFjdCI6ICJwYW9sb0BleGFtcGxlLmNvbSwgcGFvbG9AZXhhbXBsZS5jb20sIHBhb2xvQGV4YW1wbGUuY29tIn0sIHsibWl4ZWQiOiAidGhpcyBpcyBwYW9sb0BleGFtcGxlLmNvbSBhbmQgXHUyMDJFcGFvbG9AZXhhbXBsZS5jb21cdTIwMkMifV19fX0=",
+    "expected_json": {
+      "level1": {
+        "level2": {
+          "level3": [
+            {
+              "contact": "<EMAIL_1>, <EMAIL_1>, <EMAIL_1>"
+            },
+            {
+              "mixed": "this is <EMAIL_1> and \u202e<EMAIL_1>\u202c"
+            }
+          ]
+        }
+      }
+    },
+    "locations": [
+      {
+        "kind": "json_path",
+        "path": [
+          "level1",
+          "level2",
+          "level3",
+          0,
+          "contact"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          "level1",
+          "level2",
+          "level3",
+          0,
+          "contact"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          "level1",
+          "level2",
+          "level3",
+          0,
+          "contact"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          "level1",
+          "level2",
+          "level3",
+          1,
+          "mixed"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          "level1",
+          "level2",
+          "level3",
+          1,
+          "mixed"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "adversarial-csv-complex",
+    "suffix": ".csv",
+    "input_base64": "Y29sMSxjb2wyLGNvbDMKIm5lc3RlZCwgCiBjb21tYXMiLHBhb2xvQGV4YW1wbGUuY29tLCIsIiJxdW90ZXMiIiI=",
+    "expected_csv": [
+      [
+        "col1",
+        "col2",
+        "col3"
+      ],
+      [
+        "nested, \n commas",
+        "<EMAIL_1>",
+        ",\"quotes\""
+      ]
+    ],
+    "locations": [
+      {
+        "kind": "csv_cell",
+        "row": 1,
+        "column": 1
+      }
+    ]
+  },
+  {
+    "name": "adversarial-txt-zwnj-bidi",
+    "suffix": ".txt",
+    "input_base64": "TGVmdC10by1yaWdodCBwYW9sb0BleGFtcGxlLmNvbSDigK5wYW9sb0BleGFtcGxlLmNvbeKArAo=",
+    "expected_base64": "TGVmdC10by1yaWdodCA8RU1BSUxfMT4g4oCuPEVNQUlMXzE+4oCsCg==",
+    "locations": [
+      {
+        "kind": "text_offset",
+        "start": 0,
+        "end": 52
+      },
+      {
+        "kind": "text_offset",
+        "start": 0,
+        "end": 52
+      }
+    ]
+  },
+  {
+    "name": "adversarial-jsonl-mixed",
+    "suffix": ".jsonl",
+    "input_base64": "eyJpZCI6IDEsICJ0ZXh0IjogIm5vcm1hbCBwYW9sb0BleGFtcGxlLmNvbSJ9CnsiaWQiOiAyLCAidGV4dCI6ICJudWxsXHUwMDAwYnl0ZSBwYW9sb0BleGFtcGxlLmNvbSJ9DQp7ImlkIjogMywgInRleHQiOiAicGFvbG9AZXhhbXBsZS5jb20gdHJhaWxpbmcifQ==",
+    "expected_jsonl": [
+      {
+        "id": 1,
+        "text": "normal <EMAIL_1>"
+      },
+      {
+        "id": 2,
+        "text": "null\u0000byte <EMAIL_1>"
+      },
+      {
+        "id": 3,
+        "text": "<EMAIL_1> trailing"
+      }
+    ],
+    "locations": [
+      {
+        "kind": "json_path",
+        "path": [
+          0,
+          "text"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          1,
+          "text"
+        ]
+      },
+      {
+        "kind": "json_path",
+        "path": [
+          2,
+          "text"
+        ]
+      }
+    ]
   }
 ]

@@ -32,7 +32,7 @@ nav:
       - Dependency-free core: adr/0001-dependency-free-core.md
       - Token format: adr/0002-token-format.md
       - No reversible storage: adr/0003-no-reversible-storage.md
-      - Optional NER backend: adr/0004-optional-ner-backend.md
+      - Optional ML backend: adr/0004-optional-ml-backend.md
 plugins:
   - search
   - mkdocstrings:

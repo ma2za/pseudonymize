@@ -167,10 +167,17 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# Gemini
+.gemini/
+
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# test temp files
+.pytest_temp/
+*.onnx
 
 # Pyre type checker
 .pyre/
