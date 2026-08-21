@@ -1,7 +1,4 @@
-import json
-import sys
 import urllib.request
-from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -27,8 +24,8 @@ def download_file(url: str, dest: Path) -> None:
     if dest.exists():
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req) as response, open(dest, "wb") as f:
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})  # noqa: S310
+    with urllib.request.urlopen(req) as response, open(dest, "wb") as f:  # noqa: S310
         f.write(response.read())
 
 
@@ -144,7 +141,7 @@ def test_ml_detect_handles_unmapped_labels(
     assert len(detections) == 0
 
     # Put a fake label map that yields 'O' for everything
-    backend._id2label = {i: "O" for i in range(100)}
+    backend._id2label = dict.fromkeys(range(100), "O")
     detections = backend.detect(block, policy)
     assert len(detections) == 0
 
@@ -185,12 +182,13 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     assert (EntityType.LOCATION, "Washington") in found_entities
 
     # Make sure we didn't accidentally include punctuation like "'s" or "," as part of the entity
-    for entity_type, chunk in found_entities:
+    for _entity_type, chunk in found_entities:
         assert "'" not in chunk
         assert "," not in chunk
         assert "!" not in chunk
 
-    # Add artificial label mappings to cover branches (PER is hit in earlier version, here we can hit the loop)
+    # Add artificial label mappings to cover branches
+    # (PER is hit in earlier version, here we can hit the loop)
     backend._load_model()
     # Intercept outputs to artificially trigger `start == 0 and end == 0` check bypassing
     original_encode = backend._tokenizer.encode
@@ -211,7 +209,7 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     assert len(detections) == 0
 
     # Ensure coverage for when label_str exists but isn't something we map
-    backend._id2label = {i: "B-UNKNOWN" for i in range(100)}
+    backend._id2label = dict.fromkeys(range(100), "B-UNKNOWN")
     detections = backend.detect(block, policy)
     assert len(detections) == 0
 
@@ -227,7 +225,6 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
         6: "I-LOC",
     }
     # Artificially force predictions by monkeypatching the run output
-    original_run = backend._session.run
 
     def fake_run(output_names, input_feed):  # type: ignore
         import numpy as np
