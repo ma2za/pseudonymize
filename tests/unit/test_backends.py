@@ -200,7 +200,7 @@ def test_backend_must_return_declared_detection_values() -> None:
 
     class BadCapsBackend:
         name = "bad_caps"
-        capabilities = "True"  # type: ignore
+        capabilities = "True"
         allow_remote_processing = False
 
         def detect(self, block: ContentBlock, policy: Policy) -> Sequence[Detection]:

@@ -11,13 +11,13 @@ from pseudonymize.policy import Policy
 from pseudonymize.result import Detection, EntityType
 
 try:
-    import numpy as np  # type: ignore[import-untyped]
-    import onnxruntime as ort  # type: ignore[import-untyped]
+    import numpy as np
+    import onnxruntime as ort
     from tokenizers import Tokenizer
 except ImportError:
-    np = None  # type: ignore[misc,assignment]
+    np = None
     ort = None
-    Tokenizer = None  # type: ignore[misc,assignment]
+    Tokenizer = None
 
 
 class LocalONNXPIIBackend(DetectionBackend):
