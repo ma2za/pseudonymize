@@ -91,30 +91,32 @@ class LocalONNXPIIBackend(DetectionBackend):
 
         try:
             self._load_model()
-            
+
             encoding = self._tokenizer.encode(block.text)
-            
+
             inputs = {"input_ids": [encoding.ids], "attention_mask": [encoding.attention_mask]}
             expected_inputs = [i.name for i in self._session.get_inputs()]
-            filtered_inputs = {k: np.array(v, dtype=np.int64) for k, v in inputs.items() if k in expected_inputs}
-            
+            filtered_inputs = {
+                k: np.array(v, dtype=np.int64) for k, v in inputs.items() if k in expected_inputs
+            }
+
             outputs = self._session.run(None, filtered_inputs)
             logits = outputs[0][0]
-            
+
             predictions = np.argmax(logits, axis=-1)
-            
+
             detections = []
-            
+
             for idx, label_id in enumerate(predictions):
                 if label_id == 0 or self._id2label is None:
                     continue
-                    
+
                 label_str = self._id2label.get(label_id)
                 if not label_str or label_str == "O":
                     continue
-                
+
                 entity_type = None
-                
+
                 # Standard CoNLL-03 tags
                 if label_str.endswith("PER"):
                     entity_type = EntityType.PERSON
@@ -122,22 +124,24 @@ class LocalONNXPIIBackend(DetectionBackend):
                     entity_type = EntityType.ORGANIZATION
                 elif label_str.endswith("LOC"):
                     entity_type = EntityType.LOCATION
-                
+
                 # Ai4Privacy tags mapping
                 elif any(label_str.endswith(s) for s in ("FIRSTNAME", "LASTNAME", "MIDDLENAME")):
                     entity_type = EntityType.PERSON
                 elif label_str.endswith("COMPANYNAME"):
                     entity_type = EntityType.ORGANIZATION
-                elif any(label_str.endswith(s) for s in ("CITY", "STATE", "COUNTY", "STREET", "ZIPCODE")):
+                elif any(
+                    label_str.endswith(s) for s in ("CITY", "STATE", "COUNTY", "STREET", "ZIPCODE")
+                ):
                     entity_type = EntityType.LOCATION
-                    
+
                 if entity_type:
                     start, end = encoding.offsets[idx]
                     if start == 0 and end == 0 and idx not in (0, len(predictions) - 1):
                         continue
                     if start == end:
                         continue
-                        
+
                     detections.append(
                         Detection(
                             entity_type=entity_type,
