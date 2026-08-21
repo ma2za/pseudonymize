@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pseudonymize"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-first PII pseudonymization for text, structured data, and LLM payloads."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -38,7 +38,7 @@ Security = "https://github.com/ma2za/pseudonymize/security/policy"
 pseudonymize = "pseudonymize.cli:main"
 
 [project.optional-dependencies]
-ner = [
+ml = [
     "huggingface-hub>=1.28.0",
     "onnxruntime>=1.29.0",
     "tokenizers>=0.23.1",

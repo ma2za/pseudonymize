@@ -48,11 +48,7 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 | Document representation | Shipped | Immutable blocks, typed locations, sanitized metadata, and inspection |
 | Generic file orchestration | Shipped | Built-in or caller-provided adapters and atomic safe-copy output |
 | TXT, Markdown, log, JSON, JSONL, and CSV files | Shipped | Explicit format or recognized suffix; no content guessing |
-| Names, organizations, and locations | Planned | Requires a custom backend today; optional local NER is planned |
-| PDF, Office, images, and OCR | Planned | Not supported by the current package |
-| Remote providers | Contract only | No HTTP client or provider implementation is included |
-
-The [roadmap](ROADMAP.md) separates shipped behavior from planned work.
+| Names, organizations, and locations (PII) | Shipped | Requires the optional `[ml]` extra and a caller-provided local ONNX model |
 
 ## Installation
 
@@ -61,6 +57,16 @@ python -m pip install pseudonymize
 ```
 
 Python 3.11 through 3.14 is supported.
+
+### Optional Local ML for PII
+
+The strict and exclusive goal of this package is PII pseudonymization. The optional ML backend is provided solely to identify unstructured personal data (names, organizations, locations) for pseudonymization, and must never be treated as a general-purpose NLP tool. To detect and pseudonymize this data, you can integrate a local ONNX model by installing the `ml` extra:
+
+```console
+python -m pip install pseudonymize[ml]
+```
+
+This installs `onnxruntime`, `tokenizers`, and `numpy` allowing you to configure the `LocalONNXPIIBackend` to run a lightweight local quantized DistilBERT model. No models are downloaded implicitly; you must provide your own paths to your downloaded `model.onnx`, `tokenizer.json`, and `config.json`.
 
 ## Quickstart
 

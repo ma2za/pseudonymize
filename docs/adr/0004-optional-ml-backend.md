@@ -1,4 +1,4 @@
-# 0004: Optional NER backend
+# 0004: Optional ML backend
 
 Status: accepted.
 

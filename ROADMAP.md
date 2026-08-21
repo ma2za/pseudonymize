@@ -13,7 +13,7 @@ publishable without requiring unfinished later layers.
 | `0.1.0b1` | Published | Core API freeze and production-oriented examples |
 | `0.1.0rc1` | Published | External installation and release validation |
 | `0.1.0` | Published | First stable text and machine-readable release |
-| `0.2.0` | Next | Optional local named-entity recognition |
+| `0.2.0` | Next | Optional local machine learning identification for PII |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -35,8 +35,9 @@ but compatibility guarantees start only with `0.1.0`.
   features, malformed inputs, and adversarial cases.
 - Release artifacts install cleanly and the installed wheel passes API and CLI smoke tests.
 
-Coverage alone is not a quality target. A release should become harder to fake with an incomplete
-or unsafe implementation.
+- Coverage alone is not a quality target. A release should become harder to fake with an incomplete
+  or unsafe implementation.
+- Tests must be meaningful and execute actual logic. Do not use dummy artifacts, toy models, or mock inference. Specifically, optional backends (like ONNX ML) must be tested against real, dynamically downloaded lightweight model artifacts (e.g., quantized BERT) cached outside version control to rigorously verify the true inference pipeline for PII pseudonymization. ML features are strictly limited to PII and must never be developed or presented as general-purpose NLP tools.
 
 ## `0.1.0`: dependency-free core and machine-readable content
 
@@ -121,7 +122,7 @@ documented compatibility policy and zero base runtime dependencies.
 
 ## Later capabilities
 
-### `0.2.0`: optional local NER
+### `0.2.0`: optional local ML
 
 - Explicitly installed ONNX models for people, organizations, locations, and contextual addresses
 - Initial English, German, and Italian benchmarks
@@ -161,7 +162,7 @@ contracts have production fixtures, published benchmarks, and independent usage 
 
 ## Optional dependency policy
 
-Extras appear only with the release that owns them: `ner`, `pdf`, `office`, `ocr`, `documents`,
+Extras appear only with the release that owns them: `ml`, `pdf`, `office`, `ocr`, `documents`,
 `docling`, and `remote`. An `all` extra may exist for CI and integration testing, but user
 documentation recommends the narrowest installation that satisfies the workload.
 

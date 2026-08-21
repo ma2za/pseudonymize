@@ -4,6 +4,20 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-21
+
+### Added
+
+- Optional local Machine Learning backend for PII identification (`pseudonymize[ml]`).
+- Dynamic download of ONNX artifacts for `LocalONNXPIIBackend` leveraging a quantized DistilBERT model during testing.
+- Highly adversarial test corpus including deep nested JSON, CSV escape cases, and TXT right-to-left BiDi formatting.
+
+### Changed
+
+- Shifted the product vocabulary strictly to "ML" for PII pseudonymization, abandoning the generic "NER" term.
+- Renamed the optional extra from `[ner]` to `[ml]` and the backend class to `LocalONNXPIIBackend`.
+- Increased total coverage verification to 99.56% with rigorous offset mapping tests.
+
 ## [0.1.0] - 2026-08-02
 
 ### Added
@@ -121,7 +135,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Deterministic processing now requires `mode="deterministic"` in addition to a key.
 - `redact()` now emits `[REDACTED]` by default; generic mode emits typed placeholders.
 
-[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ma2za/pseudonymize/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0
 [0.1.0rc1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0rc1
 [0.1.0b1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0b1

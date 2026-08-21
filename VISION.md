@@ -48,7 +48,9 @@ Pseudonymize should make that boundary explicit and testable.
    contracts without shims. Compatibility begins only at the documented stable milestone.
 10. **Raise the verification bar with every release.** Coverage never falls below the tagged
     baseline. New tests must add realistic workflows, interacting invariants, malformed inputs,
-    and adversarial failure modes rather than merely execute new lines.
+    and adversarial failure modes rather than merely execute new lines. Meaningful testing 
+    with real artifacts is strictly mandated. No dummy models, fake data generation that bypasses logic, or mock-based workarounds are permitted. External models required for testing must be downloaded dynamically and cached outside of version control.
+11. **Strictly bounded to PII.** The application of ML models is strictly constrained to PII pseudonymization. This package is not and will never be a general-purpose NLP or entity extraction framework.
 
 ## Product layers
 
@@ -71,7 +73,7 @@ The committed progression is:
 
 1. Text and nested JSON-compatible Python values.
 2. Dependency-free text, JSON, JSONL, and CSV files.
-3. Optional local NER for names, organizations, locations, and contextual addresses.
+3. Optional local ML for names, organizations, locations, and contextual addresses.
 4. Detection-only PDF and Office inspection.
 5. Format-preserving document output and secure PDF redaction.
 6. Local OCR for images, scanned PDFs, and mixed documents.
