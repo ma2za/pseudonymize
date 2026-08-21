@@ -37,6 +37,13 @@ Security = "https://github.com/ma2za/pseudonymize/security/policy"
 [project.scripts]
 pseudonymize = "pseudonymize.cli:main"
 
+[project.optional-dependencies]
+ner = [
+    "huggingface-hub>=1.28.0",
+    "onnxruntime>=1.29.0",
+    "tokenizers>=0.23.1",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/pseudonymize"]
 
