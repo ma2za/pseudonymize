@@ -249,7 +249,7 @@ application.
 ```console
 git clone https://github.com/ma2za/pseudonymize.git
 cd pseudonymize
-uv sync --all-groups
+uv sync --all-extras --all-groups
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy

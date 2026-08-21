@@ -27,7 +27,7 @@ the 0.1.x series as required by `docs/compatibility.md`.
 Install and validate with:
 
 ```bash
-uv sync --all-groups --frozen
+uv sync --all-extras --all-groups --frozen
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy

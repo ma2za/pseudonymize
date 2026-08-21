@@ -26,7 +26,7 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: "3.14"
-      - run: uv sync --frozen --group quality --group test
+      - run: uv sync --all-extras --frozen --group quality --group test
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy
@@ -55,7 +55,7 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: ${{ matrix.python }}
-      - run: uv sync --frozen --group test
+      - run: uv sync --all-extras --frozen --group test
       - run: uv run pytest
 
   property-tests:
@@ -66,7 +66,7 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: "3.14"
-      - run: uv sync --frozen --group test
+      - run: uv sync --all-extras --frozen --group test
       - run: uv run pytest tests/property -o addopts="--strict-config --strict-markers -ra" --hypothesis-show-statistics
 
   package:
