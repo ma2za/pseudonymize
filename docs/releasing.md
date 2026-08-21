@@ -24,7 +24,7 @@ After the first upload, verify that the pending publisher became an ordinary pro
 3. Run:
 
    ```console
-   uv sync --all-groups --frozen
+   uv sync --all-extras --all-groups --frozen
    uv run ruff format --check .
    uv run ruff check .
    uv run mypy
