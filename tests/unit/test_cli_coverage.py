@@ -10,9 +10,7 @@ from pseudonymize.cli import _read_key
 def test_cli_read_key_file_permissions() -> None:
     with mock.patch("os.name", "posix"), mock.patch("pathlib.Path.stat") as mock_stat:
         # S_IMODE(st_mode) & 0o077 will be non-zero
-        mock_stat.return_value.st_mode = (
-            stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH | stat.S_IWOTH
-        )
+        mock_stat.return_value.st_mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IROTH | stat.S_IWOTH
         arguments = argparse.Namespace(
             key_env=None,
             key_file=mock.Mock(),
