@@ -70,7 +70,7 @@ indent-style = "space"
 line-ending = "lf"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 warn_unreachable = true
 show_error_codes = true
