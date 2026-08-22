@@ -34,7 +34,9 @@ def main() -> None:
     if installed.version != arguments.version:
         raise RuntimeError("installed version does not match release")
     if installed.requires:
-        raise RuntimeError("installed package declares runtime dependencies")
+        required_deps = [req for req in installed.requires if "extra ==" not in req]
+        if required_deps:
+            raise RuntimeError("installed package declares runtime dependencies")
     files = {str(path).replace("\\", "/") for path in installed.files or ()}
     if "pseudonymize/py.typed" not in files:
         raise RuntimeError("installed package is missing py.typed")
