@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Overlap resolution now uses an ordered-interval scan instead of a quadratic pairwise check,
+  and detected spans are replaced with a single-pass segment join. Texts with thousands of
+  detections process in milliseconds instead of seconds.
+
 ### Fixed
 
 - `LocalONNXPIIBackend` now merges contiguous token predictions into whole entity spans, so
