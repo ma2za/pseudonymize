@@ -1463,7 +1463,8 @@ source = { editable = "." }
 
 [package.optional-dependencies]
 ml = [
-    { name = "huggingface-hub" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "onnxruntime" },
     { name = "tokenizers" },
 ]
@@ -1491,7 +1492,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=1.28.0" },
+    { name = "numpy", marker = "extra == 'ml'", specifier = ">=1.26" },
     { name = "onnxruntime", marker = "extra == 'ml'", specifier = ">=1.29.0" },
     { name = "tokenizers", marker = "extra == 'ml'", specifier = ">=0.23.1" },
 ]

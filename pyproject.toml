@@ -39,7 +39,7 @@ pseudonymize = "pseudonymize.cli:main"
 
 [project.optional-dependencies]
 ml = [
-    "huggingface-hub>=1.28.0",
+    "numpy>=1.26",
     "onnxruntime>=1.29.0",
     "tokenizers>=0.23.1",
 ]

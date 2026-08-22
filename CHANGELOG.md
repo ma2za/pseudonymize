@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- The `ml` extra now declares `numpy`, which the ONNX backend imports directly, and no longer
+  pulls in the unused `huggingface-hub` dependency.
+- The optional-import guard in the ONNX backend now type-checks under strict mypy.
+
 ## [0.2.0] - 2026-08-21
 
 ### Added

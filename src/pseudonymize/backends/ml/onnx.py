@@ -10,14 +10,21 @@ from pseudonymize.exceptions import BackendExecutionError
 from pseudonymize.policy import Policy
 from pseudonymize.result import Detection, EntityType
 
+np: Any
+ort: Any
+Tokenizer: Any
 try:
-    import numpy as np
-    import onnxruntime as ort
-    from tokenizers import Tokenizer
+    import numpy
+    import onnxruntime
+    from tokenizers import Tokenizer as _Tokenizer
 except ImportError:
     np = None
     ort = None
     Tokenizer = None
+else:
+    np = numpy
+    ort = onnxruntime
+    Tokenizer = _Tokenizer
 
 
 class LocalONNXPIIBackend(DetectionBackend):
