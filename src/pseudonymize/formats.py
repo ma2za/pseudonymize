@@ -242,7 +242,7 @@ def _json_replacements(document: Document) -> dict[tuple[str | int, ...], str]:
 
 def _render_json(document: Document, state: _AdapterState) -> str:
     value = _replace_json_strings(
-        _require_json_content(state.content),
+        cast(JSONValue, state.content),
         (),
         _json_replacements(document),
     )
@@ -250,32 +250,26 @@ def _render_json(document: Document, state: _AdapterState) -> str:
 
 
 def _extract_jsonl(text: str, decoded: _DecodedText) -> tuple[Document, tuple[JSONValue, ...]]:
-    if not text:
-        values: tuple[JSONValue, ...] = ()
-    else:
-        lines = text.splitlines()
-        values_list: list[JSONValue] = []
-        blocks: list[ContentBlock] = []
-        for line_index, line in enumerate(lines):
-            if not line.strip():
-                raise _JSONLLineError(line_index + 1)
-            try:
-                value = _load_json(line)
-            except (TypeError, ValueError):
-                raise _JSONLLineError(line_index + 1) from None
-            values_list.append(value)
-            _string_blocks(
-                value,
-                (line_index,),
-                blocks,
-                prefix=f"line-{line_index:06d}-block",
-            )
-        values = tuple(values_list)
-        return (
-            Document("file", tuple(blocks), _metadata(FileFormat.JSONL, decoded)),
-            values,
+    values: list[JSONValue] = []
+    blocks: list[ContentBlock] = []
+    for line_index, line in enumerate(text.splitlines()):
+        if not line.strip():
+            raise _JSONLLineError(line_index + 1)
+        try:
+            value = _load_json(line)
+        except (TypeError, ValueError):
+            raise _JSONLLineError(line_index + 1) from None
+        values.append(value)
+        _string_blocks(
+            value,
+            (line_index,),
+            blocks,
+            prefix=f"line-{line_index:06d}-block",
         )
-    return Document("file", (), _metadata(FileFormat.JSONL, decoded)), values
+    return (
+        Document("file", tuple(blocks), _metadata(FileFormat.JSONL, decoded)),
+        tuple(values),
+    )
 
 
 def _validate_document(document: Document, original: Document) -> None:
@@ -289,7 +283,7 @@ def _validate_document(document: Document, original: Document) -> None:
 
 
 def _render_jsonl(document: Document, state: _AdapterState) -> str:
-    values = _require_jsonl_content(state.content)
+    values = cast(tuple[JSONValue, ...], state.content)
     replacements = _json_replacements(document)
     rendered = (
         json.dumps(
@@ -332,7 +326,7 @@ def _read_csv(text: str) -> tuple[tuple[str, ...], ...]:
 
 
 def _render_csv(document: Document, state: _AdapterState) -> str:
-    rows = _require_csv_content(state.content)
+    rows = cast(tuple[tuple[str, ...], ...], state.content)
     replacements = {
         (
             cast(CSVCellLocation, block.location).row,
@@ -347,15 +341,3 @@ def _render_csv(document: Document, state: _AdapterState) -> str:
     output = io.StringIO(newline="")
     csv.writer(output, dialect="excel", lineterminator="\r\n").writerows(transformed)
     return output.getvalue()
-
-
-def _require_json_content(content: object) -> JSONValue:
-    return cast(JSONValue, content)
-
-
-def _require_jsonl_content(content: object) -> tuple[JSONValue, ...]:
-    return cast(tuple[JSONValue, ...], content)
-
-
-def _require_csv_content(content: object) -> tuple[tuple[str, ...], ...]:
-    return cast(tuple[tuple[str, ...], ...], content)

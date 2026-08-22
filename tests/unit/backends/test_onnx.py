@@ -1,3 +1,4 @@
+import hashlib
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -15,27 +16,39 @@ MODEL_URL_BASE = (
     "https://huggingface.co/onnx-community/distilbert_finetuned_ai4privacy_v2-ONNX/resolve/main/"
 )
 MODEL_FILES = {
-    "config.json": "config.json",
-    "tokenizer.json": "tokenizer.json",
-    "model_int8.onnx": "onnx/model_int8.onnx",
+    "config.json": (
+        "config.json",
+        "5155e76f303c68ee15d8f01b580550c062cebfbb42dda3f5f3698b2d75424216",
+    ),
+    "tokenizer.json": (
+        "tokenizer.json",
+        "cb374d6bc042c22455946f4e09a89d29882a199fdaf8fb25be00dc8b8857a448",
+    ),
+    "model_int8.onnx": (
+        "onnx/model_int8.onnx",
+        "6faa1d7f5b54140bbba18ba87480e11073927b5fff16f69558bd51058a05b305",
+    ),
 }
 
 
-def download_file(url: str, dest: Path) -> None:
-    if dest.exists():
-        return
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})  # noqa: S310
-    with urllib.request.urlopen(req) as response, open(dest, "wb") as f:  # noqa: S310
-        f.write(response.read())
+def download_file(url: str, dest: Path, sha256: str) -> None:
+    if not dest.exists():
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})  # noqa: S310
+        with urllib.request.urlopen(req) as response, open(dest, "wb") as f:  # noqa: S310
+            f.write(response.read())
+    digest = hashlib.sha256(dest.read_bytes()).hexdigest()
+    if digest != sha256:
+        dest.unlink()
+        raise RuntimeError(f"checksum mismatch for {dest.name}: {digest}")
 
 
 @pytest.fixture(scope="session")
 def distilbert_artifacts() -> tuple[Path, Path, Path]:
     paths = []
-    for local_name, remote_path in MODEL_FILES.items():
+    for local_name, (remote_path, sha256) in MODEL_FILES.items():
         dest = CACHE_DIR / local_name
-        download_file(MODEL_URL_BASE + remote_path, dest)
+        download_file(MODEL_URL_BASE + remote_path, dest, sha256)
         paths.append(dest)
     # Returns (config, tokenizer, model)
     return (paths[0], paths[1], paths[2])
@@ -166,19 +179,15 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     # Sort detections by offset for deterministic assertion
     sorted_detections = sorted(detections, key=lambda d: d.start)
 
-    # We expect a good DistilBERT ML model to find:
-    # PERSON: "John" (0,4), "Smith" (5,10) - (backend yields token-by-token right now)
-    # LOC: "Seattle" (61,68), "Washington" (70,80)
-
-    # Note: Since the backend returns detections at the token level,
-    # we rigorously assert the exact subword spans mapped correctly to their entity type
-    assert len(sorted_detections) >= 4
+    # Token predictions merge into entity spans, so we expect:
+    # PERSON: "John Smith" (0,10) as one span, subwords and the space included
+    # LOC: "Seattle" (61,68) and "Washington" (70,80) kept apart by the comma
+    assert len(sorted_detections) >= 3
 
     # Let's map out the exact expected strings for the entities found
     found_entities = [(d.entity_type, text[d.start : d.end]) for d in sorted_detections]
 
-    assert (EntityType.PERSON, "John") in found_entities
-    assert (EntityType.PERSON, "Smith") in found_entities
+    assert (EntityType.PERSON, "John Smith") in found_entities
     assert (EntityType.LOCATION, "Seattle") in found_entities
     assert (EntityType.LOCATION, "Washington") in found_entities
 
@@ -248,6 +257,28 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     assert EntityType.PERSON in found_types
     assert EntityType.ORGANIZATION in found_types
     assert EntityType.LOCATION in found_types
+
+
+def test_ml_engine_shares_one_alias_per_merged_entity(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    from pseudonymize import Pseudonymizer
+
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    engine = Pseudonymizer(backends=[backend])
+    result = engine.process("John Smith emailed John Smith from Seattle.")
+
+    assert "John" not in result.text
+    assert "Smith" not in result.text
+    person_tokens = {
+        replacement.token
+        for replacement in result.replacements
+        if replacement.detection.entity_type is EntityType.PERSON
+    }
+    assert person_tokens == {"<PERSON_1>"}
 
 
 def test_ml_detect_raises_on_inference_failure(

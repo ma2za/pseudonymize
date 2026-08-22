@@ -97,6 +97,24 @@ def test_url_detects_username_and_empty_sensitive_value_safely() -> None:
     assert values == ["user", "present"]
 
 
+def test_url_query_value_excludes_fragment() -> None:
+    text = "see https://example.com/p?token=abc12345#section-2 ok"
+    values = [text[item.start : item.end] for item in UrlDetector().detect(text)]
+    assert values == ["abc12345"]
+
+
+def test_url_userinfo_covers_every_at_sign_before_the_host() -> None:
+    text = "on https://user:pa@ss@host.example/path ok"
+    values = [text[item.start : item.end] for item in UrlDetector().detect(text)]
+    assert values == ["user:pa@ss"]
+
+
+def test_url_userinfo_stops_at_the_authority_even_with_at_signs_later() -> None:
+    text = "https://user:secret@host.example/path?note=a@b"
+    values = [text[item.start : item.end] for item in UrlDetector().detect(text)]
+    assert values == ["user:secret"]
+
+
 def test_secret_provider_patterns() -> None:
     values = [
         "AKIAABCDEFGHIJKLMNOP",
