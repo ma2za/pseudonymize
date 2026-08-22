@@ -8,28 +8,30 @@ from pseudonymize.policy import Policy
 
 # Optional imports for generators
 try:
-    from fpdf import FPDF
+    import fpdf
+
+    HAS_FPDF = True
 except ImportError:
-    FPDF = None
+    HAS_FPDF = False
 
 try:
     import docx
     import openpyxl
     import pptx
+
+    HAS_OFFICE = True
 except ImportError:
-    docx = None
-    openpyxl = None
-    pptx = None
+    HAS_OFFICE = False
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
 def test_pdf_path(tmp_path: Path) -> Path:
-    if FPDF is None:
+    if not HAS_FPDF:
         pytest.skip("fpdf2 not installed")
     path = tmp_path / "test.pdf"
-    pdf = FPDF()
+    pdf = fpdf.FPDF()
     pdf.add_page()
     pdf.set_font("helvetica", size=12)
     pdf.cell(text="Contact me at alice@example.com for more info.")
@@ -41,7 +43,7 @@ def test_pdf_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def test_docx_path(tmp_path: Path) -> Path:
-    if docx is None:
+    if not HAS_OFFICE:
         pytest.skip("python-docx not installed")
     path = tmp_path / "test.docx"
     doc = docx.Document()
@@ -58,7 +60,7 @@ def test_docx_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def test_xlsx_path(tmp_path: Path) -> Path:
-    if openpyxl is None:
+    if not HAS_OFFICE:
         pytest.skip("openpyxl not installed")
     path = tmp_path / "test.xlsx"
     wb = openpyxl.Workbook()
@@ -73,7 +75,7 @@ def test_xlsx_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def test_pptx_path(tmp_path: Path) -> Path:
-    if pptx is None:
+    if not HAS_OFFICE:
         pytest.skip("python-pptx not installed")
     path = tmp_path / "test.pptx"
     prs = pptx.Presentation()
