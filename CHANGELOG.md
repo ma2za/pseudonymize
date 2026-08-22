@@ -4,6 +4,13 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- `Policy.default()` now includes `URL_CREDENTIAL` and `SECRET`, so the documented secret and
+  URL-credential detectors act without opting into `Policy.strict()` or `Policy.llm()`. Callers
+  that relied on secrets passing through the default policy must configure an explicit
+  `Policy(entity_types=...)`.
+
 ## [0.2.0] - 2026-08-21
 
 ### Added
