@@ -10,6 +10,24 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
   URL-credential detectors act without opting into `Policy.strict()` or `Policy.llm()`. Callers
   that relied on secrets passing through the default policy must configure an explicit
   `Policy(entity_types=...)`.
+- Overlap resolution now uses an ordered-interval scan instead of a quadratic pairwise check,
+  and detected spans are replaced with a single-pass segment join. Texts with thousands of
+  detections process in milliseconds instead of seconds.
+
+### Fixed
+
+- `LocalONNXPIIBackend` now merges contiguous token predictions into whole entity spans, so
+  multi-word and subword-split names receive a single alias instead of one alias per token.
+- ONNX test artifacts downloaded during testing are now verified against pinned SHA-256
+  checksums.
+- URL credential detection now covers the whole userinfo section when it contains extra `@`
+  characters and no longer swallows the URL fragment into sensitive query values.
+- Overlap resolution now ranks URL credentials above emails, so a `user:password@host` userinfo
+  can no longer lose its `user:` prefix to an overlapping email match.
+- The `ml` extra now declares `numpy`, which the ONNX backend imports directly, and no longer
+  pulls in the unused `huggingface-hub` dependency.
+- The optional-import guard in the ONNX backend now type-checks under strict mypy.
+- Normalization now maps generic URL schemes to `http` or `https` for safer alias sharing.
 
 ## [0.2.0] - 2026-08-21
 

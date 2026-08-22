@@ -265,10 +265,15 @@ class Pseudonymizer:
             self.transformer.render(entity, alias)
             for entity, alias in zip(entities, aliases, strict=True)
         )
-        output = text
-        for entity, token in reversed(tuple(zip(entities, tokens, strict=True))):
+        segments: list[str] = []
+        cursor = 0
+        for entity, token in zip(entities, tokens, strict=True):
             detection = entity.detection
-            output = output[: detection.start] + token + output[detection.end :]
+            segments.append(text[cursor : detection.start])
+            segments.append(token)
+            cursor = detection.end
+        segments.append(text[cursor:])
+        output = "".join(segments)
         replacements = _replacement_reports(entities, tokens)
         reports.extend(_replacement_detection_reports(block, replacements))
         mapping = _mapping(text, entities, aliases, tokens) if include_mapping else None
@@ -287,10 +292,10 @@ class Pseudonymizer:
         if isinstance(data, str):
             block_id = f"block-{block_counter[0]:06d}"
             block_counter[0] += 1
-            block = ContentBlock(block_id, data, JSONPathLocation(path))
             if not self.policy.allows_path(tuple(str(part) for part in path)):
                 statistics.blocks_processed += 1
                 return data
+            block = ContentBlock(block_id, data, JSONPathLocation(path))
             return self._process_block(block, context, False, statistics, reports).text
         if data is None or isinstance(data, (bool, int, float)):
             return data

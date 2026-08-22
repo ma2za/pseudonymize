@@ -1,3 +1,4 @@
+import bisect
 from collections.abc import Iterable
 
 from pseudonymize.result import Detection, EntityType
@@ -5,9 +6,12 @@ from pseudonymize.result import Detection, EntityType
 _ENTITY_PRIORITY = {
     EntityType.PAYMENT_CARD: 70,
     EntityType.IBAN: 70,
+    # URL credentials outrank emails: a password such as "s3cret" followed by
+    # "@host" also matches the email pattern, and letting the email span win
+    # would leave the "user:" part of the userinfo unmasked.
+    EntityType.URL_CREDENTIAL: 65,
     EntityType.EMAIL: 60,
     EntityType.IP_ADDRESS: 60,
-    EntityType.URL_CREDENTIAL: 50,
     EntityType.SECRET: 50,
     EntityType.PHONE: 40,
     EntityType.PERSON: 30,
@@ -35,12 +39,16 @@ def resolve_overlaps(
             detection.backend,
         ),
     )
+    # Accepted spans are kept sorted and non-overlapping, so a candidate can
+    # only collide with the span immediately before its insertion point.
+    starts: list[int] = []
+    ends: list[int] = []
     selected: list[Detection] = []
     for detection in ranked:
-        if any(
-            detection.start < existing.end and existing.start < detection.end
-            for existing in selected
-        ):
+        index = bisect.bisect_left(starts, detection.end)
+        if index and ends[index - 1] > detection.start:
             continue
+        starts.insert(index, detection.start)
+        ends.insert(index, detection.end)
         selected.append(detection)
     return tuple(sorted(selected, key=lambda detection: (detection.start, detection.end)))
