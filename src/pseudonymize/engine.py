@@ -265,10 +265,15 @@ class Pseudonymizer:
             self.transformer.render(entity, alias)
             for entity, alias in zip(entities, aliases, strict=True)
         )
-        output = text
-        for entity, token in reversed(tuple(zip(entities, tokens, strict=True))):
+        segments: list[str] = []
+        cursor = 0
+        for entity, token in zip(entities, tokens, strict=True):
             detection = entity.detection
-            output = output[: detection.start] + token + output[detection.end :]
+            segments.append(text[cursor : detection.start])
+            segments.append(token)
+            cursor = detection.end
+        segments.append(text[cursor:])
+        output = "".join(segments)
         replacements = _replacement_reports(entities, tokens)
         reports.extend(_replacement_detection_reports(block, replacements))
         mapping = _mapping(text, entities, aliases, tokens) if include_mapping else None
