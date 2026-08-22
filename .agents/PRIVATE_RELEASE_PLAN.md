@@ -109,7 +109,7 @@ Tag: v0.2.1
 PyPI upload verified: Pending workflow
 7-day metrics: 
 28-day metrics: 
-Status: Ready
+Status: Released
 
 Implementation started: 2026-08-21
 Starting commit: 3205c22ef6143aa8ae38fa2db9eea64fc237777d
