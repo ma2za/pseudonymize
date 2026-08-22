@@ -33,6 +33,14 @@ After the first upload, verify that the pending publisher became an ordinary pro
    uv build
    uv run twine check dist/*
    uv run python scripts/verify_release.py
+   
+   # Verify the built wheel locally in an isolated environment (simulating CI)
+   uv venv --python 3.14 .wheel-venv
+   uv pip install --python .wheel-venv/bin/python dist/*.whl
+   uv pip check --python .wheel-venv/bin/python
+   .wheel-venv/bin/python -I scripts/audit_install.py
+   .wheel-venv/bin/python -I scripts/smoke_wheel.py
+   .wheel-venv/bin/pseudonymize detectors
    ```
 
 4. Open a pull request and merge only after every required check passes.

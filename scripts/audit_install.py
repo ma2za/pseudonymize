@@ -27,11 +27,17 @@ def _blocked_network(*arguments: object, **keywords: object) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--version", required=True)
+    parser.add_argument("--version", required=False)
     arguments = parser.parse_args()
 
+    expected_version = arguments.version
+    if not expected_version:
+        import tomllib
+        with open("pyproject.toml", "rb") as stream:
+            expected_version = tomllib.load(stream)["project"]["version"]
+
     installed = distribution("pseudonymize")
-    if installed.version != arguments.version:
+    if installed.version != expected_version:
         raise RuntimeError("installed version does not match release")
     if installed.requires:
         required_deps = [req for req in installed.requires if "extra ==" not in req]
