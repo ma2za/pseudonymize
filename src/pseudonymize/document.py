@@ -68,7 +68,43 @@ class CSVCellLocation:
             raise ValueError("CSV row and column indexes must be non-negative")
 
 
-SourceLocation: TypeAlias = TextOffsetLocation | JSONPathLocation | CSVCellLocation
+@dataclass(frozen=True, slots=True)
+class CoordinateLocation:
+    page: int
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.page, int) or isinstance(self.page, bool) or self.page < 0:
+            raise ValueError("page must be a non-negative integer")
+        for val in (self.x0, self.y0, self.x1, self.y1):
+            if not isinstance(val, (int, float)) or isinstance(val, bool) or not isfinite(val):
+                raise TypeError("coordinates must be finite numbers")
+        if self.x0 > self.x1 or self.y0 > self.y1:
+            raise ValueError("coordinates must describe a valid bounding box")
+
+
+@dataclass(frozen=True, slots=True)
+class StructuralLocation:
+    path: tuple[str | int, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "path", tuple(self.path))
+        if any(not isinstance(part, (str, int)) or isinstance(part, bool) for part in self.path):
+            raise TypeError("structural path parts must be strings or integers")
+        if any(isinstance(part, int) and part < 0 for part in self.path):
+            raise ValueError("structural path indexes must be non-negative")
+
+
+SourceLocation: TypeAlias = (
+    TextOffsetLocation
+    | JSONPathLocation
+    | CSVCellLocation
+    | CoordinateLocation
+    | StructuralLocation
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,7 +119,16 @@ class ContentBlock:
             raise ValueError("block id must not be empty")
         if not isinstance(self.text, str):
             raise TypeError("block text must be a string")
-        if not isinstance(self.location, (TextOffsetLocation, JSONPathLocation, CSVCellLocation)):
+        if not isinstance(
+            self.location,
+            (
+                TextOffsetLocation,
+                JSONPathLocation,
+                CSVCellLocation,
+                CoordinateLocation,
+                StructuralLocation,
+            ),
+        ):
             raise TypeError("block location must be a supported source location")
         object.__setattr__(self, "metadata", _metadata(self.metadata))
 

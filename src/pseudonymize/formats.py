@@ -32,6 +32,10 @@ class FileFormat(StrEnum):
     JSON = "json"
     JSONL = "jsonl"
     CSV = "csv"
+    PDF = "pdf"
+    DOCX = "docx"
+    XLSX = "xlsx"
+    PPTX = "pptx"
 
 
 _SUFFIX_FORMATS = {
@@ -43,6 +47,10 @@ _SUFFIX_FORMATS = {
     ".jsonl": FileFormat.JSONL,
     ".ndjson": FileFormat.JSONL,
     ".csv": FileFormat.CSV,
+    ".pdf": FileFormat.PDF,
+    ".docx": FileFormat.DOCX,
+    ".xlsx": FileFormat.XLSX,
+    ".pptx": FileFormat.PPTX,
 }
 _CSV_LIMIT_LOCK = threading.Lock()
 

@@ -13,7 +13,8 @@ publishable without requiring unfinished later layers.
 | `0.1.0b1` | Published | Core API freeze and production-oriented examples |
 | `0.1.0rc1` | Published | External installation and release validation |
 | `0.1.0` | Published | First stable text and machine-readable release |
-| `0.2.0` | Next | Optional local machine learning identification for PII |
+| `0.2.0` | Published | Optional local machine learning identification for PII |
+| `0.3.0` | Next | Document inspection (PDF, DOCX, XLSX, PPTX) |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
