@@ -6,7 +6,13 @@ from unittest import mock
 import pytest
 
 from pseudonymize.document import Document
-from pseudonymize.exceptions import AdapterContractError, AdapterExecutionError
+from pseudonymize.engine import Pseudonymizer
+from pseudonymize.exceptions import (
+    AdapterContractError,
+    AdapterExecutionError,
+    UnsupportedFormatError,
+)
+from pseudonymize.formats import BuiltinFileAdapter, FileFormat
 from pseudonymize.inspection import office, pdf
 from pseudonymize.inspection.office import OfficeInspectionAdapter
 from pseudonymize.inspection.pdf import PDFInspectionAdapter
@@ -58,3 +64,27 @@ def test_office_adapter_render_contract() -> None:
     adapter = OfficeInspectionAdapter("docx")
     with pytest.raises(AdapterContractError, match="inspection only"):
         adapter.render(Document("test", (), {}))
+
+
+@pytest.mark.parametrize("suffix", [".pdf", ".docx", ".xlsx", ".pptx"])
+def test_process_file_rejects_inspection_only_formats_before_reading(
+    tmp_path: Path, suffix: str
+) -> None:
+    source = tmp_path / f"document{suffix}"
+    source.write_bytes(b"never read")
+    with pytest.raises(UnsupportedFormatError, match="inspection only"):
+        Pseudonymizer().process_file(source, tmp_path / f"output{suffix}")
+    assert not (tmp_path / f"output{suffix}").exists()
+
+
+@pytest.mark.parametrize("format", ["pdf", "docx", "xlsx", "pptx"])
+def test_builtin_adapter_rejects_inspection_only_formats(format: str) -> None:
+    with pytest.raises(UnsupportedFormatError, match="text-based formats only"):
+        BuiltinFileAdapter(FileFormat(format))
+
+
+def test_inspect_file_rejects_encoding_for_inspection_only_formats(tmp_path: Path) -> None:
+    source = tmp_path / "document.pdf"
+    source.write_bytes(b"never read")
+    with pytest.raises(ValueError, match="text-based formats"):
+        Pseudonymizer().inspect_file(source, encoding="utf-8")
