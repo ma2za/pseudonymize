@@ -1,5 +1,6 @@
 import json
 import os
+import typing
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -10,14 +11,19 @@ from pseudonymize.exceptions import BackendExecutionError
 from pseudonymize.policy import Policy
 from pseudonymize.result import Detection, EntityType
 
-try:
+if typing.TYPE_CHECKING:
     import numpy as np
     import onnxruntime as ort
     from tokenizers import Tokenizer
-except ImportError:
-    np = None
-    ort = None
-    Tokenizer = None
+else:
+    try:
+        import numpy as np
+        import onnxruntime as ort
+        from tokenizers import Tokenizer
+    except ImportError:
+        np = None
+        ort = None
+        Tokenizer = None
 
 
 class LocalONNXPIIBackend(DetectionBackend):
