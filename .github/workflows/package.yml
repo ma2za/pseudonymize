@@ -56,9 +56,10 @@ jobs:
           .wheel-venv/bin/pseudonymize detectors
       - name: Install and audit wheel on Windows
         if: runner.os == 'Windows'
+        shell: bash
         run: |
-          uv pip install --python .wheel-venv\Scripts\python.exe dist\*.whl
-          uv pip check --python .wheel-venv\Scripts\python.exe
-          .wheel-venv\Scripts\python.exe -I scripts\audit_install.py
-          .wheel-venv\Scripts\python.exe -I scripts\smoke_wheel.py
-          .wheel-venv\Scripts\pseudonymize.exe detectors
+          uv pip install --python .wheel-venv/Scripts/python.exe dist/*.whl
+          uv pip check --python .wheel-venv/Scripts/python.exe
+          .wheel-venv/Scripts/python.exe -I scripts/audit_install.py
+          .wheel-venv/Scripts/python.exe -I scripts/smoke_wheel.py
+          .wheel-venv/Scripts/pseudonymize.exe detectors
