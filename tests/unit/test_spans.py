@@ -1,3 +1,5 @@
+from itertools import pairwise
+
 from pseudonymize import Detection, EntityType
 from pseudonymize.spans import resolve_overlaps
 
@@ -13,3 +15,17 @@ def test_configured_priority_breaks_equal_rank() -> None:
     first = Detection(EntityType.SECRET, 0, 10, 0.9, "first")
     second = Detection(EntityType.SECRET, 5, 15, 0.9, "second")
     assert resolve_overlaps([first, second], ("second", "first")) == (second,)
+
+
+def test_dense_overlaps_yield_disjoint_and_maximal_selection() -> None:
+    detections = [
+        Detection(EntityType.EMAIL, start, start + length, 0.9, f"detector-{start}-{length}")
+        for start in range(0, 60, 3)
+        for length in (2, 5, 9)
+    ]
+    result = resolve_overlaps(detections)
+    assert all(left.end <= right.start for left, right in pairwise(result))
+    for detection in detections:
+        assert detection in result or any(
+            detection.start < kept.end and kept.start < detection.end for kept in result
+        )

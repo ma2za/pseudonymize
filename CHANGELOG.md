@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Overlap resolution now uses an ordered-interval scan instead of a quadratic pairwise check,
+  and detected spans are replaced with a single-pass segment join. Texts with thousands of
+  detections process in milliseconds instead of seconds.
+
 ## [0.2.0] - 2026-08-21
 
 ### Added
