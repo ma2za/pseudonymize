@@ -29,7 +29,7 @@ After the first upload, verify that the pending publisher became an ordinary pro
    uv run ruff check .
    uv run mypy
    uv run pytest
-   uv run mkdocs build --strict
+   uv run python -m mkdocs build --strict
    uv build
    uv run twine check dist/*
    uv run python scripts/verify_release.py
