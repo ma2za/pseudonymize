@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-22
+
 ### Changed
 
 - `Policy.default()` now includes `URL_CREDENTIAL` and `SECRET`, so the documented secret and
@@ -160,7 +162,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Deterministic processing now requires `mode="deterministic"` in addition to a key.
 - `redact()` now emits `[REDACTED]` by default; generic mode emits typed placeholders.
 
-[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ma2za/pseudonymize/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/ma2za/pseudonymize/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ma2za/pseudonymize/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0
 [0.1.0rc1]: https://github.com/ma2za/pseudonymize/releases/tag/v0.1.0rc1
