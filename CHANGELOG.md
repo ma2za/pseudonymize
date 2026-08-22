@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Security
+
+- PDF and Office inspection failures no longer interpolate the underlying library's message into
+  the raised error, which could expose file paths or document fragments. They now follow the
+  sanitized fixed-message convention used elsewhere in the engine.
+
 ## [0.3.0] - 2026-08-22
 
 ### Added
