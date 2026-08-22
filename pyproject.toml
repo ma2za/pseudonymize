@@ -91,7 +91,7 @@ minversion = "8"
 testpaths = ["tests"]
 pythonpath = ["."]
 python_files = ["test_*.py", "benchmark_*.py"]
-addopts = ["--strict-config", "--strict-markers", "-ra", "--cov=pseudonymize", "--cov-report=term-missing", "--cov-branch", "--cov-fail-under=99.36"]
+addopts = ["--strict-config", "--strict-markers", "-ra", "--cov=pseudonymize", "--cov-report=term-missing", "--cov-branch", "--cov-fail-under=99.36", "--basetemp=.pytest_temp"]
 markers = ["benchmark: performance benchmark", "integration: integration test", "slow: deliberately slow test"]
 filterwarnings = ["error"]
 
