@@ -37,15 +37,42 @@ def test_pdf_adapter_execution_error(tmp_path: Path) -> None:
     adapter = PDFInspectionAdapter()
     invalid_file = tmp_path / "invalid.pdf"
     invalid_file.write_bytes(b"not a pdf")
-    with pytest.raises(AdapterExecutionError, match="Failed to read PDF"):
+    with pytest.raises(AdapterExecutionError, match="failed while reading the PDF"):
         adapter.extract(invalid_file)
 
 
 def test_office_adapter_execution_error(tmp_path: Path) -> None:
     invalid_file = tmp_path / "invalid.docx"
     invalid_file.write_bytes(b"not a docx")
-    with pytest.raises(AdapterExecutionError, match="Failed to read Office"):
+    with pytest.raises(AdapterExecutionError, match="failed while reading the DOCX"):
         OfficeInspectionAdapter("docx").extract(invalid_file)
+
+
+@pytest.mark.parametrize(
+    ("suffix", "adapter_factory"),
+    [
+        ("pdf", PDFInspectionAdapter),
+        ("docx", lambda: OfficeInspectionAdapter("docx")),
+    ],
+)
+def test_adapter_errors_expose_neither_path_nor_content(
+    tmp_path: Path, suffix: str, adapter_factory: object
+) -> None:
+    directory = tmp_path / "acme-holdings"
+    directory.mkdir()
+    invalid_file = directory / f"payroll.{suffix}"
+    invalid_file.write_bytes(b"not a document, mentions secret@example.com")
+    adapter = adapter_factory()  # type: ignore[operator]
+    with pytest.raises(AdapterExecutionError) as failure:
+        adapter.extract(invalid_file)
+    reported = str(failure.value)
+    assert "acme-holdings" not in reported
+    assert "payroll" not in reported
+    assert "secret@example.com" not in reported
+    # `from None` keeps the context object but suppresses it from tracebacks,
+    # matching how the engine sanitizes adapter failures.
+    assert failure.value.__cause__ is None
+    assert failure.value.__suppress_context__
 
 
 def test_pdf_adapter_render_contract() -> None:

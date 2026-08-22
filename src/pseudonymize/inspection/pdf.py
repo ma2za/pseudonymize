@@ -48,8 +48,8 @@ class PDFInspectionAdapter:
                                         location=location,
                                     )
                                 )
-        except Exception as e:
-            raise AdapterExecutionError(f"Failed to read PDF: {e}") from e
+        except Exception:
+            raise AdapterExecutionError("input adapter failed while reading the PDF") from None
 
         metadata = {"format": "pdf"}
         return Document("file", tuple(blocks), metadata)
