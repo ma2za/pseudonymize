@@ -10,6 +10,11 @@ _SENSITIVE_QUERY_NAMES = frozenset(
 )
 
 
+def _authority_end(url: str, authority_start: int) -> int:
+    indexes = (url.find(character, authority_start) for character in "/?#")
+    return min((index for index in indexes if index != -1), default=len(url))
+
+
 @dataclass(frozen=True, slots=True)
 class UrlDetector:
     name: str = "url"
@@ -21,7 +26,8 @@ class UrlDetector:
             parsed = urllib.parse.urlsplit(url)
             if parsed.username is not None or parsed.password is not None:
                 authority_start = url.find("//") + 2
-                at = url.find("@", authority_start)
+                authority_end = _authority_end(url, authority_start)
+                at = url.rfind("@", authority_start, authority_end)
                 detections.append(
                     Detection(
                         EntityType.URL_CREDENTIAL,
@@ -34,8 +40,10 @@ class UrlDetector:
             query_start = url.find("?") + 1
             if query_start == 0:
                 continue
+            fragment_start = url.find("#", query_start)
+            query_end = fragment_start if fragment_start != -1 else len(url)
             cursor = query_start
-            for item in url[query_start:].split("&"):
+            for item in url[query_start:query_end].split("&"):
                 name, separator, value = item.partition("=")
                 if separator and urllib.parse.unquote_plus(name).lower() in _SENSITIVE_QUERY_NAMES:
                     value_start = cursor + len(name) + 1
