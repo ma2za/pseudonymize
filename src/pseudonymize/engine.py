@@ -287,10 +287,10 @@ class Pseudonymizer:
         if isinstance(data, str):
             block_id = f"block-{block_counter[0]:06d}"
             block_counter[0] += 1
-            block = ContentBlock(block_id, data, JSONPathLocation(path))
             if not self.policy.allows_path(tuple(str(part) for part in path)):
                 statistics.blocks_processed += 1
                 return data
+            block = ContentBlock(block_id, data, JSONPathLocation(path))
             return self._process_block(block, context, False, statistics, reports).text
         if data is None or isinstance(data, (bool, int, float)):
             return data
