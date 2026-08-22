@@ -19,6 +19,20 @@ except ImportError:
     ort = None
     Tokenizer = None
 
+_LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
+    # Standard CoNLL-03 suffixes plus Ai4Privacy fine-grained labels.
+    (("PER", "FIRSTNAME", "LASTNAME", "MIDDLENAME"), EntityType.PERSON),
+    (("ORG", "COMPANYNAME"), EntityType.ORGANIZATION),
+    (("LOC", "CITY", "STATE", "COUNTY", "STREET", "ZIPCODE"), EntityType.LOCATION),
+)
+
+
+def _entity_type_for(label: str) -> EntityType | None:
+    for suffixes, entity_type in _LABEL_SUFFIXES:
+        if label.endswith(suffixes):
+            return entity_type
+    return None
+
 
 class LocalONNXPIIBackend(DetectionBackend):
     def __init__(
@@ -105,55 +119,44 @@ class LocalONNXPIIBackend(DetectionBackend):
 
             predictions = np.argmax(logits, axis=-1)
 
-            detections = []
+            # Token predictions are merged into entity spans: subword continuations
+            # (zero gap) and same-type tokens separated by one whitespace character
+            # collapse into a single detection so that "John Smith" is one PERSON.
+            spans: list[tuple[EntityType, int, int]] = []
 
             for idx, label_id in enumerate(predictions):
-                if label_id == 0 or self._id2label is None:
-                    continue
-
-                label_str = self._id2label.get(label_id)
+                label_str = (self._id2label or {}).get(int(label_id))
                 if not label_str or label_str == "O":
                     continue
-
-                entity_type = None
-
-                # Standard CoNLL-03 tags
-                if label_str.endswith("PER"):
-                    entity_type = EntityType.PERSON
-                elif label_str.endswith("ORG"):
-                    entity_type = EntityType.ORGANIZATION
-                elif label_str.endswith("LOC"):
-                    entity_type = EntityType.LOCATION
-
-                # Ai4Privacy tags mapping
-                elif any(label_str.endswith(s) for s in ("FIRSTNAME", "LASTNAME", "MIDDLENAME")):
-                    entity_type = EntityType.PERSON
-                elif label_str.endswith("COMPANYNAME"):
-                    entity_type = EntityType.ORGANIZATION
-                elif any(
-                    label_str.endswith(s) for s in ("CITY", "STATE", "COUNTY", "STREET", "ZIPCODE")
-                ):
-                    entity_type = EntityType.LOCATION
-
-                if entity_type:
-                    start, end = encoding.offsets[idx]
-                    if start == 0 and end == 0 and idx not in (0, len(predictions) - 1):
+                entity_type = _entity_type_for(label_str)
+                if entity_type is None:
+                    continue
+                start, end = encoding.offsets[idx]
+                if start >= end:
+                    continue
+                if spans:
+                    previous_type, previous_start, previous_end = spans[-1]
+                    gap = block.text[previous_end:start]
+                    if (
+                        entity_type is previous_type
+                        and previous_end <= start <= previous_end + 1
+                        and not gap.strip()
+                    ):
+                        spans[-1] = (previous_type, previous_start, end)
                         continue
-                    if start == end:
-                        continue
+                spans.append((entity_type, start, end))
 
-                    detections.append(
-                        Detection(
-                            entity_type=entity_type,
-                            start=start,
-                            end=end,
-                            confidence=0.99,
-                            backend=self.name,
-                            detector="onnx",
-                        )
-                    )
-
-            return tuple(detections)
+            return tuple(
+                Detection(
+                    entity_type=entity_type,
+                    start=start,
+                    end=end,
+                    confidence=0.99,
+                    backend=self.name,
+                    detector="onnx",
+                )
+                for entity_type, start, end in spans
+            )
 
         except Exception as e:
             raise BackendExecutionError(f"ONNX PII inference failed: {e}") from e

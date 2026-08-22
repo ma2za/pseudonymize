@@ -4,6 +4,13 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- `LocalONNXPIIBackend` now merges contiguous token predictions into whole entity spans, so
+  multi-word and subword-split names receive a single alias instead of one alias per token.
+- ONNX test artifacts downloaded during testing are now verified against pinned SHA-256
+  checksums.
+
 ## [0.2.0] - 2026-08-21
 
 ### Added
