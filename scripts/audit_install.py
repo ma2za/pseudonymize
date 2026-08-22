@@ -33,6 +33,7 @@ def main() -> None:
     expected_version = arguments.version
     if not expected_version:
         import tomllib
+
         with open("pyproject.toml", "rb") as stream:
             expected_version = tomllib.load(stream)["project"]["version"]
 
