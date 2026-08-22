@@ -6,6 +6,10 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ### Changed
 
+- `Policy.default()` now includes `URL_CREDENTIAL` and `SECRET`, so the documented secret and
+  URL-credential detectors act without opting into `Policy.strict()` or `Policy.llm()`. Callers
+  that relied on secrets passing through the default policy must configure an explicit
+  `Policy(entity_types=...)`.
 - Overlap resolution now uses an ordered-interval scan instead of a quadratic pairwise check,
   and detected spans are replaced with a single-pass segment join. Texts with thousands of
   detections process in milliseconds instead of seconds.

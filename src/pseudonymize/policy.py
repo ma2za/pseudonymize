@@ -13,6 +13,7 @@ _STRUCTURED = frozenset(
         EntityType.PAYMENT_CARD,
     }
 )
+_CREDENTIALS = frozenset({EntityType.URL_CREDENTIAL, EntityType.SECRET})
 _SEMANTIC = frozenset({EntityType.PERSON, EntityType.ORGANIZATION, EntityType.LOCATION})
 
 
@@ -24,7 +25,7 @@ class NetworkPolicy(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class Policy:
-    entity_types: Set[EntityType] = _STRUCTURED | _SEMANTIC
+    entity_types: Set[EntityType] = _STRUCTURED | _CREDENTIALS | _SEMANTIC
     minimum_confidence: float = 0.8
     detector_priority: tuple[str, ...] = ()
     include_paths: tuple[str, ...] = ()
