@@ -44,7 +44,7 @@ def test_format_selection_rejects_unknown_values_without_guessing() -> None:
     with pytest.raises(UnsupportedFormatError, match="pass format explicitly"):
         select_file_format(Path("input.unknown"), None)
     with pytest.raises(UnsupportedFormatError, match="unsupported file format"):
-        select_file_format(Path("input.txt"), "pdf")
+        select_file_format(Path("input.txt"), "unknown")
 
 
 @pytest.mark.parametrize("format", [FileFormat.TEXT, FileFormat.MARKDOWN, FileFormat.LOG])

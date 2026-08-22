@@ -4,11 +4,13 @@ from typing import Any, cast
 
 import pytest
 
-from pseudonymize import (
+from pseudonymize.document import (
     ContentBlock,
+    CoordinateLocation,
     CSVCellLocation,
     Document,
     JSONPathLocation,
+    StructuralLocation,
     TextOffsetLocation,
 )
 
@@ -79,6 +81,9 @@ def test_location_values_are_immutable_and_validated() -> None:
         "content",
     )
     assert CSVCellLocation(0, 0).row == 0
+    assert CoordinateLocation(1, 0.0, 0.0, 10.0, 10.0).page == 1
+    assert StructuralLocation(("section", 1)).path == ("section", 1)
+
     with pytest.raises((TypeError, ValueError)):
         TextOffsetLocation(cast(int, True), 1)
     with pytest.raises(ValueError):
@@ -93,6 +98,18 @@ def test_location_values_are_immutable_and_validated() -> None:
         CSVCellLocation(cast(int, False), 0)
     with pytest.raises(ValueError):
         CSVCellLocation(0, -1)
+
+    with pytest.raises(ValueError):
+        CoordinateLocation(-1, 0.0, 0.0, 1.0, 1.0)
+    with pytest.raises(TypeError):
+        CoordinateLocation(1, float("inf"), 0.0, 1.0, 1.0)
+    with pytest.raises(ValueError):
+        CoordinateLocation(1, 10.0, 10.0, 0.0, 0.0)
+
+    with pytest.raises(TypeError):
+        StructuralLocation(("doc", cast(Any, True)))
+    with pytest.raises(ValueError):
+        StructuralLocation(("doc", -1))
 
 
 def test_content_block_rejects_invalid_text_location_and_document_blocks() -> None:

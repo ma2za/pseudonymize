@@ -128,3 +128,22 @@ PyPI upload verified: Pending workflow
 28-day metrics: 
 Status: Released
 
+### 0.3.0: Document inspection
+
+Implementation started: 2026-08-22
+Starting commit: 54a8b7d97ef1f61ebae722d902fa2d31797efb0e
+Starting PyPI version: 0.2.1
+Baseline downloads day/week/month: 0/0/0
+Baseline stars/forks/watchers: 0/0/0
+Files changed: 10
+Compatibility tests added: Yes
+Artifact smoke environments: Win local isolated wheel
+Known limitations: Extract-only; no format-preserving rewriting yet.
+Deferred items: Format-preserving rewrite deferred to 0.4.0.
+Release commit: TBD
+Tag: v0.3.0
+PyPI upload verified: Pending workflow
+7-day metrics: 
+28-day metrics: 
+Status: Ready
+

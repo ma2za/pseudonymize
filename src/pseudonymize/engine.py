@@ -467,8 +467,20 @@ def _processing_adapters(
     output_adapter: OutputAdapter | None,
 ) -> tuple[InputAdapter[Path], OutputAdapter]:
     if input_adapter is None and output_adapter is None:
-        adapter = BuiltinFileAdapter(select_file_format(source, format), encoding)
-        return adapter, adapter
+        selected_format = select_file_format(source, format)
+        if selected_format == FileFormat.PDF:
+            from pseudonymize.inspection.pdf import PDFInspectionAdapter
+
+            pdf_adapter = PDFInspectionAdapter()
+            return pdf_adapter, pdf_adapter
+        elif selected_format in (FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX):
+            from pseudonymize.inspection.office import OfficeInspectionAdapter
+
+            office_adapter = OfficeInspectionAdapter(selected_format)
+            return office_adapter, office_adapter
+        else:
+            builtin_adapter = BuiltinFileAdapter(selected_format, encoding)
+            return builtin_adapter, builtin_adapter
     if input_adapter is None or output_adapter is None:
         raise ValueError("custom file processing requires input and output adapters")
     if format is not None or encoding is not None:
@@ -483,7 +495,17 @@ def _inspection_adapter(
     input_adapter: InputAdapter[Path] | None,
 ) -> InputAdapter[Path]:
     if input_adapter is None:
-        return BuiltinFileAdapter(select_file_format(source, format), encoding)
+        selected_format = select_file_format(source, format)
+        if selected_format == FileFormat.PDF:
+            from pseudonymize.inspection.pdf import PDFInspectionAdapter
+
+            return PDFInspectionAdapter()
+        elif selected_format in (FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX):
+            from pseudonymize.inspection.office import OfficeInspectionAdapter
+
+            return OfficeInspectionAdapter(selected_format)
+        else:
+            return BuiltinFileAdapter(selected_format, encoding)
     if format is not None or encoding is not None:
         raise ValueError("custom adapters cannot be combined with format or encoding")
     return input_adapter

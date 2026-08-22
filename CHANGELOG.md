@@ -4,6 +4,14 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-22
+
+### Added
+
+- Added `pdf` extra (using `pdfminer.six`) for PDF text and coordinate extraction.
+- Added `office` extra (using `python-docx`, `openpyxl`, `python-pptx`) for DOCX, XLSX, and PPTX inspection.
+- Introduced `CoordinateLocation` and `StructuralLocation` for granular source tracking in complex file formats.
+
 ## [0.2.1] - 2026-08-22
 
 ### Changed
