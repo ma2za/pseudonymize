@@ -187,11 +187,11 @@ Status: Released
 
 ### 0.6.0: Remote detection
 
-Implementation started: 
-Starting commit: 
-Starting PyPI version: 
-Baseline downloads day/week/month: 
-Baseline stars/forks/watchers: 
+Implementation started: 2026-08-25
+Starting commit: 6f6525bb1689a8b8ea5cbf7473a57d360dc339f7
+Starting PyPI version: 0.5.1
+Baseline downloads day/week/month: 0/0/0
+Baseline stars/forks/watchers: 0/0/0
 Files changed: 
 Compatibility tests added: 
 Artifact smoke environments: 
@@ -202,6 +202,6 @@ Tag:
 PyPI upload verified: 
 7-day metrics: 
 28-day metrics: 
-Status: Planned
+Status: In progress
 
 
