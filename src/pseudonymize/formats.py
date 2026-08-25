@@ -38,6 +38,9 @@ class FileFormat(StrEnum):
     PPTX = "pptx"
 
 
+INSPECTION_ONLY_FORMATS = frozenset(
+    {FileFormat.PDF, FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX}
+)
 _SUFFIX_FORMATS = {
     ".txt": FileFormat.TEXT,
     ".md": FileFormat.MARKDOWN,
@@ -72,6 +75,13 @@ class BuiltinFileAdapter:
     format: FileFormat
     encoding: str | None = None
     _state: "_AdapterState | None" = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if self.format in INSPECTION_ONLY_FORMATS:
+            raise UnsupportedFormatError(
+                "the built-in adapter handles text-based formats only; "
+                f"{self.format.value} is available through inspection"
+            )
 
     def extract(self, source: Path) -> Document:
         decoded = _decode(source.read_bytes(), self.encoding)

@@ -127,15 +127,17 @@ def test_inspect_pptx(test_pptx_path: Path) -> None:
 
 def test_process_pdf_fails(test_pdf_path: Path, tmp_path: Path) -> None:
     engine = Pseudonymizer(policy=Policy.default())
-    from pseudonymize.exceptions import AdapterExecutionError
+    from pseudonymize.exceptions import UnsupportedFormatError
 
-    with pytest.raises(AdapterExecutionError, match="output adapter failed during rendering"):
+    with pytest.raises(UnsupportedFormatError, match="inspection only"):
         engine.process_file(test_pdf_path, tmp_path / "out.pdf", format=FileFormat.PDF)
+    assert not (tmp_path / "out.pdf").exists()
 
 
 def test_process_docx_fails(test_docx_path: Path, tmp_path: Path) -> None:
     engine = Pseudonymizer(policy=Policy.default())
-    from pseudonymize.exceptions import AdapterExecutionError
+    from pseudonymize.exceptions import UnsupportedFormatError
 
-    with pytest.raises(AdapterExecutionError, match="output adapter failed during rendering"):
+    with pytest.raises(UnsupportedFormatError, match="inspection only"):
         engine.process_file(test_docx_path, tmp_path / "out.docx", format=FileFormat.DOCX)
+    assert not (tmp_path / "out.docx").exists()
