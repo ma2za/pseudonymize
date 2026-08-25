@@ -76,3 +76,56 @@ def test_custom_serializer_and_unsupported_values() -> None:
     assert output["value"] != "maria@example.com"
     with pytest.raises(UnsupportedDataError, match="keys"):
         engine.process_data({1: "maria@example.com"})
+
+
+def test_engine_remote_offset_mapping() -> None:
+    from pseudonymize import BackendCapabilities, NetworkPolicy
+    from pseudonymize.backends.rules import RulesBackend
+    from pseudonymize.detectors import DEFAULT_DETECTORS
+    from pseudonymize.result import Detection, EntityType
+
+    # We define a custom remote backend to intercept sanitized text
+    @dataclass
+    class MockRemoteBackend:
+        name: str = "mock_remote"
+
+        @property
+        def capabilities(self) -> BackendCapabilities:
+            return BackendCapabilities(frozenset({EntityType.PERSON}), remote=True)
+
+        @property
+        def allow_remote_processing(self) -> bool:
+            return True
+
+        def detect(self, block: object, policy: Policy) -> list[Detection]:
+            # The input block.text here must be the local-sanitized text!
+            # Original: "Call maria@example.com to reach Maria."
+            # Sanitized: "Call <EMAIL_1> to reach Maria." (length of <EMAIL_1> is 9)
+            text = block.text
+            assert text == "Call <EMAIL_1> to reach Maria."
+            # "Maria" starts at index 24, ends at 29 in the sanitized text
+            return [
+                Detection(
+                    entity_type=EntityType.PERSON,
+                    start=24,
+                    end=29,
+                    confidence=1.0,
+                    detector="mock_remote",
+                )
+            ]
+
+    policy = Policy(
+        network_policy=NetworkPolicy.ALLOW_CONFIGURED,
+        allowed_remote_backends=frozenset({"mock_remote"}),
+    )
+
+    # Instantiate engine with default local rules AND our mock remote backend
+    engine = Pseudonymizer(
+        policy=policy, backends=(RulesBackend(DEFAULT_DETECTORS), MockRemoteBackend())
+    )
+
+    result = engine.process("Call maria@example.com to reach Maria.")
+    # Standard translation should redact BOTH the email and Maria
+    assert "maria@example.com" not in result.text
+    assert "Maria" not in result.text
+    assert result.text == "Call <EMAIL_1> to reach <PERSON_1>."
