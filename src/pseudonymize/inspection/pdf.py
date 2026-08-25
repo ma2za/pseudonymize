@@ -11,6 +11,13 @@ try:
 except ImportError:
     HAS_PDF = False
 
+try:
+    import pytesseract
+
+    HAS_OCR = True
+except ImportError:
+    HAS_OCR = False
+
 
 class PDFInspectionAdapter:
     """Extracts and format-preserves PDF documents using secure redaction."""
@@ -32,11 +39,13 @@ class PDFInspectionAdapter:
                 # get_text("blocks") returns tuples: (x0, y0, x1, y1, "text", block_no, block_type)
                 # block_type == 0 means text, 1 means image
                 page_blocks = page.get_text("blocks")
+                page_had_text = False
                 for b in page_blocks:
                     if len(b) >= 7 and b[6] == 0:
                         x0, y0, x1, y1, text, block_no, _ = b
                         text = text.strip()
                         if text:
+                            page_had_text = True
                             location = CoordinateLocation(
                                 page=page_index,
                                 x0=float(x0),
@@ -51,6 +60,50 @@ class PDFInspectionAdapter:
                                     location=location,
                                 )
                             )
+
+                # Fallback to OCR if the page has no extractable text and OCR is available
+                if not page_had_text and HAS_OCR:
+                    dpi = 300
+                    pix = page.get_pixmap(dpi=dpi)
+                    img = pix.pil_image()
+
+                    data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+
+                    # Tesseract coordinates are in pixels at the specified DPI.
+                    # PDF coordinates are in points (72 points per inch).
+                    scale = 72.0 / dpi
+
+                    n_boxes = len(data["text"])
+                    for i in range(n_boxes):
+                        text = data["text"][i].strip()
+                        if text:
+                            # Tesseract bounding box
+                            left = data["left"][i]
+                            top = data["top"][i]
+                            width = data["width"][i]
+                            height = data["height"][i]
+
+                            # Convert to PDF points
+                            x0 = left * scale
+                            y0 = top * scale
+                            x1 = (left + width) * scale
+                            y1 = (top + height) * scale
+
+                            location = CoordinateLocation(
+                                page=page_index,
+                                x0=float(x0),
+                                y0=float(y0),
+                                x1=float(x1),
+                                y1=float(y1),
+                            )
+                            blocks.append(
+                                ContentBlock(
+                                    id=f"page-{page_index}-ocr-{i:06d}",
+                                    text=text,
+                                    location=location,
+                                )
+                            )
+
             doc.close()
         except Exception:
             raise AdapterExecutionError("input adapter failed while reading the PDF") from None
