@@ -140,10 +140,30 @@ Compatibility tests added: Yes
 Artifact smoke environments: Win local isolated wheel
 Known limitations: Extract-only; no format-preserving rewriting yet.
 Deferred items: Format-preserving rewrite deferred to 0.4.0.
-Release commit: TBD
+Release commit: afe5f40b22acba55353b7c709a8cccb7fb9f922c
 Tag: v0.3.0
 PyPI upload verified: Pending workflow
 7-day metrics: 
 28-day metrics: 
-Status: Ready
+Status: Released
+
+### 0.4.0: Format-preserving documents
+
+Implementation started: 2026-08-25
+Starting commit: 8d2c6ab43e38aee58a04939c5e34bb926b0d1517
+Starting PyPI version: 0.3.0
+Baseline downloads day/week/month: 0/0/0
+Baseline stars/forks/watchers: 0/0/0
+Files changed: 
+Compatibility tests added: 
+Artifact smoke environments: 
+Known limitations: 
+Deferred items: 
+Release commit: 
+Tag: 
+PyPI upload verified: 
+7-day metrics: 
+28-day metrics: 
+Status: In progress
+
 

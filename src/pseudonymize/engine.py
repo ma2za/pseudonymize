@@ -479,6 +479,20 @@ def _processing_adapters(
                 f"{selected_format.value} supports inspection only; "
                 "use inspect_file or supply custom adapters"
             )
+        if selected_format in {FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX, FileFormat.PDF}:
+            if encoding is not None:
+                raise ValueError("encoding applies only to text-based formats")
+            if selected_format is FileFormat.PDF:
+                from pseudonymize.inspection.pdf import PDFInspectionAdapter
+
+                pdf_adapter = PDFInspectionAdapter()
+                return pdf_adapter, pdf_adapter
+
+            from pseudonymize.inspection.office import OfficeInspectionAdapter
+
+            office_adapter = OfficeInspectionAdapter(selected_format)
+            return office_adapter, office_adapter
+
         builtin_adapter = BuiltinFileAdapter(selected_format, encoding)
         return builtin_adapter, builtin_adapter
     if input_adapter is None or output_adapter is None:
@@ -496,7 +510,12 @@ def _inspection_adapter(
 ) -> InputAdapter[Path]:
     if input_adapter is None:
         selected_format = select_file_format(source, format)
-        if selected_format in INSPECTION_ONLY_FORMATS:
+        if selected_format in INSPECTION_ONLY_FORMATS or selected_format in {
+            FileFormat.DOCX,
+            FileFormat.XLSX,
+            FileFormat.PPTX,
+            FileFormat.PDF,
+        }:
             if encoding is not None:
                 raise ValueError("encoding applies only to text-based formats")
             if selected_format is FileFormat.PDF:

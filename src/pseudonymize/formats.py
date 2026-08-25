@@ -38,9 +38,7 @@ class FileFormat(StrEnum):
     PPTX = "pptx"
 
 
-INSPECTION_ONLY_FORMATS = frozenset(
-    {FileFormat.PDF, FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX}
-)
+INSPECTION_ONLY_FORMATS: frozenset[FileFormat] = frozenset()
 _SUFFIX_FORMATS = {
     ".txt": FileFormat.TEXT,
     ".md": FileFormat.MARKDOWN,
