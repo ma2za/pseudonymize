@@ -77,7 +77,7 @@ class PDFInspectionAdapter:
                         loc = block.location
                         if not isinstance(loc, CoordinateLocation):
                             continue
-                        
+
                         rect = pymupdf.Rect(loc.x0, loc.y0, loc.x1, loc.y1)
                         # Add redaction annotation with overlay text
                         page.add_redact_annot(rect, text=block.text, fill=(0, 0, 0))
