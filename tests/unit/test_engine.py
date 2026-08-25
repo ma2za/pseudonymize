@@ -82,6 +82,7 @@ def test_engine_remote_offset_mapping() -> None:
     from pseudonymize import BackendCapabilities, NetworkPolicy
     from pseudonymize.backends.rules import RulesBackend
     from pseudonymize.detectors import DEFAULT_DETECTORS
+    from pseudonymize.document import ContentBlock
     from pseudonymize.result import Detection, EntityType
 
     # We define a custom remote backend to intercept sanitized text
@@ -97,7 +98,7 @@ def test_engine_remote_offset_mapping() -> None:
         def allow_remote_processing(self) -> bool:
             return True
 
-        def detect(self, block: object, policy: Policy) -> list[Detection]:
+        def detect(self, block: ContentBlock, policy: Policy) -> list[Detection]:
             # The input block.text here must be the local-sanitized text!
             # Original: "Call maria@example.com to reach Maria."
             # Sanitized: "Call <EMAIL_1> to reach Maria." (length of <EMAIL_1> is 9)
