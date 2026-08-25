@@ -4,6 +4,16 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- `process_file` now rejects PDF, DOCX, XLSX, and PPTX immediately with `UnsupportedFormatError`
+  instead of extracting and processing the whole document before failing at rendering time with a
+  generic message.
+- `inspect_file` now rejects an `encoding` argument for inspection-only formats instead of
+  silently ignoring it.
+- `BuiltinFileAdapter` now rejects inspection-only formats at construction instead of decoding a
+  binary document as text.
+
 ## [0.3.0] - 2026-08-22
 
 ### Added
