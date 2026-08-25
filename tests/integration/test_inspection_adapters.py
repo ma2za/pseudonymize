@@ -93,6 +93,7 @@ def test_process_pdf_ocr(test_pdf_ocr_path: Path, tmp_path: Path) -> None:
     assert "[REDACTED]" in text
     doc.close()
 
+
 @pytest.fixture
 def test_docx_path(tmp_path: Path) -> Path:
     if not HAS_OFFICE:
