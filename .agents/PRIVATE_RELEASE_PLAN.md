@@ -192,16 +192,16 @@ Starting commit: 6f6525bb1689a8b8ea5cbf7473a57d360dc339f7
 Starting PyPI version: 0.5.1
 Baseline downloads day/week/month: 0/0/0
 Baseline stars/forks/watchers: 0/0/0
-Files changed: 
-Compatibility tests added: 
-Artifact smoke environments: 
-Known limitations: 
-Deferred items: 
-Release commit: 
-Tag: 
-PyPI upload verified: 
+Files changed: 7
+Compatibility tests added: Yes
+Artifact smoke environments: Win local isolated wheel
+Known limitations: Remote processing is restricted to allowed/configured backends.
+Deferred items: None
+Release commit: f9517983550048983640cf4fe0e1680fcb6da0b5
+Tag: v0.6.0
+PyPI upload verified: Yes
 7-day metrics: 
 28-day metrics: 
-Status: In progress
+Status: Released
 
 
