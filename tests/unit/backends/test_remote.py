@@ -1,4 +1,5 @@
 import json
+from collections.abc import Generator
 from unittest import mock
 
 import httpx
@@ -12,7 +13,7 @@ from pseudonymize.result import EntityType
 
 
 @pytest.fixture
-def mock_httpx() -> mock.MagicMock:
+def mock_httpx() -> Generator[mock.MagicMock, None, None]:
     with mock.patch("httpx.Client") as mock_client:
         yield mock_client
 
