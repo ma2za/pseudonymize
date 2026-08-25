@@ -50,11 +50,13 @@ class OfficeInspectionAdapter:
         self._doc = docx.Document(str(source))
         self._walk_docx(self._doc, (), blocks)
 
-    def _walk_docx(self, container: Any, path_prefix: tuple[Any, ...], blocks: list[ContentBlock]) -> None:
+    def _walk_docx(
+        self, container: Any, path_prefix: tuple[Any, ...], blocks: list[ContentBlock]
+    ) -> None:
         for para_index, para in enumerate(container.paragraphs):
             text = para.text.strip()
             if text:
-                path = path_prefix + ("paragraph", para_index)
+                path = (*path_prefix, "paragraph", para_index)
                 blocks.append(
                     ContentBlock(
                         id="docx-" + "-".join(str(p) for p in path),
@@ -65,7 +67,15 @@ class OfficeInspectionAdapter:
         for table_index, table in enumerate(container.tables):
             for row_index, row in enumerate(table.rows):
                 for col_index, cell in enumerate(row.cells):
-                    cell_path = path_prefix + ("table", table_index, "row", row_index, "col", col_index)
+                    cell_path = (
+                        *path_prefix,
+                        "table",
+                        table_index,
+                        "row",
+                        row_index,
+                        "col",
+                        col_index,
+                    )
                     # A cell itself can contain text directly (in its paragraphs)
                     # or more nested tables. We recurse into the cell.
                     self._walk_docx(cell, cell_path, blocks)
@@ -146,19 +156,19 @@ class OfficeInspectionAdapter:
             if not isinstance(loc, StructuralLocation):
                 continue
             path = loc.path
-            
+
             curr = self._doc
             i = 0
             while i < len(path):
                 tag = path[i]
                 if tag == "paragraph":
-                    para_index = int(path[i+1])
+                    para_index = int(path[i + 1])
                     curr.paragraphs[para_index].text = block.text
                     break
                 elif tag == "table":
-                    table_index = int(path[i+1])
-                    row_index = int(path[i+3])
-                    col_index = int(path[i+5])
+                    table_index = int(path[i + 1])
+                    row_index = int(path[i + 3])
+                    col_index = int(path[i + 5])
                     curr = curr.tables[table_index].rows[row_index].cells[col_index]
                     i += 6
                 else:

@@ -111,10 +111,11 @@ class Pseudonymizer:
         self, block: ContentBlock, statistics: "_OperationStatistics"
     ) -> tuple[Detection, ...]:
         statistics.blocks_processed += 1
-        
+
         # Obfuscation removal: strip zero-width characters and BiDi overrides
         # while keeping a mapping to original indices.
-        # U+200B to U+200F (ZWSP, ZWNJ, ZWJ, LRM, RLM), U+202A to U+202E (LRE, RLE, PDF, LRO, RLO), U+FEFF (BOM)
+        # U+200B to U+200F (ZWSP, ZWNJ, ZWJ, LRM, RLM), U+202A to U+202E (LRE, RLE, PDF, LRO, RLO),
+        # U+FEFF (BOM)
         obfuscation_chars = frozenset(
             "\u200b\u200c\u200d\u200e\u200f\u202a\u202b\u202c\u202d\u202e\ufeff"
         )
@@ -127,14 +128,15 @@ class Pseudonymizer:
                     clean_chars.append(char)
                     original_indices.append(i)
             original_indices.append(len(original_text))  # For the end boundary
-            
+
             clean_text = "".join(clean_chars)
             # Create a shallow copy of the block with the clean text for the backends
             from dataclasses import replace
+
             clean_block = replace(block, text=clean_text)
         else:
             clean_block = block
-            original_indices = [] # Empty means 1:1 mapping
+            original_indices = []  # Empty means 1:1 mapping
 
         candidates: list[Detection] = []
         for backend in self.backends:
@@ -143,7 +145,7 @@ class Pseudonymizer:
                 continue
             detections = invoke_backend(backend, clean_block, self.policy)
             statistics.record_backend(capabilities)
-            
+
             if original_indices:
                 mapped_detections = []
                 for det in detections:
@@ -151,8 +153,8 @@ class Pseudonymizer:
                     mapped_start = original_indices[det.start]
                     mapped_end = original_indices[det.end]
                     # Also map the value if the backend provided it
-                    mapped_value = original_text[mapped_start:mapped_end]
-                    
+                    original_text[mapped_start:mapped_end]
+
                     mapped_detections.append(
                         Detection(
                             entity_type=det.entity_type,
