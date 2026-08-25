@@ -35,8 +35,10 @@ class OfficeInspectionAdapter:
                 self._extract_xlsx(source, blocks)
             elif self.format_hint == "pptx":
                 self._extract_pptx(source, blocks)
-        except Exception as e:
-            raise AdapterExecutionError(f"Failed to read Office document: {e}") from e
+        except Exception:
+            raise AdapterExecutionError(
+                f"input adapter failed while reading the {self.format_hint.upper()} document"
+            ) from None
 
         metadata = {"format": self.format_hint}
         return Document("file", tuple(blocks), metadata)
