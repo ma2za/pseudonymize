@@ -518,6 +518,10 @@ def _inspection_adapter(
         }:
             if encoding is not None:
                 raise ValueError("encoding applies only to text-based formats")
+            if selected_format in {FileFormat.PNG, FileFormat.JPEG}:
+                from pseudonymize.inspection.image import ImageInspectionAdapter
+
+                return ImageInspectionAdapter(selected_format)
             if selected_format is FileFormat.PDF:
                 from pseudonymize.inspection.pdf import PDFInspectionAdapter
 

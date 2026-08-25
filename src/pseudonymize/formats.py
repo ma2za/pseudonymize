@@ -36,9 +36,11 @@ class FileFormat(StrEnum):
     DOCX = "docx"
     XLSX = "xlsx"
     PPTX = "pptx"
+    PNG = "png"
+    JPEG = "jpeg"
 
 
-INSPECTION_ONLY_FORMATS: frozenset[FileFormat] = frozenset()
+INSPECTION_ONLY_FORMATS: frozenset[FileFormat] = frozenset({FileFormat.PNG, FileFormat.JPEG})
 _SUFFIX_FORMATS = {
     ".txt": FileFormat.TEXT,
     ".md": FileFormat.MARKDOWN,
@@ -52,6 +54,9 @@ _SUFFIX_FORMATS = {
     ".docx": FileFormat.DOCX,
     ".xlsx": FileFormat.XLSX,
     ".pptx": FileFormat.PPTX,
+    ".png": FileFormat.PNG,
+    ".jpg": FileFormat.JPEG,
+    ".jpeg": FileFormat.JPEG,
 }
 _CSV_LIMIT_LOCK = threading.Lock()
 
