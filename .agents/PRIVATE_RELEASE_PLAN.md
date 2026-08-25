@@ -168,11 +168,11 @@ Status: Released
 
 ### 0.5.0: OCR and scanned documents
 
-Implementation started: 
-Starting commit: 
-Starting PyPI version: 
-Baseline downloads day/week/month: 
-Baseline stars/forks/watchers: 
+Implementation started: 2026-08-25
+Starting commit: 7579aa474a425fa5f909eca309f41adfc43fb497
+Starting PyPI version: 0.4.0
+Baseline downloads day/week/month: 0/0/0
+Baseline stars/forks/watchers: 0/0/0
 Files changed: 
 Compatibility tests added: 
 Artifact smoke environments: 
@@ -183,6 +183,6 @@ Tag:
 PyPI upload verified: 
 7-day metrics: 
 28-day metrics: 
-Status: Planned
+Status: In progress
 
 
