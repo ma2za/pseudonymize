@@ -154,6 +154,25 @@ Starting commit: 8d2c6ab43e38aee58a04939c5e34bb926b0d1517
 Starting PyPI version: 0.3.0
 Baseline downloads day/week/month: 0/0/0
 Baseline stars/forks/watchers: 0/0/0
+Files changed: 12
+Compatibility tests added: Yes
+Artifact smoke environments: Win local isolated wheel
+Known limitations: OCR not yet supported for scanned PDFs.
+Deferred items: OCR deferred to 0.5.0.
+Release commit: d2811ab92f939873e684cea3febeddf6e5bd93d1
+Tag: v0.4.0
+PyPI upload verified: Yes
+7-day metrics: 
+28-day metrics: 
+Status: Released
+
+### 0.5.0: OCR and scanned documents
+
+Implementation started: 
+Starting commit: 
+Starting PyPI version: 
+Baseline downloads day/week/month: 
+Baseline stars/forks/watchers: 
 Files changed: 
 Compatibility tests added: 
 Artifact smoke environments: 
@@ -164,6 +183,6 @@ Tag:
 PyPI upload verified: 
 7-day metrics: 
 28-day metrics: 
-Status: In progress
+Status: Planned
 
 
