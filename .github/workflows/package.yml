@@ -14,12 +14,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          python-version: "3.14"
+          python-version: "3.13"
       - run: uv sync --frozen --group release
       - run: uv build
       - run: uv run twine check dist/*
       - run: uv run python scripts/verify_release.py
-      - run: uv venv --python 3.14 .wheel-venv
+      - run: uv venv --python 3.13 .wheel-venv
       - run: uv pip install --python .wheel-venv/bin/python dist/*.whl
       - run: .wheel-venv/bin/python scripts/smoke_wheel.py
       - run: .wheel-venv/bin/pseudonymize detectors
@@ -34,7 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.11", "3.12", "3.13", "3.14"]
+        python: ["3.11", "3.12", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
