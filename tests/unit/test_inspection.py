@@ -10,10 +10,17 @@ from pseudonymize.engine import Pseudonymizer
 from pseudonymize.exceptions import (
     AdapterExecutionError,
 )
-from pseudonymize.inspection import office, pdf
+from pseudonymize.inspection import image, office, pdf
+from pseudonymize.inspection.image import ImageInspectionAdapter
 from pseudonymize.inspection.office import OfficeInspectionAdapter
 from pseudonymize.inspection.pdf import PDFInspectionAdapter
 
+def test_image_adapter_missing_dependency() -> None:
+    with mock.patch.dict(sys.modules, {"pytesseract": None, "PIL": None}):
+        importlib.reload(image)
+        with pytest.raises(RuntimeError, match="requires the 'ocr' extra"):
+            image.ImageInspectionAdapter("png")
+    importlib.reload(image)
 
 def test_pdf_adapter_missing_dependency() -> None:
     with mock.patch.dict(sys.modules, {"pymupdf": None}):
@@ -43,6 +50,12 @@ def test_pdf_adapter_execution_error(tmp_path: Path) -> None:
     with pytest.raises(AdapterExecutionError, match="failed while reading the PDF"):
         adapter.extract(invalid_file)
 
+
+def test_image_adapter_execution_error(tmp_path: Path) -> None:
+    invalid_file = tmp_path / "invalid.png"
+    invalid_file.write_bytes(b"not a png")
+    with pytest.raises(AdapterExecutionError, match="failed while reading the PNG"):
+        ImageInspectionAdapter("png").extract(invalid_file)
 
 def test_office_adapter_execution_error(tmp_path: Path) -> None:
     invalid_file = tmp_path / "invalid.docx"
@@ -94,4 +107,10 @@ def test_pdf_adapter_render_contract() -> None:
 def test_office_adapter_render_contract() -> None:
     adapter = OfficeInspectionAdapter("docx")
     with pytest.raises(AdapterExecutionError, match="Cannot render before extraction"):
+        adapter.render(Document("test", (), {}))
+
+def test_image_adapter_render_contract() -> None:
+    from pseudonymize.exceptions import AdapterContractError
+    adapter = ImageInspectionAdapter("png")
+    with pytest.raises(AdapterContractError, match="inspection only"):
         adapter.render(Document("test", (), {}))
