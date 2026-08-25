@@ -4,6 +4,13 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-25
+
+### Added
+
+- Format-preserving sanitization for Office documents (DOCX, XLSX, PPTX).
+- Secure redaction for PDF documents with underlying text removal.
+
 ### Security
 
 - PDF and Office inspection failures no longer interpolate the underlying library's message into

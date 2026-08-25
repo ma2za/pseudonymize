@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pseudonymize"
-version = "0.3.0"
+version = "0.4.0"
 description = "Local-first PII pseudonymization for text, structured data, and LLM payloads."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -50,6 +50,7 @@ office = [
 ]
 pdf = [
     "pdfminer.six>=20240706",
+    "pymupdf>=1.24.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -91,6 +92,7 @@ module = [
     "onnxruntime.*",
     "tokenizers.*",
     "pdfminer.*",
+    "pymupdf.*",
     "docx.*",
     "pptx.*",
     "openpyxl.*"

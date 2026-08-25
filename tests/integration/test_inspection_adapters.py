@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pseudonymize.engine import Pseudonymizer
+from pseudonymize.engine import Pseudonymizer, TransformationMode
 from pseudonymize.formats import FileFormat
 from pseudonymize.policy import Policy
 
@@ -125,19 +125,55 @@ def test_inspect_pptx(test_pptx_path: Path) -> None:
     assert any(d.entity_type == "EMAIL" for d in result.detections)
 
 
-def test_process_pdf_fails(test_pdf_path: Path, tmp_path: Path) -> None:
-    engine = Pseudonymizer(policy=Policy.default())
-    from pseudonymize.exceptions import UnsupportedFormatError
+def test_process_pdf(test_pdf_path: Path, tmp_path: Path) -> None:
+    engine = Pseudonymizer(policy=Policy.default(), mode=TransformationMode.REDACTED)
+    out_path = tmp_path / "out.pdf"
+    engine.process_file(test_pdf_path, out_path, format=FileFormat.PDF)
+    assert out_path.exists()
 
-    with pytest.raises(UnsupportedFormatError, match="inspection only"):
-        engine.process_file(test_pdf_path, tmp_path / "out.pdf", format=FileFormat.PDF)
-    assert not (tmp_path / "out.pdf").exists()
+    # Verify secure redaction
+    import pymupdf
+
+    doc = pymupdf.open(out_path)
+    page = doc[0]
+    text = page.get_text()
+    assert "[REDACTED]" in text
+    assert "alice@example.com" not in text
+    doc.close()
 
 
-def test_process_docx_fails(test_docx_path: Path, tmp_path: Path) -> None:
-    engine = Pseudonymizer(policy=Policy.default())
-    from pseudonymize.exceptions import UnsupportedFormatError
+def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
+    engine = Pseudonymizer(policy=Policy.default(), mode=TransformationMode.REDACTED)
+    out_path = tmp_path / "out.docx"
+    engine.process_file(test_docx_path, out_path, format=FileFormat.DOCX)
+    assert out_path.exists()
 
-    with pytest.raises(UnsupportedFormatError, match="inspection only"):
-        engine.process_file(test_docx_path, tmp_path / "out.docx", format=FileFormat.DOCX)
-    assert not (tmp_path / "out.docx").exists()
+    doc = docx.Document(str(out_path))
+    assert doc.paragraphs[0].text == "Hello, my email is [REDACTED]."
+    assert doc.core_properties.author == "pseudonymize"
+    assert doc.core_properties.last_modified_by == "pseudonymize"
+
+
+def test_process_xlsx(test_xlsx_path: Path, tmp_path: Path) -> None:
+    engine = Pseudonymizer(policy=Policy.default(), mode=TransformationMode.REDACTED)
+    out_path = tmp_path / "out.xlsx"
+    engine.process_file(test_xlsx_path, out_path, format=FileFormat.XLSX)
+    assert out_path.exists()
+
+    wb = openpyxl.load_workbook(filename=out_path, data_only=True)
+    ws = wb.active
+    assert ws["B1"].value == "[REDACTED]"
+    assert wb.properties.creator == "pseudonymize"
+
+
+def test_process_pptx(test_pptx_path: Path, tmp_path: Path) -> None:
+    engine = Pseudonymizer(policy=Policy.default(), mode=TransformationMode.REDACTED)
+    out_path = tmp_path / "out.pptx"
+    engine.process_file(test_pptx_path, out_path, format=FileFormat.PPTX)
+    assert out_path.exists()
+
+    prs = pptx.Presentation(str(out_path))
+    slide = prs.slides[0]
+    assert slide.placeholders[1].text == "Reach us at [REDACTED]"
+    assert prs.core_properties.author == "pseudonymize"
+    assert prs.core_properties.last_modified_by == "pseudonymize"

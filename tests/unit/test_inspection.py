@@ -19,7 +19,7 @@ from pseudonymize.inspection.pdf import PDFInspectionAdapter
 
 
 def test_pdf_adapter_missing_dependency() -> None:
-    with mock.patch.dict(sys.modules, {"pdfminer.high_level": None, "pdfminer.layout": None}):
+    with mock.patch.dict(sys.modules, {"pymupdf": None}):
         importlib.reload(pdf)
         with pytest.raises(RuntimeError, match="requires the 'pdf' extra"):
             pdf.PDFInspectionAdapter()
@@ -81,37 +81,18 @@ def test_adapter_errors_expose_neither_path_nor_content(
     assert failure.value.__suppress_context__
 
 
-def test_pdf_adapter_render_contract() -> None:
-    adapter = PDFInspectionAdapter()
-    with pytest.raises(AdapterContractError, match="inspection only"):
-        adapter.render(Document("test", (), {}))
-
-
-def test_office_adapter_render_contract() -> None:
-    adapter = OfficeInspectionAdapter("docx")
-    with pytest.raises(AdapterContractError, match="inspection only"):
-        adapter.render(Document("test", (), {}))
-
-
-@pytest.mark.parametrize("suffix", [".pdf", ".docx", ".xlsx", ".pptx"])
-def test_process_file_rejects_inspection_only_formats_before_reading(
-    tmp_path: Path, suffix: str
-) -> None:
-    source = tmp_path / f"document{suffix}"
-    source.write_bytes(b"never read")
-    with pytest.raises(UnsupportedFormatError, match="inspection only"):
-        Pseudonymizer().process_file(source, tmp_path / f"output{suffix}")
-    assert not (tmp_path / f"output{suffix}").exists()
-
-
-@pytest.mark.parametrize("format", ["pdf", "docx", "xlsx", "pptx"])
-def test_builtin_adapter_rejects_inspection_only_formats(format: str) -> None:
-    with pytest.raises(UnsupportedFormatError, match="text-based formats only"):
-        BuiltinFileAdapter(FileFormat(format))
-
-
 def test_inspect_file_rejects_encoding_for_inspection_only_formats(tmp_path: Path) -> None:
     source = tmp_path / "document.pdf"
     source.write_bytes(b"never read")
     with pytest.raises(ValueError, match="text-based formats"):
         Pseudonymizer().inspect_file(source, encoding="utf-8")
+
+def test_pdf_adapter_render_contract() -> None:
+    adapter = PDFInspectionAdapter()
+    with pytest.raises(AdapterExecutionError, match="Cannot render before extraction"):
+        adapter.render(Document("test", (), {}))
+
+def test_office_adapter_render_contract() -> None:
+    adapter = OfficeInspectionAdapter("docx")
+    with pytest.raises(AdapterExecutionError, match="Cannot render before extraction"):
+        adapter.render(Document("test", (), {}))

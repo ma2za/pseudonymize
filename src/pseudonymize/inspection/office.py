@@ -1,7 +1,9 @@
+from io import BytesIO
 from pathlib import Path
+from typing import Any
 
 from pseudonymize.document import ContentBlock, Document, StructuralLocation
-from pseudonymize.exceptions import AdapterContractError, AdapterExecutionError
+from pseudonymize.exceptions import AdapterExecutionError
 
 try:
     import docx
@@ -14,7 +16,7 @@ except ImportError:
 
 
 class OfficeInspectionAdapter:
-    """Extracts text from Office documents (DOCX, XLSX, PPTX) for inspection."""
+    """Extracts and format-preserves Office documents (DOCX, XLSX, PPTX)."""
 
     def __init__(self, format_hint: str) -> None:
         if not HAS_OFFICE:
@@ -25,6 +27,7 @@ class OfficeInspectionAdapter:
         self.format_hint = format_hint.lower()
         if self.format_hint not in ("docx", "xlsx", "pptx"):
             raise ValueError(f"Unsupported Office format hint: {format_hint}")
+        self._doc: Any = None
 
     def extract(self, source: Path) -> Document:
         blocks: list[ContentBlock] = []
@@ -44,8 +47,8 @@ class OfficeInspectionAdapter:
         return Document("file", tuple(blocks), metadata)
 
     def _extract_docx(self, source: Path, blocks: list[ContentBlock]) -> None:
-        doc = docx.Document(str(source))
-        for para_index, para in enumerate(doc.paragraphs):
+        self._doc = docx.Document(str(source))
+        for para_index, para in enumerate(self._doc.paragraphs):
             text = para.text.strip()
             if text:
                 blocks.append(
@@ -55,8 +58,7 @@ class OfficeInspectionAdapter:
                         location=StructuralLocation(("paragraph", para_index)),
                     )
                 )
-        # We can also extract tables if needed, for simplicity we stick to paragraphs and tables
-        for table_index, table in enumerate(doc.tables):
+        for table_index, table in enumerate(self._doc.tables):
             for row_index, row in enumerate(table.rows):
                 for col_index, cell in enumerate(row.cells):
                     text = cell.text.strip()
@@ -72,9 +74,9 @@ class OfficeInspectionAdapter:
                         )
 
     def _extract_xlsx(self, source: Path, blocks: list[ContentBlock]) -> None:
-        wb = openpyxl.load_workbook(filename=source, data_only=True)
-        for sheet_index, sheet_name in enumerate(wb.sheetnames):
-            sheet = wb[sheet_name]
+        self._doc = openpyxl.load_workbook(filename=source, data_only=True)
+        for sheet_index, sheet_name in enumerate(self._doc.sheetnames):
+            sheet = self._doc[sheet_name]
             for row_index, row in enumerate(sheet.iter_rows(values_only=True)):
                 for col_index, cell_value in enumerate(row):
                     if cell_value is not None:
@@ -91,8 +93,8 @@ class OfficeInspectionAdapter:
                             )
 
     def _extract_pptx(self, source: Path, blocks: list[ContentBlock]) -> None:
-        prs = pptx.Presentation(str(source))
-        for slide_index, slide in enumerate(prs.slides):
+        self._doc = pptx.Presentation(str(source))
+        for slide_index, slide in enumerate(self._doc.slides):
             for shape_index, shape in enumerate(slide.shapes):
                 if hasattr(shape, "text") and shape.text:
                     text = shape.text.strip()
@@ -108,7 +110,83 @@ class OfficeInspectionAdapter:
                         )
 
     def render(self, document: Document) -> bytes:
-        raise AdapterContractError(
-            f"{self.format_hint.upper()} format-preserving rendering is not yet supported. "
-            "Office extraction is for inspection only."
-        )
+        if not self._doc:
+            raise AdapterExecutionError("Cannot render before extraction")
+
+        try:
+            if self.format_hint == "docx":
+                self._render_docx(document)
+            elif self.format_hint == "xlsx":
+                self._render_xlsx(document)
+            elif self.format_hint == "pptx":
+                self._render_pptx(document)
+        except Exception:
+            raise AdapterExecutionError(
+                f"output adapter failed while rendering the {self.format_hint.upper()} document"
+            ) from None
+
+        out = BytesIO()
+        self._doc.save(out)
+        return out.getvalue()
+
+    def _clean_core_properties(self, core_properties: Any) -> None:
+        """Sanitize common author and modification metadata."""
+        if hasattr(core_properties, "author"):
+            core_properties.author = "pseudonymize"
+        if hasattr(core_properties, "last_modified_by"):
+            core_properties.last_modified_by = "pseudonymize"
+        if hasattr(core_properties, "comments"):
+            core_properties.comments = ""
+        if hasattr(core_properties, "title"):
+            core_properties.title = "Sanitized Document"
+        if hasattr(core_properties, "subject"):
+            core_properties.subject = ""
+
+    def _render_docx(self, document: Document) -> None:
+        self._clean_core_properties(self._doc.core_properties)
+        for block in document.blocks:
+            loc = block.location
+            if not isinstance(loc, StructuralLocation):
+                continue
+            path = loc.path
+            if len(path) == 2 and path[0] == "paragraph":
+                para_index = int(path[1])
+                self._doc.paragraphs[para_index].text = block.text
+            elif len(path) == 6 and path[0] == "table":
+                table_index = int(path[1])
+                row_index = int(path[3])
+                col_index = int(path[5])
+                self._doc.tables[table_index].rows[row_index].cells[col_index].text = block.text
+
+    def _render_xlsx(self, document: Document) -> None:
+        if hasattr(self._doc, "properties"):
+            self._clean_core_properties(self._doc.properties)
+            # XLSX creator properties
+            if hasattr(self._doc.properties, "creator"):
+                self._doc.properties.creator = "pseudonymize"
+
+        for block in document.blocks:
+            loc = block.location
+            if not isinstance(loc, StructuralLocation):
+                continue
+            path = loc.path
+            if len(path) == 6 and path[0] == "sheet":
+                sheet_name = str(path[1])
+                row_index = int(path[3])
+                col_index = int(path[5])
+                # openpyxl uses 1-based indexing
+                self._doc[sheet_name].cell(
+                    row=row_index + 1, column=col_index + 1, value=block.text
+                )
+
+    def _render_pptx(self, document: Document) -> None:
+        self._clean_core_properties(self._doc.core_properties)
+        for block in document.blocks:
+            loc = block.location
+            if not isinstance(loc, StructuralLocation):
+                continue
+            path = loc.path
+            if len(path) == 4 and path[0] == "slide":
+                slide_index = int(path[1])
+                shape_index = int(path[3])
+                self._doc.slides[slide_index].shapes[shape_index].text = block.text
