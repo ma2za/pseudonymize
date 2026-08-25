@@ -87,10 +87,12 @@ def test_inspect_file_rejects_encoding_for_inspection_only_formats(tmp_path: Pat
     with pytest.raises(ValueError, match="text-based formats"):
         Pseudonymizer().inspect_file(source, encoding="utf-8")
 
+
 def test_pdf_adapter_render_contract() -> None:
     adapter = PDFInspectionAdapter()
     with pytest.raises(AdapterExecutionError, match="Cannot render before extraction"):
         adapter.render(Document("test", (), {}))
+
 
 def test_office_adapter_render_contract() -> None:
     adapter = OfficeInspectionAdapter("docx")
