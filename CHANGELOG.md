@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-25
+
+### Fixed
+- Bumped version to resolve a PyPI artifact collision in the CI pipeline.
+
 ## [0.5.0] - 2026-08-25
 
 ### Added
