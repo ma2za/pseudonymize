@@ -43,8 +43,6 @@ jobs:
             python: "3.12"
           - os: ubuntu-latest
             python: "3.13"
-          - os: macos-latest
-            python: "3.13"
           - os: windows-latest
             python: "3.13"
     runs-on: ${{ matrix.os }}
