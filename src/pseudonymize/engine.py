@@ -105,15 +105,18 @@ class Pseudonymizer:
 
     def detect(self, text: str) -> tuple[Detection, ...]:
         block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
-        return self._detect_block(block, _OperationStatistics())
+        return self._detect_block(block, _OperationStatistics(), remote=False)
 
     def _detect_block(
-        self, block: ContentBlock, statistics: "_OperationStatistics"
+        self, block: ContentBlock, statistics: "_OperationStatistics", remote: bool = False
     ) -> tuple[Detection, ...]:
-        statistics.blocks_processed += 1
+        if not remote:
+            statistics.blocks_processed += 1
         candidates: list[Detection] = []
         for backend in self.backends:
             capabilities = backend_capabilities(backend)
+            if capabilities.remote != remote:
+                continue
             if not capabilities.entity_types.intersection(self.policy.entity_types):
                 continue
             detections = invoke_backend(backend, block, self.policy)
@@ -183,7 +186,7 @@ class Pseudonymizer:
         reports: list[DetectionReport] = []
         for block in document.blocks:
             if self._allows_block(block):
-                detections = self._detect_block(block, statistics)
+                detections = self._detect_block(block, statistics, remote=False)
                 reports.extend(_detection_reports(block, detections))
             else:
                 statistics.blocks_processed += 1
@@ -264,26 +267,98 @@ class Pseudonymizer:
             TransformationMode.DETERMINISTIC,
         }:
             raise ValueError("mappings are available only in numbered and deterministic modes")
+
+        # 1. Local detection
         text = block.text
-        detections = self._detect_block(block, statistics)
-        entities = self.resolver.resolve(text, detections)
-        aliases = tuple(self.assigner.assign(entity, context) for entity in entities)
-        tokens = tuple(
+        local_detections = self._detect_block(block, statistics, remote=False)
+        local_entities = self.resolver.resolve(text, local_detections)
+        local_aliases = tuple(self.assigner.assign(entity, context) for entity in local_entities)
+        local_tokens = tuple(
             self.transformer.render(entity, alias)
-            for entity, alias in zip(entities, aliases, strict=True)
+            for entity, alias in zip(local_entities, local_aliases, strict=True)
         )
+
+        # 2. Build sanitized string and the new_to_orig mapping
+        new_to_orig: list[int] = []
         segments: list[str] = []
-        cursor = 0
-        for entity, token in zip(entities, tokens, strict=True):
+        cursor_orig = 0
+
+        for entity, token in zip(local_entities, local_tokens, strict=True):
             detection = entity.detection
-            segments.append(text[cursor : detection.start])
+
+            # Text before the detection
+            segment = text[cursor_orig : detection.start]
+            segments.append(segment)
+            for _ in range(len(segment)):
+                new_to_orig.append(cursor_orig)
+                cursor_orig += 1
+
+            # The token replacing the detection
             segments.append(token)
+            new_to_orig.extend([detection.start] * len(token))
+
+            cursor_orig = detection.end
+
+        # Text after the last detection
+        segment = text[cursor_orig:]
+        segments.append(segment)
+        for _ in range(len(segment)):
+            new_to_orig.append(cursor_orig)
+            cursor_orig += 1
+
+        new_to_orig.append(len(text))
+        sanitized_text = "".join(segments)
+
+        # 3. Remote detection on sanitized text
+        sanitized_block = replace(block, text=sanitized_text)
+        remote_detections_raw = self._detect_block(sanitized_block, statistics, remote=True)
+
+        remote_detections_mapped = []
+        for det in remote_detections_raw:
+            mapped_start = new_to_orig[det.start]
+            # PyMuPDF/Tesseract detections might end at the boundary of the string.
+            # Using new_to_orig[det.end - 1] + 1 ensures we get the boundary index mapped properly.
+            mapped_end = new_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
+
+            remote_detections_mapped.append(
+                Detection(
+                    entity_type=det.entity_type,
+                    start=mapped_start,
+                    end=mapped_end,
+                    confidence=det.confidence,
+                    detector=det.detector,
+                    backend=det.backend,
+                )
+            )
+
+        # 4. Resolve overlapping local and mapped remote detections
+        all_detections = tuple(local_detections) + tuple(remote_detections_mapped)
+        final_detections = resolve_overlaps(all_detections, self.policy.detector_priority)
+
+        # 5. Final Entity resolution and rendering
+        final_entities = self.resolver.resolve(text, final_detections)
+        final_aliases = tuple(self.assigner.assign(entity, context) for entity in final_entities)
+        final_tokens = tuple(
+            self.transformer.render(entity, alias)
+            for entity, alias in zip(final_entities, final_aliases, strict=True)
+        )
+
+        final_segments: list[str] = []
+        cursor = 0
+        for entity, token in zip(final_entities, final_tokens, strict=True):
+            detection = entity.detection
+            final_segments.append(text[cursor : detection.start])
+            final_segments.append(token)
             cursor = detection.end
-        segments.append(text[cursor:])
-        output = "".join(segments)
-        replacements = _replacement_reports(entities, tokens)
+        final_segments.append(text[cursor:])
+        output = "".join(final_segments)
+
+        replacements = _replacement_reports(final_entities, final_tokens)
         reports.extend(_replacement_detection_reports(block, replacements))
-        mapping = _mapping(text, entities, aliases, tokens) if include_mapping else None
+        mapping = (
+            _mapping(text, final_entities, final_aliases, final_tokens) if include_mapping else None
+        )
+
         return Result(output, replacements, mapping)
 
     def _process_data(
