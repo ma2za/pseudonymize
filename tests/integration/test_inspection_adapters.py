@@ -2,7 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from pseudonymize.engine import Pseudonymizer, TransformationMode
+from pseudonymize import TransformationMode
+from pseudonymize.engine import Pseudonymizer
 from pseudonymize.formats import FileFormat
 from pseudonymize.policy import Policy
 
