@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-25
+
+### Added
+
+- `HTTPRemoteBackend` for securely proxying pre-filtered local documents to LLM gateways and remote ML providers via HTTP, explicitly opt-in with strict timeouts.
+
 ## [0.5.1] - 2026-08-25
 
 ### Fixed

@@ -1844,7 +1844,7 @@ wheels = [
 
 [[package]]
 name = "pseudonymize"
-version = "0.5.1"
+version = "0.6.0"
 source = { editable = "." }
 
 [package.optional-dependencies]
@@ -1865,6 +1865,9 @@ office = [
 pdf = [
     { name = "pdfminer-six" },
     { name = "pymupdf" },
+]
+remote = [
+    { name = "httpx" },
 ]
 
 [package.dev-dependencies]
@@ -1887,10 +1890,12 @@ test = [
     { name = "pytest" },
     { name = "pytest-benchmark" },
     { name = "pytest-cov" },
+    { name = "respx" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.28.1" },
     { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=1.28.0" },
     { name = "onnxruntime", marker = "extra == 'ml'", specifier = ">=1.29.0" },
     { name = "openpyxl", marker = "extra == 'office'", specifier = ">=3.1.0" },
@@ -1902,7 +1907,7 @@ requires-dist = [
     { name = "python-pptx", marker = "extra == 'office'", specifier = ">=1.0.0" },
     { name = "tokenizers", marker = "extra == 'ml'", specifier = ">=0.23.1" },
 ]
-provides-extras = ["ml", "office", "pdf", "ocr"]
+provides-extras = ["ml", "office", "pdf", "ocr", "remote"]
 
 [package.metadata.requires-dev]
 docs = [
@@ -1924,6 +1929,7 @@ test = [
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-benchmark", specifier = ">=5" },
     { name = "pytest-cov", specifier = ">=5" },
+    { name = "respx", specifier = ">=0.23.1" },
 ]
 
 [[package]]
@@ -2217,6 +2223,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f3/61/d7545dafb7ac2230c70d38d31cbfe4cc64f7144dc41f6e4e4b78ecd9f5bb/requests-toolbelt-1.0.0.tar.gz", hash = "sha256:7681a0a3d047012b5bdc0ee37d7f8f07ebe76ab08caeccfc3921ce23c88d5bc6", size = 206888, upload-time = "2023-05-01T04:11:33.229Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/51/d4db610ef29373b879047326cbf6fa98b6c1969d6f6dc423279de2b1be2c/requests_toolbelt-1.0.0-py2.py3-none-any.whl", hash = "sha256:cccfdd665f0a24fcf4726e690f65639d272bb0637b9b92dfd91a5568ccf6bd06", size = 54481, upload-time = "2023-05-01T04:11:28.427Z" },
+]
+
+[[package]]
+name = "respx"
+version = "0.23.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/43/98/4e55c9c486404ec12373708d015ebce157966965a5ebe7f28ff2c784d41b/respx-0.23.1.tar.gz", hash = "sha256:242dcc6ce6b5b9bf621f5870c82a63997e8e82bc7c947f9ffe272b8f3dd5a780", size = 29243, upload-time = "2026-04-08T14:37:16.008Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1d/4a/221da6ca167db45693d8d26c7dc79ccfc978a440251bf6721c9aaf251ac0/respx-0.23.1-py2.py3-none-any.whl", hash = "sha256:b18004b029935384bccfa6d7d9d74b4ec9af73a081cc28600fffc0447f4b8c1a", size = 25557, upload-time = "2026-04-08T14:37:14.613Z" },
 ]
 
 [[package]]
