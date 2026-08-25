@@ -48,30 +48,27 @@ class OfficeInspectionAdapter:
 
     def _extract_docx(self, source: Path, blocks: list[ContentBlock]) -> None:
         self._doc = docx.Document(str(source))
-        for para_index, para in enumerate(self._doc.paragraphs):
+        self._walk_docx(self._doc, (), blocks)
+
+    def _walk_docx(self, container: Any, path_prefix: tuple[Any, ...], blocks: list[ContentBlock]) -> None:
+        for para_index, para in enumerate(container.paragraphs):
             text = para.text.strip()
             if text:
+                path = path_prefix + ("paragraph", para_index)
                 blocks.append(
                     ContentBlock(
-                        id=f"para-{para_index:06d}",
+                        id="docx-" + "-".join(str(p) for p in path),
                         text=text,
-                        location=StructuralLocation(("paragraph", para_index)),
+                        location=StructuralLocation(path),
                     )
                 )
-        for table_index, table in enumerate(self._doc.tables):
+        for table_index, table in enumerate(container.tables):
             for row_index, row in enumerate(table.rows):
                 for col_index, cell in enumerate(row.cells):
-                    text = cell.text.strip()
-                    if text:
-                        blocks.append(
-                            ContentBlock(
-                                id=f"table-{table_index:06d}-row-{row_index:06d}-col-{col_index:06d}",
-                                text=text,
-                                location=StructuralLocation(
-                                    ("table", table_index, "row", row_index, "column", col_index)
-                                ),
-                            )
-                        )
+                    cell_path = path_prefix + ("table", table_index, "row", row_index, "col", col_index)
+                    # A cell itself can contain text directly (in its paragraphs)
+                    # or more nested tables. We recurse into the cell.
+                    self._walk_docx(cell, cell_path, blocks)
 
     def _extract_xlsx(self, source: Path, blocks: list[ContentBlock]) -> None:
         self._doc = openpyxl.load_workbook(filename=source, data_only=True)
@@ -149,14 +146,23 @@ class OfficeInspectionAdapter:
             if not isinstance(loc, StructuralLocation):
                 continue
             path = loc.path
-            if len(path) == 2 and path[0] == "paragraph":
-                para_index = int(path[1])
-                self._doc.paragraphs[para_index].text = block.text
-            elif len(path) == 6 and path[0] == "table":
-                table_index = int(path[1])
-                row_index = int(path[3])
-                col_index = int(path[5])
-                self._doc.tables[table_index].rows[row_index].cells[col_index].text = block.text
+            
+            curr = self._doc
+            i = 0
+            while i < len(path):
+                tag = path[i]
+                if tag == "paragraph":
+                    para_index = int(path[i+1])
+                    curr.paragraphs[para_index].text = block.text
+                    break
+                elif tag == "table":
+                    table_index = int(path[i+1])
+                    row_index = int(path[i+3])
+                    col_index = int(path[i+5])
+                    curr = curr.tables[table_index].rows[row_index].cells[col_index]
+                    i += 6
+                else:
+                    break
 
     def _render_xlsx(self, document: Document) -> None:
         if hasattr(self._doc, "properties"):

@@ -173,6 +173,25 @@ Starting commit: 7579aa474a425fa5f909eca309f41adfc43fb497
 Starting PyPI version: 0.4.0
 Baseline downloads day/week/month: 0/0/0
 Baseline stars/forks/watchers: 0/0/0
+Files changed: 5
+Compatibility tests added: Yes
+Artifact smoke environments: Win local isolated wheel
+Known limitations: OCR is limited to text extraction for layout bounding boxes.
+Deferred items: None
+Release commit: 1e3bc87bb2451c7c7fd9c8f694d6b8e852a806b3
+Tag: v0.5.0
+PyPI upload verified: Yes
+7-day metrics: 
+28-day metrics: 
+Status: Released
+
+### 0.6.0: Remote detection
+
+Implementation started: 
+Starting commit: 
+Starting PyPI version: 
+Baseline downloads day/week/month: 
+Baseline stars/forks/watchers: 
 Files changed: 
 Compatibility tests added: 
 Artifact smoke environments: 
@@ -183,6 +202,6 @@ Tag:
 PyPI upload verified: 
 7-day metrics: 
 28-day metrics: 
-Status: In progress
+Status: Planned
 
 
