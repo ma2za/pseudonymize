@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-25
+
+### Added
+
+- OCR capabilities for image-based PDFs, using Tesseract and PyMuPDF.
+
 ## [0.4.0] - 2026-08-25
 
 ### Added
