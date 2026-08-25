@@ -8,11 +8,8 @@ import pytest
 from pseudonymize.document import Document
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.exceptions import (
-    AdapterContractError,
     AdapterExecutionError,
-    UnsupportedFormatError,
 )
-from pseudonymize.formats import BuiltinFileAdapter, FileFormat
 from pseudonymize.inspection import office, pdf
 from pseudonymize.inspection.office import OfficeInspectionAdapter
 from pseudonymize.inspection.pdf import PDFInspectionAdapter
