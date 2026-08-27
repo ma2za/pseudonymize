@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- `inspect-file` now serializes coordinate and structural locations used by PDF, image, and
+  Office inspection instead of failing after a detection is found.
+
 ## [0.6.0] - 2026-08-25
 
 ### Added
