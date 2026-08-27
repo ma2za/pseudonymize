@@ -184,10 +184,15 @@ class PDFInspectionAdapter:
                         )
                         if replacements:
                             for replacement_rect, replacement_text in replacements:
-                                _add_redaction(page, replacement_rect, replacement_text)
+                                _add_redaction(
+                                    page,
+                                    replacement_rect,
+                                    replacement_text,
+                                    _source_text_color(page, replacement_rect),
+                                )
                         else:
                             # Fail closed if an exact changed span cannot be located.
-                            _add_redaction(page, rect, block.text)
+                            _add_redaction(page, rect, block.text, _source_text_color(page, rect))
 
                     # Preserve page artwork for text PDFs. OCR detections originate in page
                     # images, so their intersecting pixels must still be blanked securely.
@@ -237,11 +242,28 @@ def _located_replacements(
     return tuple(replacements)
 
 
-def _add_redaction(page: object, rect: object, text: str) -> None:
+def _source_text_color(page: object, rect: object) -> tuple[float, float, float]:
+    content = page.get_text("dict", clip=rect)  # type: ignore[attr-defined]
+    for block in content.get("blocks", ()):
+        for line in block.get("lines", ()):
+            for span in line.get("spans", ()):
+                color = span.get("color")
+                if isinstance(color, int):
+                    red, green, blue = pymupdf.sRGB_to_pdf(color)
+                    return (float(red), float(green), float(blue))
+    return (0, 0, 0)
+
+
+def _add_redaction(
+    page: object,
+    rect: object,
+    text: str,
+    text_color: tuple[float, float, float],
+) -> None:
     page.add_redact_annot(  # type: ignore[attr-defined]
         rect,
         text=text,
         fill=False,
-        text_color=(0, 0, 0),
+        text_color=text_color,
         cross_out=False,
     )

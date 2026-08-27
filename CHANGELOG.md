@@ -10,8 +10,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
   instead of covering the complete document text with black redaction rectangles.
 - PDF processing now localizes changed spans inside text blocks when possible, preserving the
   surrounding text's original visual representation while securely removing detected values.
-- PDF redaction now preserves existing colored backgrounds instead of placing white rectangles
-  behind replacement text.
+- PDF redaction now preserves existing colored backgrounds and source text colors instead of
+  placing white rectangles with mismatched replacement text over styled fields.
 
 ## [0.6.0] - 2026-08-25
 

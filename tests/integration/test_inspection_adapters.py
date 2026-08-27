@@ -6,7 +6,7 @@ from pseudonymize import TransformationMode
 from pseudonymize.document import CoordinateLocation
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.formats import FileFormat
-from pseudonymize.inspection.pdf import PDFInspectionAdapter
+from pseudonymize.inspection.pdf import PDFInspectionAdapter, _source_text_color
 from pseudonymize.policy import Policy
 
 # Optional imports for generators
@@ -316,6 +316,32 @@ def test_process_pdf_preserves_the_background_behind_a_redaction(tmp_path: Path)
         output_text = sanitized[0].get_text()
         assert "alice@example.com" not in output_text
         assert "[REDACTED]" in output_text
+        replacement_spans = [
+            span
+            for block in sanitized[0].get_text("dict")["blocks"]
+            for line in block.get("lines", ())
+            for span in line.get("spans", ())
+            if "[REDACTED]" in span["text"]
+        ]
+        assert replacement_spans[0]["color"] == 0xFFFFFF
+
+
+def test_pdf_replacement_color_falls_back_when_spans_have_no_color() -> None:
+    class PageWithoutColoredText:
+        def get_text(self, _mode: str, *, clip: object) -> dict[str, object]:
+            return {
+                "blocks": [
+                    {},
+                    {
+                        "lines": [
+                            {},
+                            {"spans": [{"color": None}]},
+                        ]
+                    },
+                ]
+            }
+
+    assert _source_text_color(PageWithoutColoredText(), object()) == (0, 0, 0)
 
 
 def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
