@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- IBAN detection now accepts spaces between the country code and check digits, including values
+  extracted from visually grouped documents.
+
 ## [0.6.0] - 2026-08-25
 
 ### Added
