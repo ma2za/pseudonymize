@@ -177,6 +177,7 @@ dmypy.json
 
 # test temp files
 .pytest_temp/
+.cache/
 *.onnx
 
 # Pyre type checker

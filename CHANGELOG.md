@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- ONNX test artifacts now persist outside pytest's temporary directory, avoiding a verified
+  model download on every local test invocation.
+
 ## [0.6.0] - 2026-08-25
 
 ### Added
