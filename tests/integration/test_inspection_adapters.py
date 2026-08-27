@@ -234,6 +234,48 @@ def test_process_pdf_preserves_unchanged_blocks_visually(tmp_path: Path) -> None
         assert "[REDACTED]" in output_text
 
 
+def test_process_pdf_redacts_only_the_changed_span_inside_a_block(tmp_path: Path) -> None:
+    if not HAS_FPDF:
+        pytest.skip("fpdf2 not installed")
+    import pymupdf
+
+    source = tmp_path / "span-preservation.pdf"
+    output = tmp_path / "span-preservation.safe.pdf"
+    generated = fpdf.FPDF()
+    generated.add_page()
+    generated.set_font("helvetica", size=12)
+    generated.text(
+        x=20,
+        y=40,
+        text="Reference ALPHA, contact alice@example.com, status active.",
+    )
+    generated.output(str(source))
+
+    with pymupdf.open(source) as original:
+        prefix_clip = original[0].search_for("Reference ALPHA")[0]
+        suffix_clip = original[0].search_for("status active")[0]
+        matrix = pymupdf.Matrix(2, 2)
+        prefix_pixels = original[0].get_pixmap(matrix=matrix, clip=prefix_clip, alpha=False).samples
+        suffix_pixels = original[0].get_pixmap(matrix=matrix, clip=suffix_clip, alpha=False).samples
+
+    Pseudonymizer(mode=TransformationMode.REDACTED).process_file(source, output)
+
+    with pymupdf.open(output) as sanitized:
+        assert (
+            sanitized[0].get_pixmap(matrix=matrix, clip=prefix_clip, alpha=False).samples
+            == prefix_pixels
+        )
+        assert (
+            sanitized[0].get_pixmap(matrix=matrix, clip=suffix_clip, alpha=False).samples
+            == suffix_pixels
+        )
+        output_text = sanitized[0].get_text()
+        assert "Reference ALPHA" in output_text
+        assert "status active" in output_text
+        assert "alice@example.com" not in output_text
+        assert "[REDACTED]" in output_text
+
+
 def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
     engine = Pseudonymizer(policy=Policy.default(), mode=TransformationMode.REDACTED)
     out_path = tmp_path / "out.docx"

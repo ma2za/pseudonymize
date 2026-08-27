@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from difflib import SequenceMatcher
 from io import BytesIO
 from pathlib import Path
 
@@ -17,6 +19,43 @@ try:
     HAS_OCR = True
 except ImportError:
     HAS_OCR = False
+
+
+@dataclass(frozen=True, slots=True)
+class _ChangedSpan:
+    source_start: int
+    source_end: int
+    output_start: int
+    output_end: int
+
+
+def _changed_spans(source: str, output: str) -> tuple[_ChangedSpan, ...]:
+    raw = [
+        _ChangedSpan(source_start, source_end, output_start, output_end)
+        for tag, source_start, source_end, output_start, output_end in SequenceMatcher(
+            a=source,
+            b=output,
+            autojunk=False,
+        ).get_opcodes()
+        if tag != "equal"
+    ]
+    merged: list[_ChangedSpan] = []
+    for span in raw:
+        if (
+            merged
+            and span.source_start - merged[-1].source_end <= 4
+            and span.output_start - merged[-1].output_end <= 4
+        ):
+            previous = merged[-1]
+            merged[-1] = _ChangedSpan(
+                previous.source_start,
+                span.source_end,
+                previous.output_start,
+                span.output_end,
+            )
+        else:
+            merged.append(span)
+    return tuple(merged)
 
 
 class PDFInspectionAdapter:
@@ -137,16 +176,18 @@ class PDFInspectionAdapter:
                             continue
 
                         rect = pymupdf.Rect(loc.x0, loc.y0, loc.x1, loc.y1)
-                        # Replace only changed blocks. Redacting every extracted block
-                        # destroys unrelated content, and black fill makes overlay text
-                        # unreadable.
-                        page.add_redact_annot(
-                            rect,
-                            text=block.text,
-                            fill=(1, 1, 1),
-                            text_color=(0, 0, 0),
-                            cross_out=False,
+                        original = self._source_text.get(block.id)
+                        replacements = (
+                            _located_replacements(page, rect, original, block.text)
+                            if original is not None
+                            else ()
                         )
+                        if replacements:
+                            for replacement_rect, replacement_text in replacements:
+                                _add_redaction(page, replacement_rect, replacement_text)
+                        else:
+                            # Fail closed if an exact changed span cannot be located.
+                            _add_redaction(page, rect, block.text)
 
                     # Apply redactions to securely remove the underlying text
                     page.apply_redactions()
@@ -169,3 +210,30 @@ class PDFInspectionAdapter:
             return out.getvalue()
         except Exception:
             raise AdapterExecutionError("output adapter failed while rendering the PDF") from None
+
+
+def _located_replacements(
+    page: object, clip: object, source: str, output: str
+) -> tuple[tuple[object, str], ...]:
+    replacements: list[tuple[object, str]] = []
+    for span in _changed_spans(source, output):
+        source_value = source[span.source_start : span.source_end]
+        output_value = output[span.output_start : span.output_end]
+        if not source_value or not output_value:
+            return ()
+        matches = page.search_for(source_value, clip=clip)  # type: ignore[attr-defined]
+        occurrence = source.count(source_value, 0, span.source_start)
+        if occurrence >= len(matches):
+            return ()
+        replacements.append((matches[occurrence], output_value))
+    return tuple(replacements)
+
+
+def _add_redaction(page: object, rect: object, text: str) -> None:
+    page.add_redact_annot(  # type: ignore[attr-defined]
+        rect,
+        text=text,
+        fill=(1, 1, 1),
+        text_color=(0, 0, 0),
+        cross_out=False,
+    )

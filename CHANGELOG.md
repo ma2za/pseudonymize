@@ -8,6 +8,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 - PDF processing now preserves unchanged text blocks and renders transformed blocks legibly
   instead of covering the complete document text with black redaction rectangles.
+- PDF processing now localizes changed spans inside text blocks when possible, preserving the
+  surrounding text's original visual representation while securely removing detected values.
 
 ## [0.6.0] - 2026-08-25
 
