@@ -4,6 +4,12 @@ from pseudonymize import EntityType
 from pseudonymize.detectors.email import EmailDetector
 from pseudonymize.detectors.iban import IbanDetector, _valid_mod97
 from pseudonymize.detectors.ip_address import IpAddressDetector
+from pseudonymize.detectors.italian import (
+    ItalianFiscalCodeDetector,
+    ItalianVATDetector,
+    _valid_fiscal_code,
+    _valid_vat,
+)
 from pseudonymize.detectors.payment_card import PaymentCardDetector, _valid_luhn
 from pseudonymize.detectors.phone import PhoneDetector
 from pseudonymize.detectors.secret import SecretDetector
@@ -33,6 +39,24 @@ from pseudonymize.detectors.url import UrlDetector
             "GB82 WEST 1234 5698 7654 32",
         ),
         (PhoneDetector(), "Call +39 333 123 4567.", EntityType.PHONE, "+39 333 123 4567"),
+        (
+            ItalianFiscalCodeDetector(),
+            "Synthetic national identifier TSTTST90A01Z999M.",
+            EntityType.NATIONAL_ID,
+            "TSTTST90A01Z999M",
+        ),
+        (
+            ItalianVATDetector(),
+            "Italian VAT ID IT 12345678903.",
+            EntityType.TAX_ID,
+            "IT 12345678903",
+        ),
+        (
+            ItalianVATDetector(),
+            "Partita IVA: 12345678903.",
+            EntityType.TAX_ID,
+            "12345678903",
+        ),
         (SecretDetector(), "api_key='abcdefghijk12345'", EntityType.SECRET, "abcdefghijk12345"),
         (UrlDetector(), "See https://me:pass@example.com/a", EntityType.URL_CREDENTIAL, "me:pass"),
         (
@@ -61,6 +85,10 @@ def test_valid_candidates(detector: object, text: str, entity_type: EntityType, 
         (PhoneDetector(), "12345678"),
         (UrlDetector(), "https://example.com/?page=1"),
         (SecretDetector(), "token=short"),
+        (ItalianFiscalCodeDetector(), "TSTTST90A01Z999A"),
+        (ItalianFiscalCodeDetector(), "TSTTST90A00Z999M"),
+        (ItalianVATDetector(), "Italian VAT ID IT 12345678904"),
+        (ItalianVATDetector(), "Unlabelled number 12345678903"),
     ],
 )
 def test_invalid_candidates(detector: object, text: str) -> None:
@@ -72,6 +100,10 @@ def test_validators_reject_repeated_or_malformed_values() -> None:
     assert not _valid_luhn("123")
     assert not _valid_mod97("GB82")
     assert _valid_luhn("5555555555554444")
+    assert _valid_fiscal_code("TSTTST90A01Z999M")
+    assert not _valid_fiscal_code("TSTTST90A00Z999M")
+    assert _valid_vat("IT 12345678903")
+    assert not _valid_vat("00000000000")
 
 
 def test_phone_rejects_repeated_digits() -> None:

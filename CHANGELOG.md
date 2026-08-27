@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Generic `NATIONAL_ID` and `TAX_ID` entity types with checksum-validated Italian fiscal-code and
+  VAT-number detectors. Unprefixed VAT numbers require an explicit tax label.
+
 ## [0.6.0] - 2026-08-25
 
 ### Added

@@ -6,6 +6,8 @@ from pseudonymize.result import Detection, EntityType
 _ENTITY_PRIORITY = {
     EntityType.PAYMENT_CARD: 70,
     EntityType.IBAN: 70,
+    EntityType.NATIONAL_ID: 70,
+    EntityType.TAX_ID: 70,
     # URL credentials outrank emails: a password such as "s3cret" followed by
     # "@host" also matches the email pattern, and letting the email span win
     # would leave the "user:" part of the userinfo unmasked.
