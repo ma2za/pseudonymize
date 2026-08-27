@@ -189,8 +189,16 @@ class PDFInspectionAdapter:
                             # Fail closed if an exact changed span cannot be located.
                             _add_redaction(page, rect, block.text)
 
-                    # Apply redactions to securely remove the underlying text
-                    page.apply_redactions()
+                    # Preserve page artwork for text PDFs. OCR detections originate in page
+                    # images, so their intersecting pixels must still be blanked securely.
+                    redact_image_pixels = any(
+                        "-ocr-" in block.id for block in page_blocks[page_index]
+                    )
+                    page.apply_redactions(
+                        images=2 if redact_image_pixels else 0,
+                        graphics=0,
+                        text=0,
+                    )
 
             # Clean metadata
             doc.set_metadata(
@@ -233,7 +241,7 @@ def _add_redaction(page: object, rect: object, text: str) -> None:
     page.add_redact_annot(  # type: ignore[attr-defined]
         rect,
         text=text,
-        fill=(1, 1, 1),
+        fill=False,
         text_color=(0, 0, 0),
         cross_out=False,
     )

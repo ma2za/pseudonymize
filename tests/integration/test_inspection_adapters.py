@@ -276,6 +276,48 @@ def test_process_pdf_redacts_only_the_changed_span_inside_a_block(tmp_path: Path
         assert "[REDACTED]" in output_text
 
 
+def test_process_pdf_preserves_the_background_behind_a_redaction(tmp_path: Path) -> None:
+    import pymupdf
+
+    source = tmp_path / "colored-background.pdf"
+    output = tmp_path / "colored-background.safe.pdf"
+    generated = pymupdf.open()
+    page = generated.new_page(width=500, height=140)
+    background = (0.6, 0.6, 0.6)
+    page.draw_rect(
+        pymupdf.Rect(30, 35, 470, 95),
+        color=background,
+        fill=background,
+    )
+    page.insert_text(
+        pymupdf.Point(45, 70),
+        "Contact alice@example.com status active",
+        fontsize=12,
+        color=(1, 1, 1),
+    )
+    generated.save(source)
+    generated.close()
+
+    with pymupdf.open(source) as original:
+        changed_clip = original[0].search_for("alice@example.com")[0]
+
+    Pseudonymizer(mode=TransformationMode.REDACTED).process_file(source, output)
+
+    with pymupdf.open(output) as sanitized:
+        changed_pixels = sanitized[0].get_pixmap(clip=changed_clip, alpha=False)
+        channels = changed_pixels.samples
+        gray_pixels = sum(
+            140 <= channels[index] <= 170
+            and 140 <= channels[index + 1] <= 170
+            and 140 <= channels[index + 2] <= 170
+            for index in range(0, len(channels), changed_pixels.n)
+        )
+        assert gray_pixels > changed_pixels.width * changed_pixels.height / 2
+        output_text = sanitized[0].get_text()
+        assert "alice@example.com" not in output_text
+        assert "[REDACTED]" in output_text
+
+
 def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
     engine = Pseudonymizer(policy=Policy.default(), mode=TransformationMode.REDACTED)
     out_path = tmp_path / "out.docx"
