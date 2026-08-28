@@ -72,6 +72,9 @@ test = [
     "fpdf2>=2.7.9",
     "respx>=0.23.1",
 ]
+benchmarks = [
+    "datasets>=3.0.0",
+]
 quality = ["mypy>=1.11", "pre-commit>=4", "ruff>=0.9"]
 docs = ["mkdocs-material>=9", "mkdocstrings[python]>=1.0.6"]
 release = ["build>=1", "twine>=6"]

@@ -27,6 +27,7 @@ nav:
   - Threat model: threat-model.md
   - Limitations: limitations.md
   - Benchmarks: benchmarks.md
+  - Quality Benchmarks: quality_benchmarks.md
   - Contributing: contributing.md
   - Decisions:
       - Dependency-free core: adr/0001-dependency-free-core.md
