@@ -87,9 +87,7 @@ def evaluate(num_samples: int, use_ml: bool):
         result = engine.process_with_report(text)
 
         # Extract detected spans
-        detected_spans = [
-            (detection.start, detection.end) for detection in result.detections
-        ]
+        detected_spans = [(detection.start, detection.end) for detection in result.detections]
 
         # Calculate overlap
         # For simplicity in this benchmark:
