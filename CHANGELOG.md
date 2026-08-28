@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- PDF processing now preserves unchanged text blocks and renders transformed blocks legibly
+  instead of covering the complete document text with black redaction rectangles.
+
 ## [0.6.0] - 2026-08-25
 
 ### Added
