@@ -4,8 +4,15 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Generic `NATIONAL_ID` and `TAX_ID` entity types with checksum-validated Italian fiscal-code and
+  VAT-number detectors. Unprefixed VAT numbers require an explicit tax label.
+
 ### Fixed
 
+- IBAN detection now accepts spaces between the country code and check digits, including values
+  extracted from visually grouped documents.
 - PDF processing now preserves unchanged text blocks and renders transformed blocks legibly
   instead of covering the complete document text with black redaction rectangles.
 - PDF processing now localizes changed spans inside text blocks when possible, preserving the

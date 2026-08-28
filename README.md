@@ -44,7 +44,7 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 | --- | --- | --- |
 | Strings | Shipped | Pseudonymization, redaction, batch processing, and safe reports |
 | Nested Python data | Shipped | Dictionaries, lists, tuples, JSON scalars, and path policies |
-| Structured detection | Shipped | Email, phone, IP, IBAN, payment card, URL credentials, and common secrets |
+| Structured detection | Shipped | Email, phone, IP, IBAN, payment card, Italian fiscal and VAT identifiers, URL credentials, and common secrets |
 | Document representation | Shipped | Immutable blocks, typed locations, sanitized metadata, and inspection |
 | Generic file orchestration | Shipped | Built-in or caller-provided adapters and atomic safe-copy output |
 | TXT, Markdown, log, JSON, JSONL, and CSV files | Shipped | Explicit format or recognized suffix; no content guessing |
