@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from difflib import SequenceMatcher
 from io import BytesIO
 from pathlib import Path
 
@@ -19,6 +21,43 @@ except ImportError:
     HAS_OCR = False
 
 
+@dataclass(frozen=True, slots=True)
+class _ChangedSpan:
+    source_start: int
+    source_end: int
+    output_start: int
+    output_end: int
+
+
+def _changed_spans(source: str, output: str) -> tuple[_ChangedSpan, ...]:
+    raw = [
+        _ChangedSpan(source_start, source_end, output_start, output_end)
+        for tag, source_start, source_end, output_start, output_end in SequenceMatcher(
+            a=source,
+            b=output,
+            autojunk=False,
+        ).get_opcodes()
+        if tag != "equal"
+    ]
+    merged: list[_ChangedSpan] = []
+    for span in raw:
+        if (
+            merged
+            and span.source_start - merged[-1].source_end <= 4
+            and span.output_start - merged[-1].output_end <= 4
+        ):
+            previous = merged[-1]
+            merged[-1] = _ChangedSpan(
+                previous.source_start,
+                span.source_end,
+                previous.output_start,
+                span.output_end,
+            )
+        else:
+            merged.append(span)
+    return tuple(merged)
+
+
 class PDFInspectionAdapter:
     """Extracts and format-preserves PDF documents using secure redaction."""
 
@@ -29,6 +68,7 @@ class PDFInspectionAdapter:
                 "Install it with `pip install pseudonymize[pdf]`."
             )
         self._source_path: Path | None = None
+        self._source_text: dict[str, str] = {}
 
     def extract(self, source: Path) -> Document:
         blocks: list[ContentBlock] = []
@@ -109,7 +149,9 @@ class PDFInspectionAdapter:
             raise AdapterExecutionError("input adapter failed while reading the PDF") from None
 
         metadata = {"format": "pdf"}
-        return Document("file", tuple(blocks), metadata)
+        document = Document("file", tuple(blocks), metadata)
+        self._source_text = {block.id: block.text for block in document.blocks}
+        return document
 
     def render(self, document: Document) -> bytes:
         if not self._source_path:
@@ -122,6 +164,8 @@ class PDFInspectionAdapter:
             for block in document.blocks:
                 loc = block.location
                 if isinstance(loc, CoordinateLocation):
+                    if self._source_text.get(block.id) == block.text:
+                        continue
                     page_blocks.setdefault(loc.page, []).append(block)
 
             for page_index, page in enumerate(doc):
@@ -132,11 +176,34 @@ class PDFInspectionAdapter:
                             continue
 
                         rect = pymupdf.Rect(loc.x0, loc.y0, loc.x1, loc.y1)
-                        # Add redaction annotation with overlay text
-                        page.add_redact_annot(rect, text=block.text, fill=(0, 0, 0))
+                        original = self._source_text.get(block.id)
+                        replacements = (
+                            _located_replacements(page, rect, original, block.text)
+                            if original is not None
+                            else ()
+                        )
+                        if replacements:
+                            for replacement_rect, replacement_text in replacements:
+                                _add_redaction(
+                                    page,
+                                    replacement_rect,
+                                    replacement_text,
+                                    _source_text_color(page, replacement_rect),
+                                )
+                        else:
+                            # Fail closed if an exact changed span cannot be located.
+                            _add_redaction(page, rect, block.text, _source_text_color(page, rect))
 
-                    # Apply redactions to securely remove the underlying text
-                    page.apply_redactions()
+                    # Preserve page artwork for text PDFs. OCR detections originate in page
+                    # images, so their intersecting pixels must still be blanked securely.
+                    redact_image_pixels = any(
+                        "-ocr-" in block.id for block in page_blocks[page_index]
+                    )
+                    page.apply_redactions(
+                        images=2 if redact_image_pixels else 0,
+                        graphics=0,
+                        text=0,
+                    )
 
             # Clean metadata
             doc.set_metadata(
@@ -156,3 +223,47 @@ class PDFInspectionAdapter:
             return out.getvalue()
         except Exception:
             raise AdapterExecutionError("output adapter failed while rendering the PDF") from None
+
+
+def _located_replacements(
+    page: object, clip: object, source: str, output: str
+) -> tuple[tuple[object, str], ...]:
+    replacements: list[tuple[object, str]] = []
+    for span in _changed_spans(source, output):
+        source_value = source[span.source_start : span.source_end]
+        output_value = output[span.output_start : span.output_end]
+        if not source_value or not output_value:
+            return ()
+        matches = page.search_for(source_value, clip=clip)  # type: ignore[attr-defined]
+        occurrence = source.count(source_value, 0, span.source_start)
+        if occurrence >= len(matches):
+            return ()
+        replacements.append((matches[occurrence], output_value))
+    return tuple(replacements)
+
+
+def _source_text_color(page: object, rect: object) -> tuple[float, float, float]:
+    content = page.get_text("dict", clip=rect)  # type: ignore[attr-defined]
+    for block in content.get("blocks", ()):
+        for line in block.get("lines", ()):
+            for span in line.get("spans", ()):
+                color = span.get("color")
+                if isinstance(color, int):
+                    red, green, blue = pymupdf.sRGB_to_pdf(color)
+                    return (float(red), float(green), float(blue))
+    return (0, 0, 0)
+
+
+def _add_redaction(
+    page: object,
+    rect: object,
+    text: str,
+    text_color: tuple[float, float, float],
+) -> None:
+    page.add_redact_annot(  # type: ignore[attr-defined]
+        rect,
+        text=text,
+        fill=False,
+        text_color=text_color,
+        cross_out=False,
+    )

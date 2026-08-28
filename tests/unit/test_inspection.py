@@ -13,7 +13,7 @@ from pseudonymize.exceptions import (
 from pseudonymize.inspection import image, office, pdf
 from pseudonymize.inspection.image import ImageInspectionAdapter
 from pseudonymize.inspection.office import OfficeInspectionAdapter
-from pseudonymize.inspection.pdf import PDFInspectionAdapter
+from pseudonymize.inspection.pdf import PDFInspectionAdapter, _changed_spans
 
 
 def test_image_adapter_missing_dependency() -> None:
@@ -119,3 +119,17 @@ def test_image_adapter_render_contract() -> None:
     adapter = ImageInspectionAdapter("png")
     with pytest.raises(AdapterContractError, match="inspection only"):
         adapter.render(Document("test", (), {}))
+
+
+def test_pdf_changed_spans_merge_token_internal_matches() -> None:
+    def offsets(source: str, output: str) -> tuple[tuple[int, int, int, int], ...]:
+        return tuple(
+            (span.source_start, span.source_end, span.output_start, span.output_end)
+            for span in _changed_spans(source, output)
+        )
+
+    assert offsets("Tax IT 12345678903", "Tax <TAX_ID_1>") == ((4, 18, 4, 14),)
+    assert offsets(
+        "Email alice@example.com and bob@example.com",
+        "Email <EMAIL_1> and <EMAIL_2>",
+    ) == ((6, 23, 6, 15), (28, 43, 20, 29))
