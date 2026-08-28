@@ -11,6 +11,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ### Fixed
 
+- ONNX test artifacts now persist outside pytest's temporary directory, avoiding a verified
+  model download on every local test invocation.
 - `inspect-file` now serializes coordinate and structural locations used by PDF, image, and
   Office inspection instead of failing after a detection is found.
 - IBAN detection now accepts spaces between the country code and check digits, including values

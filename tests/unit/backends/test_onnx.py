@@ -11,7 +11,8 @@ from pseudonymize.exceptions import BackendExecutionError
 from pseudonymize.policy import NetworkPolicy, Policy
 from pseudonymize.result import EntityType
 
-CACHE_DIR = Path(".pytest_temp/models/distilbert-ml")
+# Keep downloaded artifacts outside pytest's configured basetemp, which is cleared at startup.
+CACHE_DIR = Path(".cache/pseudonymize-tests/models/distilbert-ml")
 MODEL_URL_BASE = (
     "https://huggingface.co/onnx-community/distilbert_finetuned_ai4privacy_v2-ONNX/resolve/main/"
 )
