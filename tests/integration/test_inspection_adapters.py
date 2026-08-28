@@ -3,8 +3,10 @@ from pathlib import Path
 import pytest
 
 from pseudonymize import TransformationMode
+from pseudonymize.document import CoordinateLocation
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.formats import FileFormat
+from pseudonymize.inspection.pdf import PDFInspectionAdapter
 from pseudonymize.policy import Policy
 
 # Optional imports for generators
@@ -193,6 +195,43 @@ def test_process_pdf(test_pdf_path: Path, tmp_path: Path) -> None:
     assert "[REDACTED]" in text
     assert "alice@example.com" not in text
     doc.close()
+
+
+def test_process_pdf_preserves_unchanged_blocks_visually(tmp_path: Path) -> None:
+    if not HAS_FPDF:
+        pytest.skip("fpdf2 not installed")
+    import pymupdf
+
+    source = tmp_path / "visual-preservation.pdf"
+    output = tmp_path / "visual-preservation.safe.pdf"
+    generated = fpdf.FPDF()
+    generated.add_page()
+    generated.set_font("helvetica", size=12)
+    generated.text(x=20, y=20, text="Public heading")
+    generated.text(x=20, y=80, text="Contact alice@example.com")
+    generated.output(str(source))
+
+    extracted = PDFInspectionAdapter().extract(source)
+    unchanged = next(block for block in extracted.blocks if block.text == "Public heading")
+    assert isinstance(unchanged.location, CoordinateLocation)
+    clip = pymupdf.Rect(
+        unchanged.location.x0,
+        unchanged.location.y0,
+        unchanged.location.x1,
+        unchanged.location.y1,
+    )
+
+    Pseudonymizer(mode=TransformationMode.REDACTED).process_file(source, output)
+
+    with pymupdf.open(source) as original, pymupdf.open(output) as sanitized:
+        matrix = pymupdf.Matrix(2, 2)
+        original_pixels = original[0].get_pixmap(matrix=matrix, clip=clip, alpha=False).samples
+        sanitized_pixels = sanitized[0].get_pixmap(matrix=matrix, clip=clip, alpha=False).samples
+        assert sanitized_pixels == original_pixels
+        output_text = sanitized[0].get_text()
+        assert "Public heading" in output_text
+        assert "alice@example.com" not in output_text
+        assert "[REDACTED]" in output_text
 
 
 def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:

@@ -29,6 +29,7 @@ class PDFInspectionAdapter:
                 "Install it with `pip install pseudonymize[pdf]`."
             )
         self._source_path: Path | None = None
+        self._source_text: dict[str, str] = {}
 
     def extract(self, source: Path) -> Document:
         blocks: list[ContentBlock] = []
@@ -109,7 +110,9 @@ class PDFInspectionAdapter:
             raise AdapterExecutionError("input adapter failed while reading the PDF") from None
 
         metadata = {"format": "pdf"}
-        return Document("file", tuple(blocks), metadata)
+        document = Document("file", tuple(blocks), metadata)
+        self._source_text = {block.id: block.text for block in document.blocks}
+        return document
 
     def render(self, document: Document) -> bytes:
         if not self._source_path:
@@ -122,6 +125,8 @@ class PDFInspectionAdapter:
             for block in document.blocks:
                 loc = block.location
                 if isinstance(loc, CoordinateLocation):
+                    if self._source_text.get(block.id) == block.text:
+                        continue
                     page_blocks.setdefault(loc.page, []).append(block)
 
             for page_index, page in enumerate(doc):
@@ -132,8 +137,16 @@ class PDFInspectionAdapter:
                             continue
 
                         rect = pymupdf.Rect(loc.x0, loc.y0, loc.x1, loc.y1)
-                        # Add redaction annotation with overlay text
-                        page.add_redact_annot(rect, text=block.text, fill=(0, 0, 0))
+                        # Replace only changed blocks. Redacting every extracted block
+                        # destroys unrelated content, and black fill makes overlay text
+                        # unreadable.
+                        page.add_redact_annot(
+                            rect,
+                            text=block.text,
+                            fill=(1, 1, 1),
+                            text_color=(0, 0, 0),
+                            cross_out=False,
+                        )
 
                     # Apply redactions to securely remove the underlying text
                     page.apply_redactions()
