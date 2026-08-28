@@ -30,6 +30,7 @@ After the first upload, verify that the pending publisher became an ordinary pro
    uv run mypy
    uv run pytest
    uv run python -m mkdocs build --strict
+   uv run python benchmarks/evaluate_quality.py --ml --samples 500
    uv build
    uv run twine check dist/*
    uv run python scripts/verify_release.py

@@ -47,6 +47,7 @@ candidate and `/release:verify` to validate it.
   release. Never reuse a published version.
 - You have explicit standing maintainer authorization to commit, tag, push, create GitHub releases, publish to PyPI, run tests, and check, approve, or close PRs when requested.
 - Never bypass a failing check. Report the failure and preserve its output.
+- **Strict Release Gate:** For any release between 0.8.0 and 0.13.0, you MUST run `uv run python benchmarks/evaluate_quality.py --ml --samples 500` and empirically prove that the F1, Precision, or Recall metrics have improved from the previous baseline. You are forbidden from continuing the release if the scores are degraded or stagnant.
 - Publish only from the exact commit that passed CI, using tag `vX.Y.Z`.
 
 At handoff, state files changed, checks run, checks not run, and any external

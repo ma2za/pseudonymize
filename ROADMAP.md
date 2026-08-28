@@ -34,6 +34,7 @@ but compatibility guarantees start only with `0.1.0`.
   values.
 - New tests add meaningful failure modes: realistic workflows, boundary conditions, interacting
   features, malformed inputs, and adversarial cases.
+- **Strict Benchmark Validation:** The `evaluate_quality.py` benchmark must be executed against the holdout slice. Precision, Recall, and F1 scores MUST be proven to legitimately improve over the previous baseline before any release between 0.8.0 and 0.13.0 can be finalized.
 - Release artifacts install cleanly and the installed wheel passes API and CLI smoke tests.
 
 - Coverage alone is not a quality target. A release should become harder to fake with an incomplete
