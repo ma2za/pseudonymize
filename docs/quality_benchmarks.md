@@ -25,3 +25,14 @@ To reproduce this benchmark locally:
 ```console
 uv run python benchmarks/evaluate_quality.py --ml --samples 50
 ```
+## `0.8.0` (Detection Boundary & Tokenization Alignment)
+
+Evaluated on the pseudo-test holdout slice (last 8k English rows) of i4privacy/pii-masking-200k after fixing ML sub-word boundary parsing and respecting B- (beginning of entity) tokens.
+
+**Results:**
+
+| Metric | Score |
+| --- | --- |
+| Precision | 0.8934 |
+| Recall | 0.9134 |
+| F1 Score | 0.9033 |
