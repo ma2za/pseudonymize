@@ -38,6 +38,12 @@ from pseudonymize.detectors.url import UrlDetector
             EntityType.IBAN,
             "GB82 WEST 1234 5698 7654 32",
         ),
+        (
+            IbanDetector(),
+            "IBAN IT 60 X054 2811 1010 0000 0123 456.",
+            EntityType.IBAN,
+            "IT 60 X054 2811 1010 0000 0123 456",
+        ),
         (PhoneDetector(), "Call +39 333 123 4567.", EntityType.PHONE, "+39 333 123 4567"),
         (
             ItalianFiscalCodeDetector(),
