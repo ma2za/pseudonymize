@@ -23,10 +23,11 @@ SUPPORTED_LABELS = {
     # Core detectors
     "EMAIL",
     "PHONENUMBER",
-    "CREDITCARD",
+    "CREDITCARDNUMBER",
     "IBAN",
-    "IPADDRESS",
-    "URL",
+    "IPV4",
+    "IPV6",
+    "IP",
     # ML Backend (DistilBERT ONNX)
     "FIRSTNAME",
     "LASTNAME",
@@ -67,12 +68,11 @@ def evaluate(num_samples: int, use_ml: bool):
     # discarding a fixed offset, ensuring we evaluate on a pseudo-holdout slice.
     ds = load_dataset("ai4privacy/pii-masking-200k", split="train", streaming=True)
 
-    # Skip the first 150,000 rows to use the tail end as our evaluation holdout
+    # The English split of AI4Privacy contains ~43,000 rows.
+    # Skip the first 35,000 rows to use the tail end as our evaluation holdout
     # to minimize overlap with casual train/test usage of the top of the dataset.
-    HOLDOUT_OFFSET = 150_000
-    logger.info(
-        f"Skipping first {HOLDOUT_OFFSET} rows to use dataset tail as a pseudo-test split..."
-    )
+    HOLDOUT_OFFSET = 35_000
+    logger.info(f"Skipping first {HOLDOUT_OFFSET} rows to use dataset tail as a pseudo-test split...")
     ds = ds.skip(HOLDOUT_OFFSET)
 
     engine = Pseudonymizer()
@@ -83,13 +83,18 @@ def evaluate(num_samples: int, use_ml: bool):
         CACHE_DIR = Path(".cache/pseudonymize-tests/models/distilbert-ml")
         onnx_model_path = CACHE_DIR / "model_int8.onnx"
         tokenizer_path = CACHE_DIR / "tokenizer.json"
+        config_path = CACHE_DIR / "config.json"
 
-        if not onnx_model_path.exists() or not tokenizer_path.exists():
+        if not onnx_model_path.exists() or not tokenizer_path.exists() or not config_path.exists():
             logger.error(f"ML artifacts not found in {CACHE_DIR}.")
             logger.error("Please run 'uv run pytest tests/unit/backends/test_onnx.py' first.")
             sys.exit(1)
 
-        backend = LocalONNXPIIBackend(model_path=onnx_model_path, tokenizer_path=tokenizer_path)
+        backend = LocalONNXPIIBackend(
+            model_path=onnx_model_path,
+            tokenizer_path=tokenizer_path,
+            config_path=config_path,
+        )
         engine = Pseudonymizer(backends=[*engine.backends, backend])
 
     true_positives = 0
@@ -120,11 +125,8 @@ def evaluate(num_samples: int, use_ml: bool):
         detected_spans = [(detection.start, detection.end) for detection in result.detections]
 
         # Calculate overlap
-        # For simplicity in this benchmark:
-        # TP: a detected span overlaps with a ground truth span.
-        # FP: a detected span does not overlap with any ground truth span.
-        # FN: a ground truth span is not overlapped by any detected span.
-
+        # A single detected span can overlap with multiple ground truth spans
+        # (e.g. "John Smith" detected as one PERSON span but annotated as FIRSTNAME and LASTNAME).
         matched_gt = set()
         for d_start, d_end in detected_spans:
             matched = False
@@ -133,7 +135,6 @@ def evaluate(num_samples: int, use_ml: bool):
                 if max(d_start, g_start) < min(d_end, g_end):
                     matched = True
                     matched_gt.add(i)
-                    break
             if matched:
                 true_positives += 1
             else:
@@ -144,6 +145,8 @@ def evaluate(num_samples: int, use_ml: bool):
                 false_negatives += 1
 
         count += 1
+        if count % 50 == 0:
+            logger.info(f"Processed {count}/{num_samples} samples...")
         if count >= num_samples:
             break
 

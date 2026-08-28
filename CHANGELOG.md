@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-28
+
+### Fixed
+
+- **Detection Boundary Alignment:** Fixed ML sub-word tokenization overlap logic. The ONNX backend now respects B- (beginning of entity) tokens, preventing consecutive identical entity types (e.g., FIRSTNAME and LASTNAME) from being incorrectly merged into a single span. This dramatically improves detection boundary precision and recall.
+
 ## [0.7.0] - 2026-08-28
 
 ### Added
