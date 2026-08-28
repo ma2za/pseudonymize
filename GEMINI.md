@@ -22,6 +22,7 @@ the 0.1.x series as required by `docs/compatibility.md`.
 - Preserve user changes in a dirty worktree. Do not reset, restore, or delete
   unrelated work.
 - **Never use dummy models, fake artifacts, or excessive mocking for integration tests.** If an external model or binary is needed to test an inference pipeline, write a setup script or test fixture to dynamically download a real, lightweight version (e.g., a quantized BERT model) to a local cache directory excluded from version control. Tests must exercise actual logic against real weights.
+- **Strict Benchmark Integrity:** You are absolutely forbidden from "cheating" the quality benchmarks. You must NEVER hardcode strings, names, or regexes designed specifically to patch failures found *only* in the benchmark dataset (e.g., `ai4privacy/pii-masking-200k`). You must NEVER fine-tune a model on the benchmark evaluation slice. All improvements to precision, recall, and F1 must stem from generalized heuristics, better token alignment, and robust ML calibration that apply to unseen, real-world text.
 - **Adversarial Testing:** New tests must include extremely hard, adversarial edge cases (e.g., bidirectional overrides, deep nesting, escaped structures) to challenge the parsers and detectors.
 
 Install and validate with:
