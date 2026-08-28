@@ -146,6 +146,11 @@ class LocalONNXPIIBackend(DetectionBackend):
             predictions = []
             confidences = []
 
+            # Dynamic policy-based threshold for recall boosting
+            # We scale the policy minimum confidence down for the ML probabilities
+            # since DistilBERT softmax is very sharp on 'O'
+            dynamic_boost_threshold = policy.minimum_confidence * 0.01
+
             for token_probs in probs:
                 best_label = int(np.argmax(token_probs))
                 best_prob = float(token_probs[best_label])
@@ -160,7 +165,7 @@ class LocalONNXPIIBackend(DetectionBackend):
                     second_best = int(np.argmax(temp_probs))
                     second_prob = float(temp_probs[second_best])
 
-                    if second_prob >= 0.15:
+                    if second_prob >= dynamic_boost_threshold:
                         best_label = second_best
                         best_prob = second_prob
 
@@ -189,11 +194,7 @@ class LocalONNXPIIBackend(DetectionBackend):
                     previous_type, previous_start, previous_end, previous_confs = spans[-1]
                     gap = block.text[previous_end:start]
 
-                    if (
-                        entity_type is previous_type
-                        and previous_end <= start <= previous_end + 1
-                        and not gap.strip()
-                    ):
+                    if entity_type is previous_type and not gap.strip():
                         previous_confs.append(conf)
                         spans[-1] = (previous_type, previous_start, end, previous_confs)
                         continue
@@ -203,7 +204,15 @@ class LocalONNXPIIBackend(DetectionBackend):
             for entity_type, start, end, token_confs in spans:
                 raw_conf = max(token_confs)
 
-                calibrated_conf = max(raw_conf, policy.minimum_confidence)
+                # Calibrate the raw confidence so that things passing the dynamic boost
+                # logically map to passing the policy.minimum_confidence
+                if raw_conf >= dynamic_boost_threshold:
+                    # Map [dynamic_boost_threshold, 1] to [minimum_confidence, 1]
+                    calibrated_conf = policy.minimum_confidence + (
+                        raw_conf - dynamic_boost_threshold
+                    ) / (1.0 - dynamic_boost_threshold) * (1.0 - policy.minimum_confidence)
+                else:
+                    calibrated_conf = raw_conf
 
                 if calibrated_conf >= policy.minimum_confidence:
                     results.append(
