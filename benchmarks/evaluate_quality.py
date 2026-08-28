@@ -55,9 +55,11 @@ STRICT BENCHMARK INTEGRITY NOTICE
 2. NO DATA LEAKAGE: If a model is fine-tuned, it MUST NOT be fine-tuned on the 
    exact slice of data used for this evaluation.
 3. GENERALIZATION ONLY: All heuristics and thresholds must generalize to unseen 
-   real-world text. 
+   real-world text.
+4. BLIND EVALUATION: Do not inspect the validation split to build rules. Debug 
+   and develop heuristics exclusively on the `train` split.
 
-Any PR that artificially inflates these numbers by 'cheating' the dataset 
+Any PR that artificially inflates these numbers by 'cheating' the dataset
 will be rejected. The goal is real-world safety, not a high scoreboard number.
 ================================================================================
 """
@@ -68,7 +70,7 @@ def evaluate(num_samples: int, use_ml: bool):
     logger.info("Loading ai4privacy/pii-masking-openpii-1.5m (English subset)...")
 
     # We use the validation split of the 1.5M dataset.
-    # We shuffle with a fixed seed to ensure a consistent, reproducible 
+    # We shuffle with a fixed seed to ensure a consistent, reproducible
     # pseudo-random sample of the evaluation dataset for A/B testing versions.
     ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split="validation", streaming=True)
     ds = ds.shuffle(seed=42)

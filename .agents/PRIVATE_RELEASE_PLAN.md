@@ -17,7 +17,8 @@ Improve the DistilBERT ONNX confidence scores and thresholds. Currently, the ML 
 ### Hard Constraints (DO NOT VIOLATE)
 1. **The 90% Benchmark Gate:** You are strictly forbidden from finalizing the `0.10.0` release unless `uv run python benchmarks/evaluate_quality.py --ml --samples 1000` proves that either Precision, Recall, or F1 has materially improved without degrading the others to an unacceptable level. The ultimate goal is to break the 90% flat barrier across all three.
 2. **Strict Benchmark Integrity:** You must not hardcode regexes tailored to specific strings in the dataset. Heuristics must generalize.
-3. **Execution Context:** Use the `uv` toolchain for all checks.
+3. **BLIND EVALUATION:** You must never inspect, print, or analyze the evaluation/holdout dataset (`validation` split of `ai4privacy/pii-masking-openpii-1.5m`) to find missed edge cases. If you need to debug False Positives or False Negatives to build heuristics, you MUST write temporary scripts to parse the `train` split exclusively. 
+4. **Execution Context:** Use the `uv` toolchain for all checks.
 
 ### Instructions to resume
 1. Review `src/pseudonymize/backends/ml/onnx.py` and see how confidence scores are extracted/applied from the ONNX logits.
