@@ -1,207 +1,25 @@
-# Private Maintainer Plan: Next Releases
+# Private Release Plan: Pseudonymize
 
-Status: local maintainer document, never commit or publish  
-Repository baseline: `v0.1.0`  
-Plan updated: 2026-08-21  
-Planned sequence: `0.2.0` through `1.0.0`
+## Current State
+- **Just Completed:** `0.9.0` (Context-Aware Heuristics)
+- **Current Baseline (0.9.0):** 
+  - Precision: `0.9511`
+  - Recall: `0.8333`
+  - F1 Score: `0.8883`
+  *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 1000 samples).*
 
-## How to use this document
+## Immediate Next Milestone: `0.10.0`
+**Focus:** ML Confidence Calibration & Dynamic Thresholding
 
-When asked to implement the next release:
+### Objective for the next session
+Improve the DistilBERT ONNX confidence scores and thresholds. Currently, the ML backend has a hardcoded default minimum confidence. We need to tune this or introduce dynamic policy-based thresholds to boost recall without destroying our 95% precision. 
 
-1. Read this entire document, `.agents/VISION.md`, `.agents/ROADMAP.md` and the current repository before editing.
-2. Confirm the last published PyPI version and latest Git tag. Do not assume the local version is the published version.
-3. Select the next release from the roadmap whose status is not `Released`.
-4. Keep the published version unchanged while implementing the selected release.
-5. Implement only that release. Do not pull work forward from later releases.
-6. Bump the version and finalize public release notes only after implementation.
-7. Complete every acceptance and release gate before calling it ready.
-8. Push the validated commit directly to `main`, wait for CI, and tag that exact commit.
-9. Publish the GitHub release, verify PyPI, and update this local file's status. Keep it excluded from Git.
+### Hard Constraints (DO NOT VIOLATE)
+1. **The 90% Benchmark Gate:** You are strictly forbidden from finalizing the `0.10.0` release unless `uv run python benchmarks/evaluate_quality.py --ml --samples 1000` proves that either Precision, Recall, or F1 has materially improved without degrading the others to an unacceptable level. The ultimate goal is to break the 90% flat barrier across all three.
+2. **Strict Benchmark Integrity:** You must not hardcode regexes tailored to specific strings in the dataset. Heuristics must generalize.
+3. **Execution Context:** Use the `uv` toolchain for all checks.
 
-Allowed statuses: `Planned`, `In progress`, `Ready`, `Released`, `Deferred`.
-
-## Maintainer release ordering
-
-Maintainer releases use `main` directly. Do not open a release pull request.
-
-1. Sync local `main` with `origin/main` and require a clean tracked worktree.
-2. Record the pre-release package, repository, and adoption baseline privately.
-3. Leave the existing package version unchanged while implementing the release.
-4. Add or update tests and public documentation for shipped behavior.
-5. Run focused checks while implementing.
-6. When implementation is complete, bump the version and finish release notes.
-7. Run the full offline suite, linting, packaging checks, and clean wheel smoke tests.
-8. Commit the complete release directly on `main`.
-9. Push `main` and wait for every required GitHub Actions check to pass.
-10. Fix failures forward on `main`. Never tag a commit with failing checks.
-11. Tag the exact successful `origin/main` commit and push the tag.
-12. Publish a non-draft GitHub release so Trusted Publishing uploads to PyPI.
-13. Monitor publishing and perform a clean post-PyPI install and smoke test.
-14. Record results, measurements, and follow-up only in this private plan.
-
-## Product direction
-
-See `.agents/VISION.md` for the core product principles, bounds, and modalities.
-
-## Non-negotiable compatibility contract
-
-Every release in this plan must adhere to the compatibility guidelines:
-
-- Keep existing methods, defaults, JSON keys, and CLI outputs stable unless clearly documented in alpha/beta.
-- Follow the exact roadmap stages laid out in `.agents/ROADMAP.md`.
-- Keep the core dependency-free and add dependencies only via optional extras (e.g., `ml`, `pdf`, `remote`).
-
-## Release gate
-
-See `.agents/ROADMAP.md` for the standard release gates.
-
-### Rollback criteria
-
-Do not publish, or yank promptly if already published, when any of these occur:
-
-- Existing result keys, defaults, or exception types change unintentionally.
-- A wheel entry point fails after installation.
-- Core sync and async outputs diverge without an explicitly documented reason.
-- Optional dependencies become mandatory.
-
-## Measurement protocol
-
-Record metrics in this private file immediately before each release and 7 and 28 days after it. Do not optimize by releasing empty version bumps. A release must have a user benefit or a security/reliability reason.
-
-## Per-release private record template
-
-Copy this block under the selected release when work starts:
-
-```text
-Implementation started:
-Starting commit:
-Starting PyPI version:
-Baseline downloads day/week/month:
-Baseline stars/forks/watchers:
-Files changed:
-Compatibility tests added:
-Artifact smoke environments:
-Known limitations:
-Deferred items:
-Release commit:
-Tag:
-PyPI upload verified:
-7-day metrics:
-28-day metrics:
-Status:
-```
-
-### 0.2.1: Performance and default policy patches
-
-Implementation started: 2026-08-22
-Starting commit: aabba9a
-Starting PyPI version: 0.2.0
-Baseline downloads day/week/month: 0/0/0
-Baseline stars/forks/watchers: 0/0/0
-Files changed: 13
-Compatibility tests added: Yes
-Artifact smoke environments: Win local isolated wheel
-Known limitations: 
-Deferred items: 
-Release commit: TBD
-Tag: v0.2.1
-PyPI upload verified: Pending workflow
-7-day metrics: 
-28-day metrics: 
-Status: Released
-
-Implementation started: 2026-08-21
-Starting commit: 3205c22ef6143aa8ae38fa2db9eea64fc237777d
-Starting PyPI version: 0.1.0
-Baseline downloads day/week/month: 0/0/0
-Baseline stars/forks/watchers: 0/0/0
-Files changed: 23
-Compatibility tests added: Yes
-Artifact smoke environments: Win/Linux/macOS CI
-Known limitations: Token-by-token matching, no full entity span clustering yet
-Deferred items: 
-Release commit: 7525e6a
-Tag: v0.2.0
-PyPI upload verified: Pending workflow
-7-day metrics: 
-28-day metrics: 
-Status: Released
-
-### 0.3.0: Document inspection
-
-Implementation started: 2026-08-22
-Starting commit: 54a8b7d97ef1f61ebae722d902fa2d31797efb0e
-Starting PyPI version: 0.2.1
-Baseline downloads day/week/month: 0/0/0
-Baseline stars/forks/watchers: 0/0/0
-Files changed: 10
-Compatibility tests added: Yes
-Artifact smoke environments: Win local isolated wheel
-Known limitations: Extract-only; no format-preserving rewriting yet.
-Deferred items: Format-preserving rewrite deferred to 0.4.0.
-Release commit: afe5f40b22acba55353b7c709a8cccb7fb9f922c
-Tag: v0.3.0
-PyPI upload verified: Pending workflow
-7-day metrics: 
-28-day metrics: 
-Status: Released
-
-### 0.4.0: Format-preserving documents
-
-Implementation started: 2026-08-25
-Starting commit: 8d2c6ab43e38aee58a04939c5e34bb926b0d1517
-Starting PyPI version: 0.3.0
-Baseline downloads day/week/month: 0/0/0
-Baseline stars/forks/watchers: 0/0/0
-Files changed: 12
-Compatibility tests added: Yes
-Artifact smoke environments: Win local isolated wheel
-Known limitations: OCR not yet supported for scanned PDFs.
-Deferred items: OCR deferred to 0.5.0.
-Release commit: d2811ab92f939873e684cea3febeddf6e5bd93d1
-Tag: v0.4.0
-PyPI upload verified: Yes
-7-day metrics: 
-28-day metrics: 
-Status: Released
-
-### 0.5.0: OCR and scanned documents
-
-Implementation started: 2026-08-25
-Starting commit: 7579aa474a425fa5f909eca309f41adfc43fb497
-Starting PyPI version: 0.4.0
-Baseline downloads day/week/month: 0/0/0
-Baseline stars/forks/watchers: 0/0/0
-Files changed: 5
-Compatibility tests added: Yes
-Artifact smoke environments: Win local isolated wheel
-Known limitations: OCR is limited to text extraction for layout bounding boxes.
-Deferred items: None
-Release commit: 1e3bc87bb2451c7c7fd9c8f694d6b8e852a806b3
-Tag: v0.5.0
-PyPI upload verified: Yes
-7-day metrics: 
-28-day metrics: 
-Status: Released
-
-### 0.6.0: Remote detection
-
-Implementation started: 2026-08-25
-Starting commit: 6f6525bb1689a8b8ea5cbf7473a57d360dc339f7
-Starting PyPI version: 0.5.1
-Baseline downloads day/week/month: 0/0/0
-Baseline stars/forks/watchers: 0/0/0
-Files changed: 7
-Compatibility tests added: Yes
-Artifact smoke environments: Win local isolated wheel
-Known limitations: Remote processing is restricted to allowed/configured backends.
-Deferred items: None
-Release commit: f9517983550048983640cf4fe0e1680fcb6da0b5
-Tag: v0.6.0
-PyPI upload verified: Yes
-7-day metrics: 
-28-day metrics: 
-Status: Released
-
-
+### Instructions to resume
+1. Review `src/pseudonymize/backends/ml/onnx.py` and see how confidence scores are extracted/applied from the ONNX logits.
+2. Review `src/pseudonymize/policy.py` to see how `minimum_confidence` is currently passed to the backends.
+3. Implement calibration, run the benchmarks, format/lint, and execute the standard release pipeline in `docs/releasing.md`.
