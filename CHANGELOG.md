@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-28
+
+### Fixed
+
+- **Ensemble Merging & Conflict Resolution:** Updated `pseudonymize.spans.resolve_overlaps` to prioritize span length over prediction confidence. This ensures that when the ML backend captures a longer valid span (e.g. "John Smith") with lower confidence, it won't be truncated or broken apart by a shorter, higher-confidence deterministic match. Also fixed a regex bug in `ContextualIdDetector` that could mistakenly trigger on word prefixes. This significantly improved ensemble precision and overall F1 benchmark.
+
 ## [0.10.0] - 2026-08-28
 
 ### Added

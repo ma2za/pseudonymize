@@ -32,9 +32,9 @@ def resolve_overlaps(
         detections,
         key=lambda detection: (
             -_ENTITY_PRIORITY[detection.entity_type],
-            -detection.confidence,
             -configured.get(detection.detector, 0),
             -(detection.end - detection.start),
+            -detection.confidence,
             detection.start,
             detection.end,
             detection.detector,
