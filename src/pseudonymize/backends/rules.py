@@ -14,6 +14,8 @@ _RULE_ENTITY_TYPES = frozenset(
         EntityType.IP_ADDRESS,
         EntityType.IBAN,
         EntityType.PAYMENT_CARD,
+        EntityType.NATIONAL_ID,
+        EntityType.TAX_ID,
         EntityType.URL_CREDENTIAL,
         EntityType.SECRET,
     }

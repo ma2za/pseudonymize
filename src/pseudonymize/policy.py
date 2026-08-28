@@ -11,6 +11,8 @@ _STRUCTURED = frozenset(
         EntityType.IP_ADDRESS,
         EntityType.IBAN,
         EntityType.PAYMENT_CARD,
+        EntityType.NATIONAL_ID,
+        EntityType.TAX_ID,
     }
 )
 _CREDENTIALS = frozenset({EntityType.URL_CREDENTIAL, EntityType.SECRET})

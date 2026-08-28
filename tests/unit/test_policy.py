@@ -6,6 +6,8 @@ from pseudonymize import EntityType, Policy
 def test_builtin_policies() -> None:
     assert EntityType.SECRET in Policy.default().entity_types
     assert EntityType.URL_CREDENTIAL in Policy.default().entity_types
+    assert EntityType.NATIONAL_ID in Policy.default().entity_types
+    assert EntityType.TAX_ID in Policy.default().entity_types
     assert Policy.strict().entity_types == frozenset(EntityType)
     assert Policy.financial().entity_types == {EntityType.IBAN, EntityType.PAYMENT_CARD}
     assert EntityType.SECRET in Policy.llm().entity_types
