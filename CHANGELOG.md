@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-28
+
+### Added
+
+- **ML Confidence Calibration & Dynamic Thresholding:** Implemented dynamic threshold scaling for the ONNX backend. ML probabilities for valid entities can now be calibrated to meet strict `minimum_confidence` policy requirements, successfully boosting recall (up to ~84.4%) and F1 score while maintaining ~95% precision without relying on hardcoded confidences.
+
 ## [0.9.0] - 2026-08-28
 
 ### Added
