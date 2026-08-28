@@ -4,7 +4,10 @@ from unittest import mock
 
 import pytest
 
-from pseudonymize.cli import _read_key
+from pseudonymize.cli import _location_payload, _read_key
+from pseudonymize.document import CoordinateLocation, StructuralLocation
+from pseudonymize.processing import DetectionReport
+from pseudonymize.result import EntityType
 
 
 def test_cli_read_key_file_permissions() -> None:
@@ -26,10 +29,6 @@ def test_cli_read_key_file_permissions() -> None:
 
 def test_cli_unsupported_report_location() -> None:
     # Need to trigger the raise TypeError("unsupported report location")
-    from pseudonymize.cli import _location_payload
-    from pseudonymize.processing import DetectionReport
-    from pseudonymize.result import EntityType
-
     class FakeLocation:
         pass
 
@@ -45,3 +44,40 @@ def test_cli_unsupported_report_location() -> None:
     )
     with pytest.raises(TypeError, match="unsupported report location"):
         _location_payload(report)
+
+
+@pytest.mark.parametrize(
+    ("location", "expected"),
+    [
+        (
+            CoordinateLocation(page=2, x0=1.0, y0=2.0, x1=3.0, y1=4.0),
+            {
+                "kind": "coordinate",
+                "page": 2,
+                "x0": 1.0,
+                "y0": 2.0,
+                "x1": 3.0,
+                "y1": 4.0,
+            },
+        ),
+        (
+            StructuralLocation(("slides", 1, "paragraphs", 2)),
+            {"kind": "structural", "path": ("slides", 1, "paragraphs", 2)},
+        ),
+    ],
+)
+def test_cli_serializes_inspection_only_locations(
+    location: CoordinateLocation | StructuralLocation, expected: dict[str, object]
+) -> None:
+    report = DetectionReport(
+        entity_type=EntityType.EMAIL,
+        block_id="block-1",
+        start=0,
+        end=5,
+        location=location,
+        backend="rules",
+        detector="email",
+        confidence=1.0,
+    )
+
+    assert _location_payload(report) == expected

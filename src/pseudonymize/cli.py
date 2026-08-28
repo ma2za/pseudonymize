@@ -10,7 +10,13 @@ from pathlib import Path
 
 from pseudonymize.api import generate_key
 from pseudonymize.detectors import DEFAULT_DETECTORS
-from pseudonymize.document import CSVCellLocation, JSONPathLocation, TextOffsetLocation
+from pseudonymize.document import (
+    CoordinateLocation,
+    CSVCellLocation,
+    JSONPathLocation,
+    StructuralLocation,
+    TextOffsetLocation,
+)
 from pseudonymize.engine import Data, Pseudonymizer
 from pseudonymize.exceptions import PseudonymizeError
 from pseudonymize.formats import FileFormat
@@ -199,6 +205,17 @@ def _location_payload(report: DetectionReport) -> dict[str, object]:
         return {"kind": "json_path", "path": location.path}
     if isinstance(location, CSVCellLocation):
         return {"kind": "csv_cell", "row": location.row, "column": location.column}
+    if isinstance(location, CoordinateLocation):
+        return {
+            "kind": "coordinate",
+            "page": location.page,
+            "x0": location.x0,
+            "y0": location.y0,
+            "x1": location.x1,
+            "y1": location.y1,
+        }
+    if isinstance(location, StructuralLocation):
+        return {"kind": "structural", "path": location.path}
     raise TypeError("unsupported report location")
 
 
