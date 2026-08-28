@@ -4,11 +4,11 @@ from dataclasses import dataclass
 from pseudonymize.result import Detection, EntityType
 
 _SECRET_PATTERNS = (
-    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
-    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,255}\b"),
-    re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
+    re.compile(r"(?<![A-Za-z0-9_])AKIA[0-9A-Z]{16}(?![A-Za-z0-9_])"),
+    re.compile(r"(?<![A-Za-z0-9_])gh[pousr]_[A-Za-z0-9]{36,255}(?![A-Za-z0-9_])"),
+    re.compile(r"(?<![A-Za-z0-9_])sk-[A-Za-z0-9_-]{20,}(?![A-Za-z0-9_])"),
     re.compile(
-        r"(?i)\b(?:api[_-]?key|client[_-]?secret|password|secret|token)\b\s*[:=]\s*"
+        r"(?i)(?<![a-z0-9_])(?:api[_-]?key|client[_-]?secret|password|secret|token)(?![a-z0-9_])\s*[:=]\s*"
         r"(?P<value>['\"]?[A-Za-z0-9_./+=-]{8,}['\"]?)"
     ),
 )

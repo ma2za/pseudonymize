@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+import unicodedata
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -112,6 +113,18 @@ class Pseudonymizer:
     ) -> tuple[Detection, ...]:
         if not remote:
             statistics.blocks_processed += 1
+
+        stripped_chars = []
+        stripped_to_orig = []
+        for i, char in enumerate(block.text):
+            if unicodedata.category(char) != "Cf":
+                stripped_chars.append(char)
+                stripped_to_orig.append(i)
+        stripped_to_orig.append(len(block.text))
+
+        stripped_text = "".join(stripped_chars)
+        stripped_block = replace(block, text=stripped_text)
+
         candidates: list[Detection] = []
         for backend in self.backends:
             capabilities = backend_capabilities(backend)
@@ -119,9 +132,14 @@ class Pseudonymizer:
                 continue
             if not capabilities.entity_types.intersection(self.policy.entity_types):
                 continue
-            detections = invoke_backend(backend, block, self.policy)
+            raw_detections = invoke_backend(backend, stripped_block, self.policy)
+
+            for det in raw_detections:
+                mapped_start = stripped_to_orig[det.start]
+                mapped_end = stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
+                candidates.append(replace(det, start=mapped_start, end=mapped_end))
+
             statistics.record_backend(capabilities)
-            candidates.extend(detections)
 
         text = block.text
         protected = tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))

@@ -64,7 +64,7 @@ _VAT_WITH_COUNTRY = re.compile(
     re.I,
 )
 _VAT_WITH_LABEL = re.compile(
-    r"\b(?:partita[ ]+iva|p[ .]*iva|p[ .]*i[ .]*|vat(?:[ ]+id)?)"
+    r"(?<![a-z0-9_])(?:partita[ ]+iva|p[ .]*iva|p[ .]*i[ .]*|vat(?:[ ]+id)?)"
     r"\s*[:=]?\s*(?P<value>(?:IT[ ]?)?(?:\d[ ]?){10}\d)(?!\d)",
     re.I,
 )
