@@ -8,6 +8,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 - IBAN detection now accepts spaces between the country code and check digits, including values
   extracted from visually grouped documents.
+- PDF processing now preserves unchanged text blocks and renders transformed blocks legibly
+  instead of covering the complete document text with black redaction rectangles.
 
 ## [0.6.0] - 2026-08-25
 
