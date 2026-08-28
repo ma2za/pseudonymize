@@ -40,10 +40,40 @@ SUPPORTED_LABELS = {
 }
 
 
+INTEGRITY_NOTICE = """
+================================================================================
+STRICT BENCHMARK INTEGRITY NOTICE
+================================================================================
+1. NO HARDCODING: Do not write regex or rules targeting specific strings, names, 
+   or artifacts found exclusively in this dataset.
+2. NO DATA LEAKAGE: If a model is fine-tuned, it MUST NOT be fine-tuned on the 
+   exact slice of data used for this evaluation.
+3. GENERALIZATION ONLY: All heuristics and thresholds must generalize to unseen 
+   real-world text. 
+
+Any PR that artificially inflates these numbers by 'cheating' the dataset 
+will be rejected. The goal is real-world safety, not a high scoreboard number.
+================================================================================
+"""
+
+
 def evaluate(num_samples: int, use_ml: bool):
+    print(INTEGRITY_NOTICE)
     logger.info("Loading ai4privacy/pii-masking-200k (English subset)...")
-    # Use streaming to avoid downloading the entire 200K dataset
+
+    # We use streaming, but to avoid evaluating on the exact same first N rows
+    # that might have been heavily heavily trained on, we will deterministically
+    # skip rows using the dataset's native streaming capabilities or by simply
+    # discarding a fixed offset, ensuring we evaluate on a pseudo-holdout slice.
     ds = load_dataset("ai4privacy/pii-masking-200k", split="train", streaming=True)
+
+    # Skip the first 150,000 rows to use the tail end as our evaluation holdout
+    # to minimize overlap with casual train/test usage of the top of the dataset.
+    HOLDOUT_OFFSET = 150_000
+    logger.info(
+        f"Skipping first {HOLDOUT_OFFSET} rows to use dataset tail as a pseudo-test split..."
+    )
+    ds = ds.skip(HOLDOUT_OFFSET)
 
     engine = Pseudonymizer()
     if use_ml:
