@@ -122,13 +122,16 @@ def evaluate(num_samples: int, use_ml: bool):
         result = engine.process_with_report(text)
 
         # Extract detected spans
-        detected_spans = [(detection.start, detection.end) for detection in result.detections]
+        detected_spans = [
+            (detection.start, detection.end, detection.entity_type)
+            for detection in result.detections
+        ]
 
         # Calculate overlap
         # A single detected span can overlap with multiple ground truth spans
         # (e.g. "John Smith" detected as one PERSON span but annotated as FIRSTNAME and LASTNAME).
         matched_gt = set()
-        for d_start, d_end in detected_spans:
+        for d_start, d_end, d_type in detected_spans:
             matched = False
             for i, (g_start, g_end, _g_label) in enumerate(ground_truth_spans):
                 # Check overlap
@@ -139,10 +142,16 @@ def evaluate(num_samples: int, use_ml: bool):
                 true_positives += 1
             else:
                 false_positives += 1
+                logger.info(f"FP: '{text[d_start:d_end]}' as {d_type}")
 
         for i in range(len(ground_truth_spans)):
             if i not in matched_gt:
                 false_negatives += 1
+                g_start, g_end, g_label = ground_truth_spans[i]
+                logger.info(
+                    f"FN: '{text[g_start:g_end]}' should be {g_label} "
+                    f"(Context: {text[max(0, g_start - 40) : min(len(text), g_end + 40)]})"
+                )
 
         count += 1
         if count % 50 == 0:
