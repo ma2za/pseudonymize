@@ -20,26 +20,31 @@ logger = logging.getLogger("evaluate_quality")
 # We evaluate precision and recall against these specific AI4Privacy labels
 # that map to the capabilities of pseudonymize's core detectors and ML backend.
 SUPPORTED_LABELS = {
-    # Core detectors
+    # Core detectors mapped to OpenPII-1.5m labels
     "EMAIL",
-    "PHONENUMBER",
+    "TELEPHONENUM",
     "CREDITCARDNUMBER",
     "IBAN",
     "IPV4",
     "IPV6",
     "IP",
-    # ML Backend (DistilBERT ONNX)
-    "FIRSTNAME",
-    "LASTNAME",
+    "URL",
+    "SOCIALNUM",
+    "IDCARDNUM",
+    "PASSPORTNUM",
+    "TAXNUM",
+    "DRIVERLICENSENUM",
+    # ML Backend (DistilBERT ONNX) mapped to OpenPII-1.5m labels
+    "GIVENNAME",
+    "SURNAME",
     "MIDDLENAME",
-    "COMPANYNAME",
+    "ORGANISATION",
     "CITY",
     "STATE",
     "COUNTY",
     "STREET",
     "ZIPCODE",
 }
-
 
 INTEGRITY_NOTICE = """
 ================================================================================
@@ -60,20 +65,13 @@ will be rejected. The goal is real-world safety, not a high scoreboard number.
 
 def evaluate(num_samples: int, use_ml: bool):
     print(INTEGRITY_NOTICE)
-    logger.info("Loading ai4privacy/pii-masking-200k (English subset)...")
+    logger.info("Loading ai4privacy/pii-masking-openpii-1.5m (English subset)...")
 
-    # We use streaming, but to avoid evaluating on the exact same first N rows
-    # that might have been heavily heavily trained on, we will deterministically
-    # skip rows using the dataset's native streaming capabilities or by simply
-    # discarding a fixed offset, ensuring we evaluate on a pseudo-holdout slice.
-    ds = load_dataset("ai4privacy/pii-masking-200k", split="train", streaming=True)
-
-    # The English split of AI4Privacy contains ~43,000 rows.
-    # Skip the first 35,000 rows to use the tail end as our evaluation holdout
-    # to minimize overlap with casual train/test usage of the top of the dataset.
-    HOLDOUT_OFFSET = 35_000
-    logger.info(f"Skipping first {HOLDOUT_OFFSET} rows to use dataset tail as a pseudo-test split...")
-    ds = ds.skip(HOLDOUT_OFFSET)
+    # We use the validation split of the 1.5M dataset.
+    # We shuffle with a fixed seed to ensure a consistent, reproducible 
+    # pseudo-random sample of the evaluation dataset for A/B testing versions.
+    ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split="validation", streaming=True)
+    ds = ds.shuffle(seed=42)
 
     engine = Pseudonymizer()
     if use_ml:
@@ -178,7 +176,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Evaluate pseudonymize precision and recall against real-world datasets."
     )
-    parser.add_argument("--samples", type=int, default=500, help="Number of samples to evaluate.")
+    parser.add_argument("--samples", type=int, default=1000, help="Number of samples to evaluate.")
     parser.add_argument(
         "--ml", action="store_true", help="Include the ONNX ML backend in evaluation."
     )

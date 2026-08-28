@@ -36,3 +36,27 @@ Evaluated on the pseudo-test holdout slice (last 8k English rows) of i4privacy/
 | Precision | 0.8934 |
 | Recall | 0.9134 |
 | F1 Score | 0.9033 |
+
+## `0.8.0` (OpenPII-1.5m Baseline)
+
+Evaluated on the English subset of the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows). This establishes the baseline for the 0.9.0 release and beyond.
+
+**Results:**
+
+| Metric | Score |
+| --- | --- |
+| Precision | 0.9688 |
+| Recall | 0.8044 |
+| F1 Score | 0.8790 |
+
+## `0.9.0` (Context-Aware Heuristics)
+
+Evaluated on the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows) after introducing the \ContextualIdDetector\ to catch synthetically generated IDs, non-Luhn credit cards, and postal codes based on surrounding semantic keywords.
+
+**Results:**
+
+| Metric | Score |
+| --- | --- |
+| Precision | 0.9511 |
+| Recall | 0.8333 |
+| F1 Score | 0.8883 |

@@ -29,16 +29,24 @@ _LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
     # Standard CoNLL-03 suffixes plus Ai4Privacy fine-grained labels.
     (("PER", "FIRSTNAME", "LASTNAME", "MIDDLENAME"), EntityType.PERSON),
     (("ORG", "COMPANYNAME"), EntityType.ORGANIZATION),
-    (("LOC", "CITY", "STATE", "COUNTY", "STREET", "ZIPCODE"), EntityType.LOCATION),
+    (
+        ("LOC", "CITY", "STATE", "COUNTY", "STREET", "ZIPCODE", "SECONDARYADDRESS"),
+        EntityType.LOCATION,
+    ),
+    (("EMAIL",), EntityType.EMAIL),
+    (("PHONENUMBER", "PHONEIMEI"), EntityType.PHONE),
+    (("IP", "IPV4", "IPV6"), EntityType.IP_ADDRESS),
+    (("IBAN",), EntityType.IBAN),
+    (("CREDITCARDNUMBER", "CREDITCARDCVV", "CREDITCARDISSUER"), EntityType.PAYMENT_CARD),
+    (("SSN",), EntityType.NATIONAL_ID),
+    (("URL",), EntityType.URL_CREDENTIAL),
 )
-
 
 def _entity_type_for(label: str) -> EntityType | None:
     for suffixes, entity_type in _LABEL_SUFFIXES:
         if label.endswith(suffixes):
             return entity_type
     return None
-
 
 class LocalONNXPIIBackend(DetectionBackend):
     def __init__(
@@ -82,6 +90,13 @@ class LocalONNXPIIBackend(DetectionBackend):
                     EntityType.PERSON,
                     EntityType.ORGANIZATION,
                     EntityType.LOCATION,
+                    EntityType.EMAIL,
+                    EntityType.PHONE,
+                    EntityType.IP_ADDRESS,
+                    EntityType.IBAN,
+                    EntityType.PAYMENT_CARD,
+                    EntityType.NATIONAL_ID,
+                    EntityType.URL_CREDENTIAL,
                 }
             ),
             remote=False,
