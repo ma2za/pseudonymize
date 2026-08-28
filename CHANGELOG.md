@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-28
+
+### Added
+
+- **Context-Aware Heuristics:** Introduced \ContextualIdDetector\ which boosts recall by evaluating surrounding semantic keywords (e.g. 'Passport No:', 'Card Number:', 'Zip:') to confidently identify PII that might otherwise fail rigid checksums (like the Luhn algorithm for synthetic cards) or formatting patterns.
+
 ## [0.8.0] - 2026-08-28
 
 ### Fixed

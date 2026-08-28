@@ -18,6 +18,7 @@ _RULE_ENTITY_TYPES = frozenset(
         EntityType.TAX_ID,
         EntityType.URL_CREDENTIAL,
         EntityType.SECRET,
+        EntityType.LOCATION,
     }
 )
 
