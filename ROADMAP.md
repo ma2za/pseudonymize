@@ -7,14 +7,14 @@ publishable without requiring unfinished later layers.
 
 | Release | Status | Outcome |
 | --- | --- | --- |
-| `0.1.0a1` | Published | Dependency-free text and nested-data core |
-| `0.1.0a2` | Published | Document representation, extension contracts, safe reports, and generic file orchestration |
-| `0.1.0a3` | Published | Built-in dependency-free text and machine-readable file adapters |
-| `0.1.0b1` | Published | Core API freeze and production-oriented examples |
-| `0.1.0rc1` | Published | External installation and release validation |
 | `0.1.0` | Published | First stable text and machine-readable release |
 | `0.2.0` | Published | Optional local machine learning identification for PII |
-| `0.3.0` | Next | Document inspection (PDF, DOCX, XLSX, PPTX) |
+| `0.3.0` | Published | Document inspection (PDF, DOCX, XLSX, PPTX) |
+| `0.4.0` | Published | Format-preserving documents |
+| `0.5.0` | Published | OCR and scanned documents |
+| `0.6.0` | Published | Remote detection |
+| `0.6.1` | Published | Italian identifiers, PDF spans, and inspection fixes |
+| `0.7.0` | Next | Real-world corpus benchmarking |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -121,45 +121,51 @@ Exit criteria:
 Stable local processing for text, nested Python data, and plain or machine-readable files, with a
 documented compatibility policy and zero base runtime dependencies.
 
-## Later capabilities
+## The Road to 1.0 (Hardening and Production Readiness)
 
-### `0.2.0`: optional local ML
+### `0.7.0`: Real-World Corpus Benchmarking
+- **Use Case:** Medical/Legal data mining.
+- **Focus:** Integrate public datasets (Enron corpus, MIMIC-III synthetic variants, SEC filings) to establish precision/recall baselines for existing detectors.
 
-- Explicitly installed ONNX models for people, organizations, locations, and contextual addresses
-- Initial English, German, and Italian benchmarks
-- Pinned model revisions, checksums, licences, memory, and latency measurements
-- No model download during import or inference
+### `0.8.0`: Adversarial Document Defenses
+- **Use Case:** FOIA response redaction failures (e.g., Manafort, AstraZeneca leaks).
+- **Focus:** Prevent visual-only masking, hidden OCR layers, overlapping z-index elements, and scrub incremental document revisions.
 
-### `0.3.0`: document inspection
+### `0.9.0`: Exhaustive Metadata & Hidden Structure Extraction
+- **Use Case:** Corporate e-discovery.
+- **Focus:** Parse PDF `/Info` dictionaries, XMP metadata, DOCX headers/footers, and XLSX comments.
 
-- Optional PDF, DOCX, XLSX, and PPTX extraction
-- Structural or coordinate-aware locations
-- Detection-only output while representation fixtures mature
+### `0.10.0`: Large-Scale & Streaming Data Pipelines
+- **Use Case:** Database dumps and bulk analytics exports.
+- **Focus:** Bounded-memory processing for multi-gigabyte CSV/JSONL files; parallel block processing.
 
-### `0.4.0`: format-preserving documents
+### `0.11.0`: Resilient Document Parsing
+- **Use Case:** Legacy enterprise files.
+- **Focus:** Gracefully handle corrupt XML schemas, custom OOXML namespaces, and safely extract embedded OLE objects.
 
-- Sanitized DOCX, XLSX, and PPTX copies
-- Secure text-PDF redaction with underlying content removal
-- Relevant metadata cleaning and format-integrity tests
+### `0.12.0`: Advanced OCR Degradation Handling
+- **Use Case:** Medical faxes and legacy legal scans.
+- **Focus:** Handle low-dpi faxes, skewed pages, noisy backgrounds, and watermark interference mimicking structural data.
 
-### `0.5.0`: OCR and scanned documents
+### `0.13.0`: ML Confidence Calibration & Thresholding
+- **Use Case:** Reducing false positives in unstructured clinical notes.
+- **Focus:** Tune ONNX backend confidence scores against ambiguous texts and introduce dynamic, policy-based confidence thresholds.
 
-- Local OCR for images, scanned PDFs, and mixed PDFs
-- Bounding-box transformations
-- No OCR when reliable native text exists
+### `0.14.0`: Telemetry, Observability & Auditing
+- **Use Case:** Enterprise compliance reporting and SLA monitoring.
+- **Focus:** Structured JSON logging, processing timeouts, latency tracing, and detailed audit trails without leaking PII.
 
-### `0.6.0`: remote detection
+### `0.15.0`: Remote Backend Fault Tolerance
+- **Use Case:** High-throughput API gateway integration.
+- **Focus:** Circuit breakers, adaptive retries, rate-limit handling, and strict latency bounds for the HTTP provider transport.
 
-- Vendor-neutral provider protocol and optional HTTP transport
-- Explicit dual consent, bounded timeouts, and bounded retries
-- Provider capability reporting and remote-block statistics
-- Local structured-value replacement before permitted remote processing
-- Offset mapping after local preprocessing
+### `0.16.0`: Cross-Lingual & Typographical Boundary Hardening (Pre-1.0 Audit)
+- **Use Case:** Global support ticket sanitization.
+- **Focus:** Audit detectors against non-Latin scripts, CJK spacing, RTL text, and bidirectional text overrides. Final security fuzzing (Zip-bombs, XXE).
 
-### `1.0.0`: mature compatibility commitment
-
+### `1.0.0`: Mature Compatibility Commitment
 Long-term compatibility begins after core processing, document rewriting, OCR, and remote-security
-contracts have production fixtures, published benchmarks, and independent usage feedback.
+contracts have production fixtures, published benchmarks, and independent usage feedback against the hardening milestones above.
 
 ## Optional dependency policy
 
