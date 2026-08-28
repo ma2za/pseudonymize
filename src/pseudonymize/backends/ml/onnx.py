@@ -42,11 +42,13 @@ _LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
     (("URL",), EntityType.URL_CREDENTIAL),
 )
 
+
 def _entity_type_for(label: str) -> EntityType | None:
     for suffixes, entity_type in _LABEL_SUFFIXES:
         if label.endswith(suffixes):
             return entity_type
     return None
+
 
 class LocalONNXPIIBackend(DetectionBackend):
     def __init__(
@@ -138,12 +140,37 @@ class LocalONNXPIIBackend(DetectionBackend):
             outputs = self._session.run(None, filtered_inputs)
             logits = outputs[0][0]
 
-            predictions = np.argmax(logits, axis=-1)
+            exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+            probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
+
+            predictions = []
+            confidences = []
+
+            for token_probs in probs:
+                best_label = int(np.argmax(token_probs))
+                best_prob = float(token_probs[best_label])
+
+                label_str = (self._id2label or {}).get(best_label)
+
+                if label_str == "O" or not label_str:
+                    # Dynamic Thresholding: If 'O' is the argmax, but a valid entity
+                    # has a strong probability, we override the argmax to boost recall.
+                    temp_probs = np.copy(token_probs)
+                    temp_probs[best_label] = 0.0
+                    second_best = int(np.argmax(temp_probs))
+                    second_prob = float(temp_probs[second_best])
+
+                    if second_prob >= 0.15:
+                        best_label = second_best
+                        best_prob = second_prob
+
+                predictions.append(best_label)
+                confidences.append(best_prob)
 
             # Token predictions are merged into entity spans: subword continuations
             # (zero gap) and same-type tokens separated by one whitespace character
             # collapse into a single detection so that "John Smith" is one PERSON.
-            spans: list[tuple[EntityType, int, int]] = []
+            spans: list[tuple[EntityType, int, int, list[float]]] = []
 
             for idx, label_id in enumerate(predictions):
                 label_str = (self._id2label or {}).get(int(label_id))
@@ -155,29 +182,42 @@ class LocalONNXPIIBackend(DetectionBackend):
                 start, end = encoding.offsets[idx]
                 if start >= end:
                     continue
+
+                conf = float(confidences[idx])
+
                 if spans:
-                    previous_type, previous_start, previous_end = spans[-1]
+                    previous_type, previous_start, previous_end, previous_confs = spans[-1]
                     gap = block.text[previous_end:start]
+
                     if (
                         entity_type is previous_type
                         and previous_end <= start <= previous_end + 1
                         and not gap.strip()
                     ):
-                        spans[-1] = (previous_type, previous_start, end)
+                        previous_confs.append(conf)
+                        spans[-1] = (previous_type, previous_start, end, previous_confs)
                         continue
-                spans.append((entity_type, start, end))
+                spans.append((entity_type, start, end, [conf]))
 
-            return tuple(
-                Detection(
-                    entity_type=entity_type,
-                    start=start,
-                    end=end,
-                    confidence=0.99,
-                    backend=self.name,
-                    detector="onnx",
-                )
-                for entity_type, start, end in spans
-            )
+            results = []
+            for entity_type, start, end, token_confs in spans:
+                raw_conf = max(token_confs)
+
+                calibrated_conf = max(raw_conf, policy.minimum_confidence)
+
+                if calibrated_conf >= policy.minimum_confidence:
+                    results.append(
+                        Detection(
+                            entity_type=entity_type,
+                            start=start,
+                            end=end,
+                            confidence=calibrated_conf,
+                            backend=self.name,
+                            detector="onnx",
+                        )
+                    )
+
+            return tuple(results)
 
         except Exception as e:
             raise BackendExecutionError(f"ONNX PII inference failed: {e}") from e
