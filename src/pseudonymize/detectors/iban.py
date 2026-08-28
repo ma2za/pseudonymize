@@ -3,7 +3,10 @@ from dataclasses import dataclass
 
 from pseudonymize.result import Detection, EntityType
 
-_IBAN = re.compile(r"(?<![A-Z0-9])[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]){11,30}(?![A-Z0-9])", re.I)
+_IBAN = re.compile(
+    r"(?<![A-Z0-9])[A-Z]{2}(?:[ ]?\d){2}(?:[ ]?[A-Z0-9]){11,30}(?![A-Z0-9])",
+    re.I,
+)
 
 
 def _valid_mod97(value: str) -> bool:

@@ -100,6 +100,8 @@ def test_frozen_enums_and_data_models() -> None:
         ("IP_ADDRESS", "IP_ADDRESS"),
         ("IBAN", "IBAN"),
         ("PAYMENT_CARD", "PAYMENT_CARD"),
+        ("NATIONAL_ID", "NATIONAL_ID"),
+        ("TAX_ID", "TAX_ID"),
         ("URL_CREDENTIAL", "URL_CREDENTIAL"),
         ("SECRET", "SECRET"),
     ]

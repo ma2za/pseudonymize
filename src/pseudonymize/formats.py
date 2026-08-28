@@ -339,6 +339,9 @@ def _read_csv(text: str) -> tuple[tuple[str, ...], ...]:
         previous_limit = csv.field_size_limit()
         try:
             csv.field_size_limit(sys.maxsize)
+        except OverflowError:
+            csv.field_size_limit(2147483647)
+        try:
             return tuple(
                 tuple(row) for row in csv.reader(io.StringIO(text, newline=""), strict=True)
             )
