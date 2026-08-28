@@ -7,9 +7,8 @@ from pathlib import Path
 try:
     from datasets import load_dataset
 except ImportError:
-    print(
-        "Error: 'datasets' library not found. Run: uv run --with datasets python benchmarks/evaluate_quality.py"
-    )
+    print("Error: 'datasets' library not found.")
+    print("Run: uv run --with datasets python benchmarks/evaluate_quality.py")
     sys.exit(1)
 
 from pseudonymize.backends.ml.onnx import LocalONNXPIIBackend
@@ -56,9 +55,8 @@ def evaluate(num_samples: int, use_ml: bool):
         tokenizer_path = CACHE_DIR / "tokenizer.json"
 
         if not onnx_model_path.exists() or not tokenizer_path.exists():
-            logger.error(
-                f"ML artifacts not found in {CACHE_DIR}. Please run 'uv run pytest tests/unit/backends/test_onnx.py' first to download them."
-            )
+            logger.error(f"ML artifacts not found in {CACHE_DIR}.")
+            logger.error("Please run 'uv run pytest tests/unit/backends/test_onnx.py' first.")
             sys.exit(1)
 
         backend = LocalONNXPIIBackend(model_path=onnx_model_path, tokenizer_path=tokenizer_path)
@@ -79,18 +77,17 @@ def evaluate(num_samples: int, use_ml: bool):
         masks = row["privacy_mask"]
 
         # Filter ground truth masks to only those we claim to support
-        ground_truth_spans = []
-        for mask in masks:
-            if mask["label"] in SUPPORTED_LABELS:
-                ground_truth_spans.append((mask["start"], mask["end"], mask["label"]))
+        ground_truth_spans = [
+            (mask["start"], mask["end"], mask["label"])
+            for mask in masks
+            if mask["label"] in SUPPORTED_LABELS
+        ]
 
         # Run detection
         result = engine.process_with_report(text)
 
         # Extract detected spans
-        detected_spans = []
-        for detection in result.detections:
-            detected_spans.append((detection.start, detection.end))
+        detected_spans = [(detection.start, detection.end) for detection in result.detections]
 
         # Calculate overlap
         # For simplicity in this benchmark:

@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-28
+
+### Added
+
+- Added a new quality evaluation suite (enchmarks/evaluate_quality.py) capable of streaming real-world datasets (like AI4Privacy/PII-Masking-200k) to establish rigorous precision, recall, and F1 baselines for core detectors and ML backends.
+
 ## [0.6.1] - 2026-08-28
 
 ### Added
