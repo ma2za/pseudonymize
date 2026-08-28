@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-28
+
 ### Added
 
 - Generic `NATIONAL_ID` and `TAX_ID` entity types with checksum-validated Italian fiscal-code and
