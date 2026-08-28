@@ -14,14 +14,14 @@ _CONTEXT_PATTERNS = [
     # Driver's License
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
     # ID Card / National ID
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id\s*(?:no\.?|number|#)|identificatif|identifiant)(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id|identificatif|identifiant|ticket\s*id|entity\s*id|identifier|serial|receipt\s*number|environmental\s*clearance|ref\s*:|applicant'?s?)(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
@@ -35,7 +35,7 @@ _CONTEXT_PATTERNS = [
     # Zip / Postal Code
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:zip\s*code|postal\s*code|postcode|zip)(?![a-z0-9_])\s*:?\s*([A-Z0-9-]{4,10})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:zip\s*code|postal\s*code|postcode|zip|singapore(?:\s*[a-z\s]+)?|office\s*at|school)(?![a-z0-9_])\s*:?\s*\(?([0-9]{5,6})\)?(?![a-z0-9_])"
         ),
         EntityType.LOCATION,
     ),
