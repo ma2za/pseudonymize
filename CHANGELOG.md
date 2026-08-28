@@ -11,6 +11,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ### Fixed
 
+- `inspect-file` now serializes coordinate and structural locations used by PDF, image, and
+  Office inspection instead of failing after a detection is found.
 - IBAN detection now accepts spaces between the country code and check digits, including values
   extracted from visually grouped documents.
 - PDF processing now preserves unchanged text blocks and renders transformed blocks legibly
