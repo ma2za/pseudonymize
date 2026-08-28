@@ -17,5 +17,8 @@ def normalize(value: str, entity_type: EntityType) -> str:
         prefix = "+" if entity_type is EntityType.PHONE and value.startswith("+") else ""
         return prefix + "".join(character for character in value if character.isdigit())
     if entity_type is EntityType.IP_ADDRESS:
-        return ipaddress.ip_address(value.strip("[]")).compressed
+        try:
+            return ipaddress.ip_address(value.strip("[]")).compressed
+        except ValueError:
+            return value
     return value

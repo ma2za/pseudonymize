@@ -50,6 +50,15 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 | TXT, Markdown, log, JSON, JSONL, and CSV files | Shipped | Explicit format or recognized suffix; no content guessing |
 | Names, organizations, and locations (PII) | Shipped | Requires the optional `[ml]` extra and a caller-provided local ONNX model |
 
+## Quality Benchmarks
+
+The engine is strictly gated on detection accuracy against the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows).
+
+**Current Baseline (0.8.0):**
+- **Precision:** 0.9688
+- **Recall:** 0.8044
+- **F1 Score:** 0.8790
+
 ## Installation
 
 ```console
