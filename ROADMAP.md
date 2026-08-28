@@ -121,47 +121,47 @@ Exit criteria:
 Stable local processing for text, nested Python data, and plain or machine-readable files, with a
 documented compatibility policy and zero base runtime dependencies.
 
-## The Road to 1.0 (Hardening and Production Readiness)
+## The Road to 90% (Detection Quality Focus)
 
-### `0.7.0`: Real-World Corpus Benchmarking
-- **Use Case:** Medical/Legal data mining.
-- **Focus:** Integrate public datasets (Enron corpus, MIMIC-III synthetic variants, SEC filings) to establish precision/recall baselines for existing detectors.
+The current core engine falls short of production-grade precision and recall on real-world datasets. Reaching a consistent 90% baseline across Precision, Recall, and F1 metrics is the strict prerequisite before pursuing any new extraction features (like advanced parsing or metadata). Releases 0.8.0 through 0.13.0 are exclusively dedicated to accuracy.
 
-### `0.8.0`: Adversarial Document Defenses
-- **Use Case:** FOIA response redaction failures (e.g., Manafort, AstraZeneca leaks).
-- **Focus:** Prevent visual-only masking, hidden OCR layers, overlapping z-index elements, and scrub incremental document revisions.
+### `0.8.0`: Detection Boundary & Tokenization Alignment
+- **Use Case:** Preventing partial string matches and sub-word truncation.
+- **Focus:** Resolve token overlaps, enforce strict word boundaries on regex engines, and align ML sub-word tokens back to exact character spans to immediately improve recall.
 
-### `0.9.0`: Exhaustive Metadata & Hidden Structure Extraction
-- **Use Case:** Corporate e-discovery.
-- **Focus:** Parse PDF `/Info` dictionaries, XMP metadata, DOCX headers/footers, and XLSX comments.
+### `0.9.0`: Context-Aware Heuristics & Rule Augmentation
+- **Use Case:** Resolving ambiguous numbers and false-positive IDs.
+- **Focus:** Augment regex and algorithmic rules with surrounding text context (e.g., distinguishing an account number from a random digit sequence using adjacent keywords).
 
-### `0.10.0`: Large-Scale & Streaming Data Pipelines
-- **Use Case:** Database dumps and bulk analytics exports.
-- **Focus:** Bounded-memory processing for multi-gigabyte CSV/JSONL files; parallel block processing.
+### `0.10.0`: ML Confidence Calibration & Dynamic Thresholding
+- **Use Case:** Reducing false positives in unstructured clinical/legal notes.
+- **Focus:** Tune ONNX backend confidence scores against ambiguous texts and introduce dynamic, policy-based confidence thresholds to balance precision and recall.
 
-### `0.11.0`: Resilient Document Parsing
-- **Use Case:** Legacy enterprise files.
-- **Focus:** Gracefully handle corrupt XML schemas, custom OOXML namespaces, and safely extract embedded OLE objects.
+### `0.11.0`: Ensemble Merging & Conflict Resolution
+- **Use Case:** Preventing duplicate or conflicting entity tags.
+- **Focus:** Improve resolution logic when deterministic rules and ML backends flag the same or overlapping text with different entity labels.
 
-### `0.12.0`: Advanced OCR Degradation Handling
+### `0.12.0`: Cross-Lingual & Typographical Hardening
+- **Use Case:** Global support ticket sanitization.
+- **Focus:** Fix detection drops caused by non-Latin scripts, CJK spacing, RTL text, and bidirectional text overrides.
+
+### `0.13.0`: The 90% Benchmark Gate (Custom Fine-Tuning Pathways)
+- **Use Case:** Hitting the accuracy ceiling.
+- **Focus:** Provide mechanisms to load domain-specific, fine-tuned models (e.g., Legal or Medical BERT variants) if the base model hits a ceiling. **This release acts as the barrier; subsequent roadmap items will not proceed until benchmarks pass 90%.**
+
+## Post-90% Target Capabilities
+
+### `0.14.0`: Adversarial Document Defenses & Exhaustive Metadata
+- **Use Case:** FOIA response redaction failures and corporate e-discovery.
+- **Focus:** Prevent visual-only masking, hidden OCR layers, overlapping z-index elements, and parse PDF `/Info` dictionaries, XMP metadata, DOCX headers/footers.
+
+### `0.15.0`: Resilient Document Parsing & Large-Scale Pipelines
+- **Use Case:** Legacy enterprise files and database dumps.
+- **Focus:** Gracefully handle corrupt schemas, extract embedded OLE objects, and process multi-gigabyte files via bounded memory streams.
+
+### `0.16.0`: Advanced OCR Degradation Handling
 - **Use Case:** Medical faxes and legacy legal scans.
 - **Focus:** Handle low-dpi faxes, skewed pages, noisy backgrounds, and watermark interference mimicking structural data.
-
-### `0.13.0`: ML Confidence Calibration & Thresholding
-- **Use Case:** Reducing false positives in unstructured clinical notes.
-- **Focus:** Tune ONNX backend confidence scores against ambiguous texts and introduce dynamic, policy-based confidence thresholds.
-
-### `0.14.0`: Telemetry, Observability & Auditing
-- **Use Case:** Enterprise compliance reporting and SLA monitoring.
-- **Focus:** Structured JSON logging, processing timeouts, latency tracing, and detailed audit trails without leaking PII.
-
-### `0.15.0`: Remote Backend Fault Tolerance
-- **Use Case:** High-throughput API gateway integration.
-- **Focus:** Circuit breakers, adaptive retries, rate-limit handling, and strict latency bounds for the HTTP provider transport.
-
-### `0.16.0`: Cross-Lingual & Typographical Boundary Hardening (Pre-1.0 Audit)
-- **Use Case:** Global support ticket sanitization.
-- **Focus:** Audit detectors against non-Latin scripts, CJK spacing, RTL text, and bidirectional text overrides. Final security fuzzing (Zip-bombs, XXE).
 
 ### `1.0.0`: Mature Compatibility Commitment
 Long-term compatibility begins after core processing, document rewriting, OCR, and remote-security
