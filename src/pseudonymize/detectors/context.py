@@ -6,46 +6,46 @@ from pseudonymize.result import Detection, EntityType
 _CONTEXT_PATTERNS = [
     # Passport
     (
-        re.compile(r"(?i)\b(?:passport\s*(?:no\.?|number|#)?)\s*:?\s*([A-Z0-9]{6,15})\b"),
+        re.compile(r"(?i)\b(?:passport\s*(?:no\.?|number|#)?)\b\s*:?\s*([A-Z0-9]{6,15})\b"),
         EntityType.NATIONAL_ID,
     ),
     # Driver's License
     (
         re.compile(
-            r"(?i)\b(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e)\s*(?:no\.?|number|#)?\s*:?\s*([A-Z0-9]{6,15})\b"
+            r"(?i)\b(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e)\s*(?:no\.?|number|#)?\b\s*:?\s*([A-Z0-9]{6,15})\b"
         ),
         EntityType.NATIONAL_ID,
     ),
     # ID Card / National ID
     (
         re.compile(
-            r"(?i)\b(?:identification\s*number|id\s*card|national\s*id|id\s*(?:no\.?|number|#)|identificatif|identifiant)\s*:?\s*([A-Z0-9]{6,15})\b"
+            r"(?i)\b(?:identification\s*number|id\s*card|national\s*id|id\s*(?:no\.?|number|#)|identificatif|identifiant)\b\s*:?\s*([A-Z0-9]{6,15})\b"
         ),
         EntityType.NATIONAL_ID,
     ),
     # Tax Number
     (
         re.compile(
-            r"(?i)\b(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id))\s*:?\s*([A-Z0-9]{6,15})\b"
+            r"(?i)\b(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id))\b\s*:?\s*([A-Z0-9]{6,15})\b"
         ),
         EntityType.TAX_ID,
     ),
     # Zip / Postal Code
     (
-        re.compile(r"(?i)\b(?:zip\s*code|postal\s*code|postcode|zip)\s*:?\s*([A-Z0-9-]{4,10})\b"),
+        re.compile(r"(?i)\b(?:zip\s*code|postal\s*code|postcode|zip)\b\s*:?\s*([A-Z0-9-]{4,10})\b"),
         EntityType.LOCATION,
     ),
     # Generic Account / Policy / Insurance
     (
         re.compile(
-            r"(?i)\b(?:account|policy|insurance)\s*(?:no\.?|number|#)\s*:?\s*([A-Z0-9-]{6,16})\b"
+            r"(?i)\b(?:account|policy|insurance)\s*(?:no\.?|number|#)\b\s*:?\s*([A-Z0-9-]{6,16})\b"
         ),
         EntityType.SECRET,
     ),
     # Credit Card Context Fallback (catches synthetic ones failing Luhn)
     (
         re.compile(
-            r"(?i)\b(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number)\s*(?:no\.?|number|ending\s*in|#)?\s*:?\s*(\d{13,19})\b"
+            r"(?i)\b(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number)\s*(?:no\.?|number|ending\s*in|#)?\b\s*:?\s*(\d{13,19})\b"
         ),
         EntityType.PAYMENT_CARD,
     ),
