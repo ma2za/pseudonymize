@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-08-28
+
+### Fixed
+
+- **Cross-Lingual & Typographical Hardening:** Fixed detection drops in CJK and cross-lingual text where adjacent non-Latin characters previously defeated English word boundaries (`\b`). Zero-width format characters (like BiDi overrides and ZWNJ) are now safely stripped before detection without breaking index alignment, ensuring models and regexes catch obfuscated PII.
+
 ## [0.11.0] - 2026-08-28
 
 ### Fixed
