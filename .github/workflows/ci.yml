@@ -43,6 +43,8 @@ jobs:
             python: "3.12"
           - os: ubuntu-latest
             python: "3.13"
+          - os: ubuntu-latest
+            python: "3.14"
           - os: windows-latest
             python: "3.13"
     runs-on: ${{ matrix.os }}
@@ -51,6 +53,10 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: ${{ matrix.python }}
+      - run: uv run python scripts/install_tesseract.py
+      - name: Add Tesseract to Path (Windows)
+        if: runner.os == 'Windows'
+        run: echo "C:\Program Files\Tesseract-OCR" >> $env:GITHUB_PATH
       - run: uv sync --all-extras --frozen --group test
       - run: uv run pytest
 

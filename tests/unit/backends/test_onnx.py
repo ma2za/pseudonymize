@@ -182,20 +182,18 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
 
     # Token predictions merge into entity spans, so we expect:
     # PERSON: "John Smith" (0,10) as one span, subwords and the space included
-    # LOC: "Seattle" (61,68) and "Washington" (70,80) kept apart by the comma
-    assert len(sorted_detections) >= 3
+    # LOC: "Seattle, Washington" as one span because the punctuation gap heuristic merges them
+    assert len(sorted_detections) >= 2
 
     # Let's map out the exact expected strings for the entities found
     found_entities = [(d.entity_type, text[d.start : d.end]) for d in sorted_detections]
 
     assert (EntityType.PERSON, "John Smith") in found_entities
-    assert (EntityType.LOCATION, "Seattle") in found_entities
-    assert (EntityType.LOCATION, "Washington") in found_entities
+    assert (EntityType.LOCATION, "Seattle, Washington") in found_entities
 
-    # Make sure we didn't accidentally include punctuation like "'s" or "," as part of the entity
+    # Make sure we didn't accidentally include punctuation like "'s" as part of the entity
     for _entity_type, chunk in found_entities:
         assert "'" not in chunk
-        assert "," not in chunk
         assert "!" not in chunk
 
     # Add artificial label mappings to cover branches

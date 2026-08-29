@@ -14,7 +14,7 @@ _CONTEXT_PATTERNS = [
     # Tax Number
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|número\s*de\s*impresos|税号|cung\s*cấp)(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,20})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|número\s*de\s*impresos|税号|cung\s*cấp)(?![a-z0-9_])\s*(?:is)?\s*:?\s*([A-Z0-9]{6,20})(?![a-z0-9_])"
         ),
         EntityType.TAX_ID,
     ),
@@ -28,14 +28,14 @@ _CONTEXT_PATTERNS = [
     # Driver's License
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"     
         ),
         EntityType.NATIONAL_ID,
     ),
     # Generic fallback for contextual IDs (ticket, receipt, serial, general id)
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|sending\s*your)\s*(?:no\.?|number|#|:)?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{7,16})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|sending\s*your)\s*(?:id|no\.?|number|#|:)?\s*(?:is)?\s*:?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{7,16})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
@@ -56,7 +56,7 @@ _CONTEXT_PATTERNS = [
     # Credit Card Context Fallback (catches synthetic ones failing Luhn)
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number)\s*(?:no\.?|number|ending\s*in|#)?(?![a-z0-9_])\s*:?\s*(\d{13,19})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number|budget\s*of|contribution\s*of)\s*(?:no\.?|number|ending\s*in|#|\$)?(?![a-z0-9_])\s*:?\s*(\d{13,19})(?![a-z0-9_])"
         ),
         EntityType.PAYMENT_CARD,
     ),

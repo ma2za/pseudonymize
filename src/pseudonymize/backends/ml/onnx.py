@@ -194,7 +194,12 @@ class LocalONNXPIIBackend(DetectionBackend):
                     previous_type, previous_start, previous_end, previous_confs = spans[-1]
                     gap = block.text[previous_end:start]
 
-                    if entity_type is previous_type and not gap.strip():
+                    # Tolerate whitespace and common structural punctuation between
+                    # same-type entities
+                    # (e.g., hyphenated names, comma-separated addresses, apostrophes)
+                    if entity_type is previous_type and (
+                        not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                    ):
                         previous_confs.append(conf)
                         spans[-1] = (previous_type, previous_start, end, previous_confs)
                         continue
@@ -203,6 +208,19 @@ class LocalONNXPIIBackend(DetectionBackend):
             results = []
             for entity_type, start, end, token_confs in spans:
                 raw_conf = max(token_confs)
+
+                # Boundary Expansion Heuristic:
+                # If an ML span cuts a word in half (e.g., ends in the middle of a continuous
+                # alphanumeric string), expand the boundary to the nearest natural whitespace or
+                # punctuation break to prevent leaking sub-words.
+
+                # Expand left
+                while start > 0 and block.text[start - 1].isalnum():
+                    start -= 1
+
+                # Expand right
+                while end < len(block.text) and block.text[end].isalnum():
+                    end += 1
 
                 # Calibrate the raw confidence so that things passing the dynamic boost
                 # logically map to passing the policy.minimum_confidence
