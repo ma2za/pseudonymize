@@ -30,7 +30,7 @@ _LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
     (("PER", "FIRSTNAME", "LASTNAME", "MIDDLENAME"), EntityType.PERSON),
     (("ORG", "COMPANYNAME"), EntityType.ORGANIZATION),
     (
-        ("LOC", "CITY", "STATE", "COUNTY", "STREET", "ZIPCODE", "SECONDARYADDRESS"),
+        ("LOC", "CITY", "STATE", "COUNTY", "STREET", "ZIPCODE", "SECONDARYADDRESS", "BUILDINGNUM"),
         EntityType.LOCATION,
     ),
     (("EMAIL",), EntityType.EMAIL),

@@ -4,33 +4,40 @@ from dataclasses import dataclass
 from pseudonymize.result import Detection, EntityType
 
 _CONTEXT_PATTERNS = [
-    # Passport
-    (
-        re.compile(
-            r"(?i)(?<![a-z0-9_])(?:passport\s*(?:no\.?|number|#)?)(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,15})(?![a-z0-9_])"
-        ),
-        EntityType.NATIONAL_ID,
-    ),
-    # Driver's License
-    (
-        re.compile(
-            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
-        ),
-        EntityType.NATIONAL_ID,
-    ),
     # ID Card / National ID
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id|identificatif|identifiant|ticket\s*id|entity\s*id|identifier|serial|receipt\s*number|environmental\s*clearance|ref\s*:|applicant'?s?)(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id|identificatif|identifiant|ticket\s*id|entity\s*id|identifier|serial|receipt\s*number|environmental\s*clearance|chứng\s*minh\s*nhân\s*dân|căn\s*cước|ref\s*:|applicant'?s?|n[uú]mero\s*de\s*identificaci[oó]n|身份证号|社保号)(?![a-z0-9_])\s*:?\s*\(?([A-Z0-9]{6,15})\)?(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
     # Tax Number
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id))(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|número\s*de\s*impresos|税号|cung\s*cấp)(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,20})(?![a-z0-9_])"
         ),
         EntityType.TAX_ID,
+    ),
+    # Passport
+    (
+        re.compile(
+            r"(?i)(?<![a-z0-9_])(?:passport\s*(?:no\.?|number|#)?|护照号|paspor)(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,15})(?![a-z0-9_])"
+        ),
+        EntityType.NATIONAL_ID,
+    ),
+    # Driver's License
+    (
+        re.compile(
+            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
+        ),
+        EntityType.NATIONAL_ID,
+    ),
+    # Generic fallback for contextual IDs (ticket, receipt, serial, general id)
+    (
+        re.compile(
+            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|sending\s*your)\s*(?:no\.?|number|#|:)?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{7,16})(?![a-z0-9_])"
+        ),
+        EntityType.NATIONAL_ID,
     ),
     # Zip / Postal Code
     (
