@@ -28,7 +28,7 @@ _CONTEXT_PATTERNS = [
     # Driver's License
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"     
+            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
