@@ -4,6 +4,14 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-08-29
+
+### Fixed
+- **ML & Heuristic Detection Enhancements:**
+  - Expanded contextual heuristics to globally capture international IDs, such as Vietnamese ID Cards/Tax IDs, Indonesian Tax IDs, and Spanish IDs (`căn cước`, `mã số thuế`, `número de identificación`), successfully recovering dropped `TAX_ID` and `NATIONAL_ID` values.
+  - Hardened the `NATIONAL_ID` contextual fallback to enforce digit constraints, aggressively eliminating false positives on arbitrary alphabetic serial numbers.
+  - Added `BUILDINGNUM` to the subset of standard CoNLL-03 labels safely routed to `LOCATION`, boosting coordinate recall for street numbers in the ai4privacy dataset. 
+
 ## [0.14.0] - 2026-08-29
 
 ### Added
