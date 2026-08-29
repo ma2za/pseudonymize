@@ -52,12 +52,12 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 
 ## Quality Benchmarks
 
-The engine is strictly gated on detection accuracy against the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows).
+The engine is strictly gated on detection accuracy against the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows).
 
-**Current Baseline (0.8.0):**
-- **Precision:** 0.9688
-- **Recall:** 0.8044
-- **F1 Score:** 0.8790
+**Current Baseline (0.17.0):**
+- **Precision:** 0.9475
+- **Recall:** 0.8910
+- **F1 Score:** 0.9184
 
 ## Installation
 
