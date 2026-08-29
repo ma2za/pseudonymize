@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.14"
       - run: uv sync --frozen --group docs
-      - run: uv run mkdocs build --strict
+      - run: uv run python -m mkdocs build --strict
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         if: github.ref == 'refs/heads/main' && vars.ENABLE_PAGES == 'true'
         with:

@@ -19,11 +19,12 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --all-extras --all-groups --frozen
+      - run: uv run python scripts/install_tesseract.py
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy
       - run: uv run pytest
-      - run: uv run mkdocs build --strict
+      - run: uv run python -m mkdocs build --strict
       - name: Verify tag matches project version
         if: github.event_name == 'push'
         run: uv run python scripts/verify_release.py --check-tag-only --tag "$GITHUB_REF_NAME"
