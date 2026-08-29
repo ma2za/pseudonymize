@@ -45,6 +45,9 @@ def _changed_spans(source: str, output: str) -> tuple[_ChangedSpan, ...]:
             merged
             and span.source_start - merged[-1].source_end <= 4
             and span.output_start - merged[-1].output_end <= 4
+            and "\n" not in source[merged[-1].source_end : span.source_start]
+            and "\n" not in source[span.source_start : span.source_end]
+            and "\n" not in source[merged[-1].source_start : merged[-1].source_end]
         ):
             previous = merged[-1]
             merged[-1] = _ChangedSpan(
@@ -269,7 +272,7 @@ def _located_replacements(
     for span in _changed_spans(source, output):
         source_value = source[span.source_start : span.source_end]
         output_value = output[span.output_start : span.output_end]
-        if not source_value or not output_value:
+        if not source_value or not output_value or "\n" in source_value:
             return ()
         matches = page.search_for(source_value, clip=clip)  # type: ignore[attr-defined]
         occurrence = source.count(source_value, 0, span.source_start)
