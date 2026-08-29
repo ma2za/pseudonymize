@@ -7,14 +7,14 @@ _CONTEXT_PATTERNS = [
     # ID Card / National ID
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id|identificatif|identifiant|ticket\s*id|entity\s*id|identifier|serial|receipt\s*number|environmental\s*clearance|chứng\s*minh\s*nhân\s*dân|căn\s*cước|ref\s*:|applicant'?s?|n[uú]mero\s*de\s*identificaci[oó]n|身份证号|社保号)(?![a-z0-9_])\s*:?\s*\(?([A-Z0-9]{6,15})\)?(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id|identificatif|identifiant|ticket\s*id|entity\s*id|identifier|serial|receipt\s*number|environmental\s*clearance|chứng\s*minh\s*nhân\s*dân|căn\s*cước|ref\s*:|applicant'?s?|n[uú]mero\s*de\s*identificaci[oó]n|身份证号|社保号|registration\s*number)(?![a-z0-9_])\s*:?\s*\(?([A-Z0-9]{6,15})\)?(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
     # Tax Number
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id)|tin|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|número\s*de\s*impresos|税号|cung\s*cấp)(?![a-z0-9_])\s*(?:is)?\s*:?\s*([A-Z0-9]{6,20})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id|record)|tin|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|número\s*de\s*impresos|税号|cung\s*cấp)(?![a-z0-9_])\s*(?:is)?\s*:?\s*([A-Z0-9]{6,20})(?![a-z0-9_])"
         ),
         EntityType.TAX_ID,
     ),
@@ -35,7 +35,7 @@ _CONTEXT_PATTERNS = [
     # Generic fallback for contextual IDs (ticket, receipt, serial, general id)
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|sending\s*your)\s*(?:id|no\.?|number|#|:)?\s*(?:is)?\s*:?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{7,16})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|customer's)\s*(?:id|no\.?|number|#|:)?\s*(?:is)?\s*:?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{6,16})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
@@ -56,7 +56,7 @@ _CONTEXT_PATTERNS = [
     # Credit Card Context Fallback (catches synthetic ones failing Luhn)
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number|budget\s*of|contribution\s*of)\s*(?:no\.?|number|ending\s*in|#|\$)?(?![a-z0-9_])\s*:?\s*(\d{13,19})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number|budget\s*of|contribution\s*of)\s*(?:no\.?|number|ending\s*in|#|\$)?\s*:?\s*(\d{13,19})(?![a-z0-9_])"
         ),
         EntityType.PAYMENT_CARD,
     ),
