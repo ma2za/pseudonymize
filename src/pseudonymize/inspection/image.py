@@ -29,8 +29,10 @@ class ImageInspectionAdapter:
             img = Image.open(source)
             # PSM 11: Sparse text. Find as much text as possible in no particular order.
             # This handles skewed pages, noisy backgrounds, and watermarks.
-            custom_oem_psm_config = r'--oem 3 --psm 11'
-            data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT, config=custom_oem_psm_config)
+            custom_oem_psm_config = r"--oem 3 --psm 11"
+            data = pytesseract.image_to_data(
+                img, output_type=pytesseract.Output.DICT, config=custom_oem_psm_config
+            )
 
             n_boxes = len(data["text"])
             for i in range(n_boxes):
