@@ -14,7 +14,18 @@ publishable without requiring unfinished later layers.
 | `0.5.0` | Published | OCR and scanned documents |
 | `0.6.0` | Published | Remote detection |
 | `0.6.1` | Published | Italian identifiers, PDF spans, and inspection fixes |
-| `0.7.0` | Next | Real-world corpus benchmarking |
+| `0.7.0` | Published | Real-world corpus benchmarking |
+| `0.8.0` | Published | Detection boundary and tokenization alignment |
+| `0.9.0` | Published | Context-aware heuristics |
+| `0.10.0` | Published | ML confidence calibration |
+| `0.11.0` | Published | Ensemble merging and conflict resolution |
+| `0.12.0` | Published | Cross-lingual and typographical hardening |
+| `0.13.0` | Published | The 90% benchmark gate |
+| `0.14.0` | Published | Adversarial document defenses and exhaustive metadata |
+| `0.15.0` | Published | ML and heuristic detection enhancements |
+| `0.16.0` | Published | Advanced OCR degradation handling |
+| `0.17.0` | Published | Contextual identifier and sub-word boundary robustness |
+| `0.18.0` | Next | Resilient document parsing and large-scale pipelines |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -26,7 +37,7 @@ but compatibility guarantees start only with `0.1.0`.
 - Strict mypy passes for source, tests, benchmarks, and scripts.
 - Supported Python versions pass on Linux, macOS, and Windows.
 - Branch coverage meets the release floor and never falls below the previous tagged baseline.
-  The current enforced floor is 99.36%.
+  The current enforced floor is 95.36%, set by `--cov-fail-under` in `pyproject.toml`.
 - Property, contract, clean-wheel, documentation, and packaging checks pass.
 - The base wheel remains typed and declares zero runtime dependencies.
 - Importing `pseudonymize` does not load optional document, OCR, model, or HTTP packages.

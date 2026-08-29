@@ -4,6 +4,33 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Benchmark metrics measure what they claim.** `evaluate_quality.py` counted true
+  positives per detection while counting false negatives per annotation, so precision
+  and recall were computed over two different denominators and a detection covering
+  two adjacent annotations scored as one hit that satisfied both. Detections and
+  annotations are now paired one to one, in descending order of overlap. Matching also
+  compares entity types, so finding an email where the corpus annotated a surname is
+  no longer a hit; `--span-only` restores the previous label-blind behaviour. A
+  detection landing on an annotation outside the scored label set is reported
+  separately rather than charged as a false positive.
+- `benchmarks/train_eval.py` was a copy of the evaluation script with a different
+  split, so a change measured on `train` did not necessarily mean the same thing on
+  `validation`. It now calls the same scoring code with `--explain` detail.
+- `benchmarks/datasets/` shadowed the `datasets` package under type checking and was
+  renamed to `benchmarks/data/`. `benchmarks` is now inside mypy's `files`, which the
+  release gate already required but the configuration did not include.
+
+## [0.17.0] - 2026-08-29
+
+### Fixed
+
+- **Contextual identifier robustness:** improved extraction for contextual identifiers.
+- **Sub-word boundaries:** expanded ML sub-word boundaries and tolerated punctuation
+  between same-type tokens so that hyphenated names and comma-separated addresses
+  merge into a single span.
+
 ## [0.16.0] - 2026-08-29
 
 ### Added
@@ -57,7 +84,7 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ### Added
 
-- **Context-Aware Heuristics:** Introduced \ContextualIdDetector\ which boosts recall by evaluating surrounding semantic keywords (e.g. 'Passport No:', 'Card Number:', 'Zip:') to confidently identify PII that might otherwise fail rigid checksums (like the Luhn algorithm for synthetic cards) or formatting patterns.
+- **Context-Aware Heuristics:** Introduced `ContextualIdDetector` which boosts recall by evaluating surrounding semantic keywords (e.g. 'Passport No:', 'Card Number:', 'Zip:') to confidently identify PII that might otherwise fail rigid checksums (like the Luhn algorithm for synthetic cards) or formatting patterns.
 
 ## [0.8.0] - 2026-08-28
 

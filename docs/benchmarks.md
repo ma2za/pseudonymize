@@ -1,5 +1,66 @@
 # Benchmarks
 
+Two different things are measured here. Detection quality decides whether a release may
+ship; timing is reviewed rather than gated.
+
+## Detection quality
+
+```console
+uv run --extra ml --with datasets python benchmarks/evaluate_quality.py --samples 1000 --ml
+```
+
+Scored against the `ai4privacy/pii-masking-openpii-1.5m` validation split, English rows,
+shuffled with a fixed seed.
+
+How a number is produced matters as much as the number:
+
+- Each detection is paired with at most one annotation and each annotation with at most
+  one detection, taking the largest overlap first. Precision and recall therefore count
+  the same unit on both sides.
+- A pair must agree on entity type. Finding an email where the corpus annotated a surname
+  is not a hit. `--span-only` scores any overlap regardless of type, which is looser and
+  is reported separately when quoted.
+- Annotations carrying a label outside `SUPPORTED_LABELS` are not scored. A detection
+  landing on one is counted as unscored rather than as a false positive, because the
+  package is not claiming to detect that label here and should not be penalised for
+  being right about it.
+- Develop against the `train` split with `benchmarks/train_eval.py`, which runs the same
+  scoring code and prints every miss and false positive. The validation split is for
+  measurement only.
+
+Figures published before this scoring was corrected counted true positives per detection
+against false negatives per annotation, and ignored entity types entirely. They are not
+comparable to figures produced afterwards, and a release comparing against them is
+comparing against a different measurement rather than a different implementation.
+
+### `0.17.0` and `0.19.0` rescored
+
+The released code, unchanged, measured under the old and the corrected scoring. 300
+validation rows with the ONNX backend enabled.
+
+| Version | Scoring | Precision | Recall | F1 |
+| --- | --- | ---: | ---: | ---: |
+| `0.17.0` | As previously reported (1000 rows) | 0.9475 | 0.8910 | 0.9184 |
+| `0.17.0` | Corrected, `--span-only` | 0.9316 | 0.7529 | 0.8328 |
+| `0.17.0` | Corrected, entity types compared | 0.8094 | 0.6536 | 0.7232 |
+| `0.19.0` | As previously reported (1000 rows) | 0.9479 | 0.8982 | 0.9224 |
+| `0.19.0` | Corrected, `--span-only` | 0.9317 | 0.7542 | 0.8336 |
+| `0.19.0` | Corrected, entity types compared | 0.8097 | 0.6549 | 0.7241 |
+
+The gap is the measurement, not a change in behaviour. The 90% threshold that releases
+`0.14.0` onwards were gated against was never cleared under scoring that counts one unit
+on both sides of the ratio and checks that a detection agrees with the annotation it is
+credited for.
+
+The two rows per version also show what a release is worth measuring against. Under
+corrected scoring `0.18.0` and `0.19.0` together moved F1 by 0.0009, two additional true
+positives out of 1611 annotations, which is within run-to-run noise. The previously
+reported figures put the same interval at 0.9184 to 0.9224 and attributed it to a
+release. A gate that cannot distinguish a change from noise cannot gate anything, which
+is why per-entity counts belong in the published table alongside the aggregate.
+
+## Timing
+
 Run `uv run pytest benchmarks --benchmark-only`. Record CPU, operating system, Python version,
 input construction, rounds, package revision, wheel size, import time, latency, and memory before
 publishing results. Timing regressions are reviewed rather than gated on noisy shared runners.
