@@ -77,6 +77,28 @@ python -m pip install pseudonymize[ml]
 
 This installs `onnxruntime`, `tokenizers`, and `numpy` allowing you to configure the `LocalONNXPIIBackend` to run a lightweight local quantized DistilBERT model. No models are downloaded implicitly; you must provide your own paths to your downloaded `model.onnx`, `tokenizer.json`, and `config.json`.
 
+### Optional Document & OCR Support
+
+To extract and safely redact complex file formats, install the relevant extras:
+
+```console
+# For PDF support (via PyMuPDF)
+python -m pip install pseudonymize[pdf]
+
+# For Microsoft Office support (.docx, .xlsx, .pptx)
+python -m pip install pseudonymize[office]
+
+# For optical character recognition (scanned PDFs and images)
+python -m pip install pseudonymize[ocr]
+```
+
+> [!NOTE]
+> The `ocr` extra uses `pytesseract` which requires the Tesseract binary to be installed on your system path. For convenience, we provide an automatic installation script:
+> ```console
+> python scripts/install_tesseract.py
+> ```
+> This script detects your OS and uses your local package manager (e.g., `winget`, `brew`, or `apt`) to securely install Tesseract.
+
 ## Quickstart
 
 ### Transform text
