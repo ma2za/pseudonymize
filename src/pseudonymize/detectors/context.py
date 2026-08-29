@@ -3,60 +3,96 @@ from dataclasses import dataclass
 
 from pseudonymize.result import Detection, EntityType
 
+# Every pattern here follows the same shape: a label that a document author
+# would actually write next to an identifier, an optional separator, and a
+# captured value that must contain at least one digit.
+#
+# The digit requirement is what keeps these from firing on ordinary prose. A
+# label alone is not evidence: "identification number before Tuesday" and "the
+# applicant Jonathan submitted forms" both put a plain English word where the
+# identifier would go, and without the constraint both were reported as a
+# national ID.
+#
+# Triggers must also be labels rather than coincidences. A phrase earns its
+# place here only if a reader would expect an identifier immediately after it
+# in any document, not because some corpus happens to pair the two.
+_HAS_DIGIT = r"(?=[A-Z0-9-]*\d)"
+_SEPARATOR = r"\s*[:#-]?\s*"
+
 _CONTEXT_PATTERNS = [
-    # ID Card / National ID
+    # National identity documents
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:identification\s*number|id\s*card|national\s*id|id|identificatif|identifiant|ticket\s*id|entity\s*id|identifier|serial|receipt\s*number|environmental\s*clearance|chứng\s*minh\s*nhân\s*dân|căn\s*cước|ref\s*:|applicant'?s?|n[uú]mero\s*de\s*identificaci[oó]n|身份证号|社保号|registration\s*number)(?![a-z0-9_])\s*:?\s*\(?([A-Z0-9]{6,15})\)?(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:identification\s*number|identity\s*(?:card|number)"
+            r"|id\s*card|national\s*id|registration\s*number"
+            r"|numéro\s*d'identification|número\s*de\s*identificación"
+            r"|chứng\s*minh\s*nhân\s*dân|căn\s*cước|身份证号)"
+            rf"(?![a-z0-9_]){_SEPARATOR}\(?({_HAS_DIGIT}[A-Z0-9-]{{6,15}})\)?(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
-    # Tax Number
+    # Tax identifiers
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id|record)|tin|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|número\s*de\s*impresos|税号|cung\s*cấp)(?![a-z0-9_])\s*(?:is)?\s*:?\s*([A-Z0-9]{6,20})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id|record)|tin"
+            r"|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|税号)"
+            rf"(?![a-z0-9_])\s*(?:is)?{_SEPARATOR}({_HAS_DIGIT}[A-Z0-9-]{{6,20}})(?![a-z0-9_])"
         ),
         EntityType.TAX_ID,
     ),
-    # Passport
+    # Passports
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:passport\s*(?:no\.?|number|#)?|护照号|paspor)(?![a-z0-9_])\s*:?\s*([A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:passport\s*(?:no\.?|number|#)?|护照号|paspor)"
+            rf"(?![a-z0-9_]){_SEPARATOR}({_HAS_DIGIT}[A-Z0-9-]{{6,15}})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
-    # Driver's License
+    # Driving licences
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe)\s*(?:no\.?|number|#)?(?![a-z0-9_])\s*:?\s*((?=[A-Z0-9]*\d)[A-Z0-9]{6,15})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|nomor\s*SIM"
+            r"|số\s*giấy\s*phép\s*lái\s*xe)"
+            rf"\s*(?:no\.?|number|#)?(?![a-z0-9_]){_SEPARATOR}"
+            rf"({_HAS_DIGIT}[A-Z0-9-]{{6,15}})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
-    # Generic fallback for contextual IDs (ticket, receipt, serial, general id)
+    # Reference numbers a support or billing system prints next to a label.
+    # The label must carry an explicit "number" marker, so "the serial drama"
+    # and "reference the attached document" cannot match.
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|customer's)\s*(?:id|no\.?|number|#|:)?\s*(?:is)?\s*:?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{6,16})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|case|customer|user|member)"
+            r"\s*(?:id|no\.?|number|#)"
+            rf"(?![a-z0-9_])\s*(?:is)?{_SEPARATOR}({_HAS_DIGIT}[A-Z0-9-]{{6,16}})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
-    # Zip / Postal Code
+    # Postal codes
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:zip\s*code|postal\s*code|postcode|zip|singapore(?:\s*[a-z\s]+)?|office\s*at|school)(?![a-z0-9_])\s*:?\s*\(?([0-9]{5,6})\)?(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:zip\s*code|postal\s*code|postcode|zip|cap)"
+            rf"(?![a-z0-9_]){_SEPARATOR}\(?([0-9]{{5,6}})\)?(?![a-z0-9_])"
         ),
         EntityType.LOCATION,
     ),
-    # Generic Account / Policy / Insurance
+    # Account, policy, and insurance numbers
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:account|policy|insurance)\s*(?:no\.?|number|#)(?![a-z0-9_])\s*:?\s*([A-Z0-9-]{6,16})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:account|policy|insurance)\s*(?:no\.?|number|#)"
+            rf"(?![a-z0-9_]){_SEPARATOR}({_HAS_DIGIT}[A-Z0-9-]{{6,16}})(?![a-z0-9_])"
         ),
         EntityType.SECRET,
     ),
-    # Credit Card Context Fallback (catches synthetic ones failing Luhn)
+    # Payment cards that fail Luhn, which synthetic and redacted test data often
+    # do. The label must name a card, never an unrelated amount.
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:credit\s*card|visa|mastercard|maestro|amex|card\s*number|budget\s*of|contribution\s*of)\s*(?:no\.?|number|ending\s*in|#|\$)?\s*:?\s*(\d{13,19})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:credit\s*card|debit\s*card|card\s*number|visa|mastercard"
+            r"|maestro|amex)"
+            rf"\s*(?:no\.?|number|ending\s*in|#)?(?![a-z0-9_]){_SEPARATOR}"
+            r"(\d{13,19})(?![a-z0-9_])"
         ),
         EntityType.PAYMENT_CARD,
     ),
