@@ -110,7 +110,11 @@ class PDFInspectionAdapter:
                     pix = page.get_pixmap(dpi=dpi)
                     img = pix.pil_image()
 
-                    data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+                    # PSM 11: Sparse text. Find as much text as possible in no particular order.
+                    # This is ideal for degraded, noisy, or skewed medical faxes / legacy scans
+                    # where traditional paragraph detection (PSM 3) fails due to watermarks or skew.
+                    custom_oem_psm_config = r'--oem 3 --psm 11'
+                    data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT, config=custom_oem_psm_config)
 
                     # Tesseract coordinates are in pixels at the specified DPI.
                     # PDF coordinates are in points (72 points per inch).

@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-08-29
+
+### Added
+- **Advanced OCR Degradation Handling:**
+  - Upgraded Tesseract OCR integrations for `PDFInspectionAdapter` and `ImageInspectionAdapter` to utilize Page Segmentation Mode (PSM) 11 (`--oem 3 --psm 11`). This "sparse text" mode forces the engine to find as much text as possible in no particular order, dramatically improving extraction resilience against skewed pages, low-DPI medical faxes, noisy backgrounds, and watermark interference that previously broke traditional paragraph-detection.
+
 ## [0.15.0] - 2026-08-29
 
 ### Fixed
