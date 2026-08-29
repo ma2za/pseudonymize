@@ -3,7 +3,7 @@ from difflib import SequenceMatcher
 from io import BytesIO
 from pathlib import Path
 
-from pseudonymize.document import ContentBlock, CoordinateLocation, Document
+from pseudonymize.document import ContentBlock, CoordinateLocation, Document, StructuralLocation
 from pseudonymize.exceptions import AdapterExecutionError
 
 try:
@@ -144,6 +144,26 @@ class PDFInspectionAdapter:
                                 )
                             )
 
+            for key, val in doc.metadata.items():
+                if val and isinstance(val, str) and key not in {"format", "encryption"}:
+                    blocks.append(
+                        ContentBlock(
+                            id=f"pdf-info-{key}",
+                            text=val.strip(),
+                            location=StructuralLocation(path=("info", key)),
+                        )
+                    )
+
+            xmp = doc.get_xml_metadata()
+            if xmp:
+                blocks.append(
+                    ContentBlock(
+                        id="pdf-xmp",
+                        text=xmp.strip(),
+                        location=StructuralLocation(path=("xmp",)),
+                    )
+                )
+
             doc.close()
         except Exception:
             raise AdapterExecutionError("input adapter failed while reading the PDF") from None
@@ -161,8 +181,18 @@ class PDFInspectionAdapter:
             doc = pymupdf.open(self._source_path)
 
             page_blocks: dict[int, list[ContentBlock]] = {}
+            metadata_updates: dict[str, str] = {}
+            xmp_update: str | None = None
+
             for block in document.blocks:
                 loc = block.location
+                if isinstance(loc, StructuralLocation):
+                    if loc.path and loc.path[0] == "info":
+                        metadata_updates[str(loc.path[1])] = block.text
+                    elif loc.path and loc.path[0] == "xmp":
+                        xmp_update = block.text
+                    continue
+
                 if isinstance(loc, CoordinateLocation):
                     if self._source_text.get(block.id) == block.text:
                         continue
@@ -205,16 +235,23 @@ class PDFInspectionAdapter:
                         text=0,
                     )
 
-            # Clean metadata
-            doc.set_metadata(
-                {
-                    "author": "pseudonymize",
-                    "creator": "pseudonymize",
-                    "producer": "pseudonymize",
-                    "title": "Sanitized Document",
-                    "subject": "",
-                }
-            )
+            # Apply metadata updates and clear missing fields to prevent leaks
+            new_metadata = {
+                "author": metadata_updates.get("author", "pseudonymize"),
+                "creator": metadata_updates.get("creator", "pseudonymize"),
+                "producer": metadata_updates.get("producer", "pseudonymize"),
+                "title": metadata_updates.get("title", "Sanitized Document"),
+                "subject": metadata_updates.get("subject", ""),
+                "keywords": metadata_updates.get("keywords", ""),
+                "creationDate": metadata_updates.get("creationDate", ""),
+                "modDate": metadata_updates.get("modDate", ""),
+            }
+            doc.set_metadata(new_metadata)
+
+            if xmp_update is not None:
+                doc.set_xml_metadata(xmp_update)
+            else:
+                doc.set_xml_metadata("")
 
             out = BytesIO()
             # Save securely to purge unused objects and streams
