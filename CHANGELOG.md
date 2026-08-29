@@ -4,6 +4,16 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-08-29
+
+### Added
+
+- **Adversarial Document Defenses & Exhaustive Metadata:**
+  - Added support for extracting, sanitizing, and injecting PDF `/Info` dictionaries and XMP metadata.
+  - Added extraction and format-preserving sanitization of core properties for DOCX, XLSX, and PPTX documents.
+  - Added extraction and sanitization of DOCX headers and footers.
+  - PyMuPDF redaction natively removes overlapping text, preventing visual-only masking and hidden OCR layers in PDFs.
+
 ## [0.13.0] - 2026-08-29
 
 ### Fixed

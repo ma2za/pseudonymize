@@ -46,9 +46,28 @@ class OfficeInspectionAdapter:
         metadata = {"format": self.format_hint}
         return Document("file", tuple(blocks), metadata)
 
+    def _extract_core_properties(self, doc_obj: Any, blocks: list[ContentBlock]) -> None:
+        props = getattr(doc_obj, "core_properties", getattr(doc_obj, "properties", None))
+        if not props:
+            return
+        for attr in ["author", "title", "subject", "comments", "last_modified_by", "creator"]:
+            val = getattr(props, attr, None)
+            if val and isinstance(val, str):
+                blocks.append(
+                    ContentBlock(
+                        id=f"core-prop-{attr}",
+                        text=val.strip(),
+                        location=StructuralLocation(path=("core_properties", attr)),
+                    )
+                )
+
     def _extract_docx(self, source: Path, blocks: list[ContentBlock]) -> None:
         self._doc = docx.Document(str(source))
         self._walk_docx(self._doc, (), blocks)
+        for s_idx, section in enumerate(self._doc.sections):
+            self._walk_docx(section.header, ("header", s_idx), blocks)
+            self._walk_docx(section.footer, ("footer", s_idx), blocks)
+        self._extract_core_properties(self._doc, blocks)
 
     def _walk_docx(
         self, container: Any, path_prefix: tuple[Any, ...], blocks: list[ContentBlock]
@@ -82,6 +101,7 @@ class OfficeInspectionAdapter:
 
     def _extract_xlsx(self, source: Path, blocks: list[ContentBlock]) -> None:
         self._doc = openpyxl.load_workbook(filename=source, data_only=True)
+        self._extract_core_properties(self._doc, blocks)
         for sheet_index, sheet_name in enumerate(self._doc.sheetnames):
             sheet = self._doc[sheet_name]
             for row_index, row in enumerate(sheet.iter_rows(values_only=True)):
@@ -101,6 +121,7 @@ class OfficeInspectionAdapter:
 
     def _extract_pptx(self, source: Path, blocks: list[ContentBlock]) -> None:
         self._doc = pptx.Presentation(str(source))
+        self._extract_core_properties(self._doc, blocks)
         for slide_index, slide in enumerate(self._doc.slides):
             for shape_index, shape in enumerate(slide.shapes):
                 if hasattr(shape, "text") and shape.text:
@@ -136,21 +157,39 @@ class OfficeInspectionAdapter:
         self._doc.save(out)
         return out.getvalue()
 
-    def _clean_core_properties(self, core_properties: Any) -> None:
-        """Sanitize common author and modification metadata."""
-        if hasattr(core_properties, "author"):
-            core_properties.author = "pseudonymize"
-        if hasattr(core_properties, "last_modified_by"):
-            core_properties.last_modified_by = "pseudonymize"
-        if hasattr(core_properties, "comments"):
-            core_properties.comments = ""
-        if hasattr(core_properties, "title"):
-            core_properties.title = "Sanitized Document"
-        if hasattr(core_properties, "subject"):
-            core_properties.subject = ""
+    def _apply_core_properties(self, doc_obj: Any, document: Document) -> None:
+        """Apply modified metadata and sanitize missing/unchanged fields."""
+        props = getattr(doc_obj, "core_properties", getattr(doc_obj, "properties", None))
+        if not props:
+            return
+
+        updates = {}
+        for block in document.blocks:
+            loc = block.location
+            if (
+                isinstance(loc, StructuralLocation)
+                and loc.path
+                and loc.path[0] == "core_properties"
+            ):
+                updates[str(loc.path[1])] = block.text
+
+        for attr in ["author", "title", "subject", "comments", "last_modified_by", "creator"]:
+            if not hasattr(props, attr):
+                continue
+            if attr in updates:
+                setattr(props, attr, updates[attr])
+            else:
+                default = (
+                    "Sanitized Document"
+                    if attr == "title"
+                    else "pseudonymize"
+                    if attr in ("author", "creator", "last_modified_by")
+                    else ""
+                )
+                setattr(props, attr, default)
 
     def _render_docx(self, document: Document) -> None:
-        self._clean_core_properties(self._doc.core_properties)
+        self._apply_core_properties(self._doc, document)
         for block in document.blocks:
             loc = block.location
             if not isinstance(loc, StructuralLocation):
@@ -171,15 +210,21 @@ class OfficeInspectionAdapter:
                     col_index = int(path[i + 5])
                     curr = curr.tables[table_index].rows[row_index].cells[col_index]
                     i += 6
+                elif tag == "header":
+                    sec_idx = int(path[i + 1])
+                    curr = self._doc.sections[sec_idx].header
+                    i += 2
+                elif tag == "footer":
+                    sec_idx = int(path[i + 1])
+                    curr = self._doc.sections[sec_idx].footer
+                    i += 2
+                elif tag == "core_properties":
+                    break
                 else:
                     break
 
     def _render_xlsx(self, document: Document) -> None:
-        if hasattr(self._doc, "properties"):
-            self._clean_core_properties(self._doc.properties)
-            # XLSX creator properties
-            if hasattr(self._doc.properties, "creator"):
-                self._doc.properties.creator = "pseudonymize"
+        self._apply_core_properties(self._doc, document)
 
         for block in document.blocks:
             loc = block.location
@@ -196,7 +241,7 @@ class OfficeInspectionAdapter:
                 )
 
     def _render_pptx(self, document: Document) -> None:
-        self._clean_core_properties(self._doc.core_properties)
+        self._apply_core_properties(self._doc, document)
         for block in document.blocks:
             loc = block.location
             if not isinstance(loc, StructuralLocation):

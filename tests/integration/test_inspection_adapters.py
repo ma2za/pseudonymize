@@ -35,12 +35,25 @@ def test_pdf_path(tmp_path: Path) -> Path:
         pytest.skip("fpdf2 not installed")
     path = tmp_path / "test.pdf"
     pdf = fpdf.FPDF()
+    pdf.set_title("Report by bob@example.com")
+    pdf.set_author("alice@example.com")
+    pdf.set_creator("charlie@example.com")
+
     pdf.add_page()
     pdf.set_font("helvetica", size=12)
     pdf.cell(text="Contact me at alice@example.com for more info.")
     pdf.ln()
     pdf.cell(text="   ")
     pdf.output(str(path))
+
+    # Manually add some XMP data for testing since fpdf2 might not set it easily
+    import pymupdf
+
+    doc = pymupdf.open(path)
+    doc.set_xml_metadata("<x:xmpmeta>frank@example.com</x:xmpmeta>")
+    doc.saveIncr()
+    doc.close()
+
     return path
 
 
@@ -102,8 +115,20 @@ def test_docx_path(tmp_path: Path) -> Path:
         pytest.skip("python-docx not installed")
     path = tmp_path / "test.docx"
     doc = docx.Document()
+
+    # Metadata with PII
+    doc.core_properties.author = "alice@example.com"
+    doc.core_properties.title = "Report by alice@example.com"
+    doc.core_properties.last_modified_by = "bob@example.com"
+
     doc.add_paragraph("Hello, my email is bob@example.com.")
     doc.add_paragraph("   ")  # Empty text
+
+    # Header with PII
+    section = doc.sections[0]
+    section.header.paragraphs[0].text = "Header contact: charlie@example.com"
+    section.footer.paragraphs[0].text = "Footer contact: dave@example.com"
+
     table = doc.add_table(rows=2, cols=2)
     table.rows[0].cells[0].text = "Header"
     table.rows[0].cells[1].text = "Value"
@@ -119,6 +144,10 @@ def test_xlsx_path(tmp_path: Path) -> Path:
         pytest.skip("openpyxl not installed")
     path = tmp_path / "test.xlsx"
     wb = openpyxl.Workbook()
+
+    wb.properties.creator = "dave@example.com"
+    wb.properties.title = "Report"
+
     ws = wb.active
     ws["A1"] = "User Email"
     ws["B1"] = "charlie@example.com"
@@ -134,6 +163,10 @@ def test_pptx_path(tmp_path: Path) -> Path:
         pytest.skip("python-pptx not installed")
     path = tmp_path / "test.pptx"
     prs = pptx.Presentation()
+
+    prs.core_properties.author = "steve@example.com"
+    prs.core_properties.last_modified_by = "frank@example.com"
+
     slide = prs.slides.add_slide(prs.slide_layouts[0])
     slide.shapes.title.text = "Presentation"
     slide.placeholders[1].text = "Reach us at diana@example.com"
@@ -194,6 +227,17 @@ def test_process_pdf(test_pdf_path: Path, tmp_path: Path) -> None:
     text = page.get_text()
     assert "[REDACTED]" in text
     assert "alice@example.com" not in text
+
+    # Metadata should be redacted
+    assert doc.metadata["author"] == "[REDACTED]"
+    assert doc.metadata["title"] == "Report by [REDACTED]"
+    assert doc.metadata["creator"] == "[REDACTED]"
+
+    # XMP metadata should be redacted
+    xmp = doc.get_xml_metadata()
+    assert "[REDACTED]" in xmp
+    assert "frank@example.com" not in xmp
+
     doc.close()
 
 
@@ -352,8 +396,12 @@ def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
 
     doc = docx.Document(str(out_path))
     assert doc.paragraphs[0].text == "Hello, my email is [REDACTED]."
-    assert doc.core_properties.author == "pseudonymize"
-    assert doc.core_properties.last_modified_by == "pseudonymize"
+    assert doc.core_properties.author == "[REDACTED]"
+    assert doc.core_properties.title == "Report by [REDACTED]"
+    assert doc.core_properties.last_modified_by == "[REDACTED]"
+
+    assert doc.sections[0].header.paragraphs[0].text == "Header contact: [REDACTED]"
+    assert doc.sections[0].footer.paragraphs[0].text == "Footer contact: [REDACTED]"
 
 
 def test_process_xlsx(test_xlsx_path: Path, tmp_path: Path) -> None:
@@ -365,7 +413,8 @@ def test_process_xlsx(test_xlsx_path: Path, tmp_path: Path) -> None:
     wb = openpyxl.load_workbook(filename=out_path, data_only=True)
     ws = wb.active
     assert ws["B1"].value == "[REDACTED]"
-    assert wb.properties.creator == "pseudonymize"
+    assert wb.properties.creator == "[REDACTED]"
+    assert wb.properties.title == "Report"
 
 
 def test_process_pptx(test_pptx_path: Path, tmp_path: Path) -> None:
@@ -377,5 +426,5 @@ def test_process_pptx(test_pptx_path: Path, tmp_path: Path) -> None:
     prs = pptx.Presentation(str(out_path))
     slide = prs.slides[0]
     assert slide.placeholders[1].text == "Reach us at [REDACTED]"
-    assert prs.core_properties.author == "pseudonymize"
-    assert prs.core_properties.last_modified_by == "pseudonymize"
+    assert prs.core_properties.author == "[REDACTED]"
+    assert prs.core_properties.last_modified_by == "[REDACTED]"
