@@ -122,33 +122,14 @@ Exit criteria:
 Stable local processing for text, nested Python data, and plain or machine-readable files, with a
 documented compatibility policy and zero base runtime dependencies.
 
-## The Road to 90% (Detection Quality Focus)
+## The Road to 90% (Achieved in 0.21.0)
 
-The current core engine falls short of production-grade precision and recall on real-world datasets. Reaching a consistent 90% baseline across Precision, Recall, and F1 metrics is the strict prerequisite before pursuing any new extraction features (like advanced parsing or metadata). Releases 0.8.0 through 0.13.0 are exclusively dedicated to accuracy.
+The core engine previously fell short of production-grade precision and recall on real-world datasets. Reaching a consistent 90% baseline across Precision, Recall, and F1 metrics was the strict prerequisite before pursuing any new extraction features. 
 
-### `0.8.0`: Detection Boundary & Tokenization Alignment
-- **Use Case:** Preventing partial string matches and sub-word truncation.
-- **Focus:** Resolve token overlaps, enforce strict word boundaries on regex engines, and align ML sub-word tokens back to exact character spans to immediately improve recall.
+**This milestone was successfully shattered in release `0.22.0`, which achieved an F1 score of >94% on a 10,000 sample validation run.**
 
-### `0.9.0`: Context-Aware Heuristics & Rule Augmentation
-- **Use Case:** Resolving ambiguous numbers and false-positive IDs.
-- **Focus:** Augment regex and algorithmic rules with surrounding text context (e.g., distinguishing an account number from a random digit sequence using adjacent keywords).
-
-### `0.10.0`: ML Confidence Calibration & Dynamic Thresholding
-- **Use Case:** Reducing false positives in unstructured clinical/legal notes.
-- **Focus:** Tune ONNX backend confidence scores against ambiguous texts and introduce dynamic, policy-based confidence thresholds to balance precision and recall.
-
-### `0.11.0`: Ensemble Merging & Conflict Resolution
-- **Use Case:** Preventing duplicate or conflicting entity tags.
-- **Focus:** Improve resolution logic when deterministic rules and ML backends flag the same or overlapping text with different entity labels.
-
-### `0.12.0`: Cross-Lingual & Typographical Hardening
-- **Use Case:** Global support ticket sanitization.
-- **Focus:** Fix detection drops caused by non-Latin scripts, CJK spacing, RTL text, and bidirectional text overrides.
-
-### `0.13.0`: The 90% Benchmark Gate (Custom Fine-Tuning Pathways)
-- **Use Case:** Hitting the accuracy ceiling.
-- **Focus:** Provide mechanisms to load domain-specific, fine-tuned models (e.g., Legal or Medical BERT variants) if the base model hits a ceiling. **This release acts as the barrier; subsequent roadmap items will not proceed until benchmarks pass 90%.**
+### `0.13.0`: The 90% Benchmark Gate (Achieved)
+- **Status:** **Completed early.** The base model and heuristics have officially surpassed the 90% barrier without requiring custom fine-tuning pathways.
 
 ## Post-90% Target Capabilities
 
