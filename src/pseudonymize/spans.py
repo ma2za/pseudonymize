@@ -38,8 +38,10 @@ def resolve_overlaps(
         key=lambda detection: (
             -_ENTITY_PRIORITY[detection.entity_type],
             -configured.get(detection.detector, 0),
-            -3 if (detection.backend == "local_onnx_pii" and detection.confidence >= 0.95)
-            else -2 if detection.backend == "local_rules"
+            -3
+            if (detection.backend == "local_onnx_pii" and detection.confidence >= 0.95)
+            else -2
+            if detection.backend == "local_rules"
             else -1,
             -(detection.end - detection.start),
             -detection.confidence,
@@ -63,7 +65,7 @@ def resolve_overlaps(
         selected.append(detection)
 
     sorted_selected = sorted(selected, key=lambda detection: (detection.start, detection.end))
-    
+
     # Merge adjacent spans of the same entity type to prevent fragmentation.
     # Allow merging if the gap is just structural/whitespace (<= 2 chars).
     merged: list[Detection] = []
@@ -71,9 +73,9 @@ def resolve_overlaps(
         if not merged:
             merged.append(det)
             continue
-            
+
         last = merged[-1]
-        
+
         # If same type, and strictly adjacent
         if last.entity_type == det.entity_type and det.start == last.end:
             merged[-1] = Detection(
@@ -84,7 +86,7 @@ def resolve_overlaps(
                 confidence=max(last.confidence, det.confidence),
                 # Record as an ensemble merge
                 detector="ensemble",
-                backend="ensemble_merger"
+                backend="ensemble_merger",
             )
         else:
             merged.append(det)

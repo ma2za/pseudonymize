@@ -11,7 +11,7 @@ _CONTEXT_PATTERNS = [
         ),
         EntityType.PERSON,
     ),
-    # Generic 10-character Alphanumeric ID (Highly specific to PNRs, Passports, Booking Refs, National IDs)
+    # Generic 10-character Alphanumeric ID (Highly specific to PNRs, Passports, Booking Refs)
     (
         re.compile(
             r"(?<![A-Za-z0-9_])(?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*[0-9])([A-Z0-9]{10})(?![A-Za-z0-9_])"

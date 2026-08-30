@@ -50,6 +50,7 @@ def test_rules_outrank_ml_unless_ml_highly_confident() -> None:
     ml_high = Detection(EntityType.PERSON, 0, 10, 0.96, "onnx", "local_onnx_pii")
     assert resolve_overlaps([ml_high, rule_overridden]) == (ml_high,)
 
+
 def test_adjacent_same_type_spans_are_merged() -> None:
     d1 = Detection(EntityType.PERSON, 0, 10, 0.8, "onnx", "local_onnx_pii")
     d2 = Detection(EntityType.PERSON, 10, 20, 0.9, "onnx", "local_onnx_pii")
