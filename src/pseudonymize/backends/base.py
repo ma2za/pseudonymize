@@ -76,11 +76,8 @@ def invoke_backend(
         candidates = tuple(backend.detect(block, policy))
     except TypeError:
         raise BackendContractError("backend does not implement block-aware detection") from None
-    except Exception as e:
-        import traceback
-
-        traceback.print_exc()
-        raise BackendExecutionError("backend failed during detection") from e
+    except Exception:
+        raise BackendExecutionError("backend failed during detection") from None
     detections: list[Detection] = []
     for detection in candidates:
         if not isinstance(detection, Detection):
