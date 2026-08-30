@@ -1,11 +1,11 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `0.21.0` (Massive Contextual Enhancements)
-- **Current Baseline (0.21.0):** 
-  - Precision: `0.9473`
-  - Recall: `0.9113`
-  - F1 Score: `0.9289`
+- **Just Completed:** `0.22.0` (Massive Recall Boost)
+- **Current Baseline (0.22.0):** 
+  - Precision: `0.9380`
+  - Recall: `0.9468`
+  - F1 Score: `0.9424`
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 1000 samples).*
 
 ## Immediate Next Milestone: `0.13.0`
