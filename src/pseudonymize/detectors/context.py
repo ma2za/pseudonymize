@@ -35,7 +35,7 @@ _CONTEXT_PATTERNS = [
     # Generic fallback for contextual IDs (ticket, receipt, serial, general id)
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|customer's)\s*(?:id|no\.?|number|#|:)?\s*(?:is)?\s*:?\s*((?=[A-Z0-9-]*\d)[A-Z0-9-]{6,16})(?![a-z0-9_])"
+            r"(?i)(?<![a-z0-9_])(?:ticket|receipt|serial|reference|ref|identifier|id|applicant|user\s*id|customer\s*id|proof\s*like\s*a|customer's|copy\s*of\s*your|provide\s*your|cite\s*your|submit\s*their|valid|your|applicant's|including)\s*(?:id|no\.?|number|#|:)?\s*(?:is)?\s*:?\s*((?=[A-Z0-9-]*[a-zA-Z])(?=[A-Z0-9-]*\d)[A-Z0-9-]{6,16})(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
     ),
