@@ -4,6 +4,20 @@ from dataclasses import dataclass
 from pseudonymize.result import Detection, EntityType
 
 _CONTEXT_PATTERNS = [
+    # Contextual Names
+    (
+        re.compile(
+            r"(?<![A-Za-z0-9_])(?:From|To|Doctor|Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Professor|Owner|Applicant|my\s*name\s*is|Dear|Hello|Hi|Regards|Sincerely|Name|Attn|Attention|Cheers)\s*:?,?\s+([A-Z][A-Za-z\-\']+(?:\s+[A-Z][A-Za-z\-\']+){0,2})(?![A-Za-z0-9_])"
+        ),
+        EntityType.PERSON,
+    ),
+    # Generic 10-character Alphanumeric ID (Highly specific to PNRs, Passports, Booking Refs, National IDs)
+    (
+        re.compile(
+            r"(?<![A-Za-z0-9_])(?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*[0-9])([A-Z0-9]{10})(?![A-Za-z0-9_])"
+        ),
+        EntityType.NATIONAL_ID,
+    ),
     # ID Card / National ID
     (
         re.compile(

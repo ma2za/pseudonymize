@@ -19,6 +19,7 @@ _RULE_ENTITY_TYPES = frozenset(
         EntityType.URL_CREDENTIAL,
         EntityType.SECRET,
         EntityType.LOCATION,
+        EntityType.PERSON,
     }
 )
 
