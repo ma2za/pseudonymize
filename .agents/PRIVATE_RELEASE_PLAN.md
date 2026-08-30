@@ -1,10 +1,10 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `0.19.0` (Dynamic ML Thresholding)
-- **Current Baseline (0.19.0):** 
-  - Precision: `0.9479`
-  - Recall: `0.8982`
+- **Just Completed:** `0.20.0` (Ensemble Conflict Resolution)
+- **Current Baseline (0.20.0):** 
+  - Precision: `0.9480`
+  - Recall: `0.8983`
   - F1 Score: `0.9224`
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 1000 samples).*
 
