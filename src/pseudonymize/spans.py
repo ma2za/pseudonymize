@@ -28,11 +28,19 @@ def resolve_overlaps(
     configured = {
         name: len(detector_priority) - index for index, name in enumerate(detector_priority)
     }
+    # Priority:
+    # 3 if ML >= 0.95
+    # 2 if local_rules
+    # 1 otherwise
+
     ranked = sorted(
         detections,
         key=lambda detection: (
             -_ENTITY_PRIORITY[detection.entity_type],
             -configured.get(detection.detector, 0),
+            -3 if (detection.backend == "local_onnx_pii" and detection.confidence >= 0.95)
+            else -2 if detection.backend == "local_rules"
+            else -1,
             -(detection.end - detection.start),
             -detection.confidence,
             detection.start,
@@ -53,4 +61,32 @@ def resolve_overlaps(
         starts.insert(index, detection.start)
         ends.insert(index, detection.end)
         selected.append(detection)
-    return tuple(sorted(selected, key=lambda detection: (detection.start, detection.end)))
+
+    sorted_selected = sorted(selected, key=lambda detection: (detection.start, detection.end))
+    
+    # Merge adjacent spans of the same entity type to prevent fragmentation.
+    # Allow merging if the gap is just structural/whitespace (<= 2 chars).
+    merged: list[Detection] = []
+    for det in sorted_selected:
+        if not merged:
+            merged.append(det)
+            continue
+            
+        last = merged[-1]
+        
+        # If same type, and strictly adjacent
+        if last.entity_type == det.entity_type and det.start == last.end:
+            merged[-1] = Detection(
+                entity_type=last.entity_type,
+                start=last.start,
+                end=det.end,
+                # Take highest confidence
+                confidence=max(last.confidence, det.confidence),
+                # Record as an ensemble merge
+                detector="ensemble",
+                backend="ensemble_merger"
+            )
+        else:
+            merged.append(det)
+
+    return tuple(merged)

@@ -37,3 +37,33 @@ def test_dense_overlaps_yield_disjoint_and_maximal_selection() -> None:
         assert detection in result or any(
             detection.start < kept.end and kept.start < detection.end for kept in result
         )
+
+
+def test_rules_outrank_ml_unless_ml_highly_confident() -> None:
+    # Rule match and ML match with normal confidence -> Rule wins
+    rule_normal = Detection(EntityType.PERSON, 0, 10, 1.0, "context", "local_rules")
+    ml_normal = Detection(EntityType.PERSON, 0, 10, 0.85, "onnx", "local_onnx_pii")
+    assert resolve_overlaps([ml_normal, rule_normal]) == (rule_normal,)
+
+    # Rule match and ML match with > 0.95 confidence -> ML wins
+    rule_overridden = Detection(EntityType.PERSON, 0, 10, 1.0, "context", "local_rules")
+    ml_high = Detection(EntityType.PERSON, 0, 10, 0.96, "onnx", "local_onnx_pii")
+    assert resolve_overlaps([ml_high, rule_overridden]) == (ml_high,)
+
+def test_adjacent_same_type_spans_are_merged() -> None:
+    d1 = Detection(EntityType.PERSON, 0, 10, 0.8, "onnx", "local_onnx_pii")
+    d2 = Detection(EntityType.PERSON, 10, 20, 0.9, "onnx", "local_onnx_pii")
+    # Gap is 0 (strictly adjacent), they should merge
+    merged = resolve_overlaps([d1, d2])
+    assert len(merged) == 1
+    assert merged[0].start == 0
+    assert merged[0].end == 20
+    assert merged[0].confidence == 0.9
+    assert merged[0].backend == "ensemble_merger"
+    assert merged[0].detector == "ensemble"
+
+    # Gap is > 0, they should NOT merge
+    d3 = Detection(EntityType.PERSON, 0, 10, 0.8, "onnx", "local_onnx_pii")
+    d4 = Detection(EntityType.PERSON, 11, 20, 0.9, "onnx", "local_onnx_pii")
+    unmerged = resolve_overlaps([d3, d4])
+    assert len(unmerged) == 2
