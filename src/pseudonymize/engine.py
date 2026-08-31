@@ -618,10 +618,12 @@ def _processing_adapters(
             )
         if selected_format in {FileFormat.HTML, FileFormat.XML}:
             from pseudonymize.html_xml import DOMAdapter
+
             dom_adapter = DOMAdapter(selected_format, encoding)
             return dom_adapter, dom_adapter
         if selected_format in {FileFormat.ZIP, FileFormat.TAR}:
             from pseudonymize.archive import ArchiveAdapter
+
             archive_adapter = ArchiveAdapter(selected_format)
             return archive_adapter, archive_adapter
         if selected_format in {FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX, FileFormat.PDF}:
@@ -676,9 +678,11 @@ def _inspection_adapter(
             return OfficeInspectionAdapter(selected_format)
         if selected_format in {FileFormat.HTML, FileFormat.XML}:
             from pseudonymize.html_xml import DOMAdapter
+
             return DOMAdapter(selected_format, encoding)
         if selected_format in {FileFormat.ZIP, FileFormat.TAR}:
             from pseudonymize.archive import ArchiveAdapter
+
             return ArchiveAdapter(selected_format)
         return BuiltinFileAdapter(selected_format, encoding)
     if format is not None or encoding is not None:

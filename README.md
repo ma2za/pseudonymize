@@ -173,11 +173,12 @@ Real-time WebSocket chunks from OpenAI or Anthropic can be processed seamlessly 
 import asyncio
 from pseudonymize import Pseudonymizer
 
+
 async def handle_stream(socket):
     engine = Pseudonymizer()
-    
+
     # Process the async stream chunk-by-chunk. Overlapping contexts are automatically
-    # managed behind the scenes so that chunks splitting "john.doe" and "@example.com" 
+    # managed behind the scenes so that chunks splitting "john.doe" and "@example.com"
     # are safely recombined and redacted before yielding to the user.
     async for safe_chunk in engine.process_stream_async(socket):
         print(safe_chunk, end="", flush=True)
