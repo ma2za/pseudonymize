@@ -26,8 +26,9 @@ class ArchiveAdapter:
         self._sub_docs: dict[str, Document] = {}
 
     def __del__(self) -> None:
-        if getattr(self, "_temp_dir", None):
-            self._temp_dir.cleanup()
+        temp_dir = getattr(self, "_temp_dir", None)
+        if temp_dir is not None:
+            temp_dir.cleanup()
 
     def extract(self, source: Path) -> Document:
         self._temp_dir = tempfile.TemporaryDirectory()
@@ -65,11 +66,11 @@ class ArchiveAdapter:
                             target_path.mkdir(parents=True, exist_ok=True)
                         elif member_info.isfile():
                             target_path.parent.mkdir(parents=True, exist_ok=True)
-                            f_in = tf.extractfile(member_info)
-                            if f_in:
+                            f_in_opt = tf.extractfile(member_info)
+                            if f_in_opt is not None:
                                 with open(target_path, "wb") as f_out:
-                                    shutil.copyfileobj(f_in, f_out)
-                                f_in.close()
+                                    shutil.copyfileobj(f_in_opt, f_out)
+                                f_in_opt.close()
 
                                 self._extract_sub_doc(member_info.name, target_path, blocks)
             except tarfile.TarError as e:
@@ -171,13 +172,14 @@ class ArchiveAdapter:
                     if member_info.isfile():
                         process_member(member_info.name)
 
+            from typing import Any, cast
             mode = "w"
             if source.suffix == ".gz" or source.suffix == ".tgz":
                 mode = "w:gz"
             elif source.suffix == ".bz2":
                 mode = "w:bz2"
 
-            with tarfile.open(str(out_archive_path), mode) as tf_out:
+            with tarfile.open(str(out_archive_path), cast(Any, mode)) as tf_out:
                 for root, _, files in os.walk(out_work_dir):
                     for file in files:
                         f_path = Path(root) / file
