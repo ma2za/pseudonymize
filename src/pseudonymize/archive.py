@@ -173,6 +173,7 @@ class ArchiveAdapter:
                         process_member(member_info.name)
 
             from typing import Any, cast
+
             mode = "w"
             if source.suffix == ".gz" or source.suffix == ".tgz":
                 mode = "w:gz"
