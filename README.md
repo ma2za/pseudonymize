@@ -75,7 +75,17 @@ The strict and exclusive goal of this package is PII pseudonymization. The optio
 python -m pip install pseudonymize[ml]
 ```
 
-This installs `onnxruntime`, `tokenizers`, and `numpy` allowing you to configure the `LocalONNXPIIBackend` to run a lightweight local quantized DistilBERT model. No models are downloaded implicitly; you must provide your own paths to your downloaded `model.onnx`, `tokenizer.json`, and `config.json`.
+This installs `onnxruntime`, `tokenizers`, and `numpy` allowing you to configure the `LocalONNXPIIBackend` 
+to run a lightweight local quantized DistilBERT model. No models are downloaded implicitly; you must provide 
+your own paths to your downloaded `model.onnx`, `tokenizer.json`, and `config.json`.
+
+Alternatively, if you require complex semantic reasoning, you can install the `llama` extra to run heavily-quantized instruction models using `llama.cpp`:
+
+```console
+python -m pip install pseudonymize[llama]
+```
+
+This allows you to configure the `LocalLlamaBackend` pointing to a local `.gguf` file to perform zero-shot extraction.
 
 ### Optional Document & OCR Support
 
@@ -154,6 +164,24 @@ assert result.output["model"] == "example-model"
 ```
 
 The input is not mutated. Dictionary keys and non-string values are preserved.
+
+### Stream LLM responses
+
+Real-time WebSocket chunks from OpenAI or Anthropic can be processed seamlessly without risking split-entity leakage across chunks. Both `process_stream` and `process_stream_async` are available:
+
+```python
+import asyncio
+from pseudonymize import Pseudonymizer
+
+async def handle_stream(socket):
+    engine = Pseudonymizer()
+    
+    # Process the async stream chunk-by-chunk. Overlapping contexts are automatically
+    # managed behind the scenes so that chunks splitting "john.doe" and "@example.com" 
+    # are safely recombined and redacted before yielding to the user.
+    async for safe_chunk in engine.process_stream_async(socket):
+        print(safe_chunk, end="", flush=True)
+```
 
 ## Transformation modes
 

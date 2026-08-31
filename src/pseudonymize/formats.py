@@ -38,6 +38,10 @@ class FileFormat(StrEnum):
     PPTX = "pptx"
     PNG = "png"
     JPEG = "jpeg"
+    HTML = "html"
+    XML = "xml"
+    ZIP = "zip"
+    TAR = "tar"
 
 
 INSPECTION_ONLY_FORMATS: frozenset[FileFormat] = frozenset({FileFormat.PNG, FileFormat.JPEG})
@@ -48,7 +52,6 @@ _SUFFIX_FORMATS = {
     ".log": FileFormat.LOG,
     ".json": FileFormat.JSON,
     ".jsonl": FileFormat.JSONL,
-    ".ndjson": FileFormat.JSONL,
     ".csv": FileFormat.CSV,
     ".pdf": FileFormat.PDF,
     ".docx": FileFormat.DOCX,
@@ -57,6 +60,14 @@ _SUFFIX_FORMATS = {
     ".png": FileFormat.PNG,
     ".jpg": FileFormat.JPEG,
     ".jpeg": FileFormat.JPEG,
+    ".html": FileFormat.HTML,
+    ".htm": FileFormat.HTML,
+    ".xml": FileFormat.XML,
+    ".zip": FileFormat.ZIP,
+    ".tar": FileFormat.TAR,
+    ".gz": FileFormat.TAR,
+    ".tgz": FileFormat.TAR,
+    ".bz2": FileFormat.TAR,
 }
 _CSV_LIMIT_LOCK = threading.Lock()
 

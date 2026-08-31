@@ -251,6 +251,19 @@ wheels = [
 ]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.15.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "soupsieve" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/43/65/318323f98dbee45d42dff61d8f047181bc6f2268a9068cfad035a46be5af/beautifulsoup4-4.15.0.tar.gz", hash = "sha256:288e3ca7d54b06f2ac191970bc275c1939cb46d450b255bf6718b04aa37ab4f7", size = 632571, upload-time = "2026-06-07T16:44:20.453Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/88/c6/92fcd42f1ba33e1184263f25bfabf3d27c383410470f169e4b8163bf9c17/beautifulsoup4-4.15.0-py3-none-any.whl", hash = "sha256:d6f88de62e1d4e38ecb1077eb9724cd0eff29d2a08ca16a401e9b9e93f117cf9", size = 109924, upload-time = "2026-06-07T16:44:21.566Z" },
+]
+
+[[package]]
 name = "build"
 version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -662,6 +675,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/81/e1/56027a71e31b02ddc53c7d65b01e68edf64dea2932122fe7746a516f75d5/dill-0.4.1.tar.gz", hash = "sha256:423092df4182177d4d8ba8290c8a5b640c66ab35ec7da59ccfa00f6fa3eea5fa", size = 187315, upload-time = "2026-01-19T02:36:56.85Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/77/dc8c558f7593132cf8fefec57c4f60c83b16941c574ac5f619abb3ae7933/dill-0.4.1-py3-none-any.whl", hash = "sha256:1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d", size = 120019, upload-time = "2026-01-19T02:36:55.663Z" },
+]
+
+[[package]]
+name = "diskcache"
+version = "5.6.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/21/1c1ffc1a039ddcc459db43cc108658f32c57d271d7289a2794e401d0fdb6/diskcache-5.6.3.tar.gz", hash = "sha256:2c3a3fa2743d8535d832ec61c2054a1641f41775aa7c556758a109941e33e4fc", size = 67916, upload-time = "2023-08-31T06:12:00.316Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/27/4570e78fc0bf5ea0ca45eb1de3818a23787af9b390c0b0a0033a1b8236f9/diskcache-5.6.3-py3-none-any.whl", hash = "sha256:5e31b2d5fbad117cc363ebaf6b689474db18a1f6438bc82358b024abd4c2ca19", size = 45550, upload-time = "2023-08-31T06:11:58.822Z" },
 ]
 
 [[package]]
@@ -1276,6 +1298,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/52/dd/843b6314087c41657c7036d7914d8f294bdf9b580aa8513ea0588c8e9a3d/librt-0.13.0-cp314-cp314t-win_amd64.whl", hash = "sha256:260c33e92263fa629b4f6d3c51967a1c2158fe6c33237aaa3ebeac586b085259", size = 126998, upload-time = "2026-07-08T12:26:10.975Z" },
     { url = "https://files.pythonhosted.org/packages/5f/5d/3dcec2884ba1b0806d1408612555c38dd5d68e90156b59f75f6e36435c3a/librt-0.13.0-cp314-cp314t-win_arm64.whl", hash = "sha256:2f281549a4c52ac7bb97997f14353f8bd0e53a34ca0dad1c905cfd0b4a58ae99", size = 110771, upload-time = "2026-07-08T12:26:12.303Z" },
 ]
+
+[[package]]
+name = "llama-cpp-python"
+version = "0.3.35"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "diskcache" },
+    { name = "jinja2" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/71/5ecdad726b87527b361d9d95313c6591f27bb3fad79c9ab524ad4250b4c9/llama_cpp_python-0.3.35.tar.gz", hash = "sha256:1139dbb54509074b70893fab8554e3b079aa9f4d312058ce4018ef0019e3de12", size = 74868054, upload-time = "2026-08-17T09:41:34.939Z" }
 
 [[package]]
 name = "lxml"
@@ -2459,10 +2494,17 @@ wheels = [
 
 [[package]]
 name = "pseudonymize"
-version = "0.22.0"
+version = "0.26.0"
 source = { editable = "." }
 
 [package.optional-dependencies]
+html = [
+    { name = "beautifulsoup4" },
+    { name = "lxml" },
+]
+llama = [
+    { name = "llama-cpp-python" },
+]
 ml = [
     { name = "huggingface-hub" },
     { name = "onnxruntime" },
@@ -2513,8 +2555,11 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "beautifulsoup4", marker = "extra == 'html'", specifier = ">=4.12.0" },
     { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.28.1" },
     { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=1.28.0" },
+    { name = "llama-cpp-python", marker = "extra == 'llama'", specifier = ">=0.2.77" },
+    { name = "lxml", marker = "extra == 'html'", specifier = ">=5.0.0" },
     { name = "onnxruntime", marker = "extra == 'ml'", specifier = ">=1.29.0" },
     { name = "openpyxl", marker = "extra == 'office'", specifier = ">=3.1.0" },
     { name = "pdfminer-six", marker = "extra == 'pdf'", specifier = ">=20240706" },
@@ -2525,7 +2570,7 @@ requires-dist = [
     { name = "python-pptx", marker = "extra == 'office'", specifier = ">=1.0.0" },
     { name = "tokenizers", marker = "extra == 'ml'", specifier = ">=0.23.1" },
 ]
-provides-extras = ["ml", "office", "pdf", "ocr", "remote"]
+provides-extras = ["ml", "office", "pdf", "ocr", "remote", "html", "llama"]
 
 [package.metadata.requires-dev]
 benchmarks = [{ name = "datasets", specifier = ">=3.0.0" }]
@@ -2975,6 +3020,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
+]
+
+[[package]]
+name = "soupsieve"
+version = "2.9.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/99/a6ca3beb3ccacb41fb3321d8a60e5566f9e6467601ef8eba6a17e1b89778/soupsieve-2.9.2.tar.gz", hash = "sha256:4a55d8cf158a9c2e587fa4922f1bbb91d68ac829e2d6f25403a85747c71daf74", size = 122445, upload-time = "2026-08-07T00:57:24.801Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/dc/ad025c1ee131eba60c69f4dd5779b18fcf1e6b21a343e2162a84d5d133c7/soupsieve-2.9.2-py3-none-any.whl", hash = "sha256:8089a26fd974ca7a1f30276d3d8492ab266ab15af581642dfe8aa162e0c1c823", size = 37370, upload-time = "2026-08-07T00:57:23.524Z" },
 ]
 
 [[package]]
