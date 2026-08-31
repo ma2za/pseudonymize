@@ -15,9 +15,8 @@ from pseudonymize.formats import FileFormat
 def _is_safe_member(name: str) -> bool:
     if ".." in name or name.startswith(("/", "\\")):
         return False
-    if len(name) >= 2 and name[1] == ":":
-        return False
-    return True
+    return not (len(name) >= 2 and name[1] == ":")
+
 
 class ArchiveAdapter:
     def __init__(self, format: FileFormat) -> None:

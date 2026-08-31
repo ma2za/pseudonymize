@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from pseudonymize import Pseudonymizer, TransformationMode
 from pseudonymize.formats import FileFormat
 

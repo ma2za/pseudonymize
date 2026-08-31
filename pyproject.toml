@@ -95,10 +95,11 @@ src = ["src", "tests", "scripts"]
 select = ["E", "F", "I", "UP", "B", "C4", "PIE", "SIM", "PERF", "RUF", "S"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "S105", "S106"]
+"tests/**/*.py" = ["S101", "S105", "S106", "S202"]
 "scripts/install_tesseract.py" = ["S607", "E501"]
 "src/pseudonymize/inspection/pdf.py" = ["E501"]
 "src/pseudonymize/inspection/image.py" = ["E501"]
+"src/pseudonymize/archive.py" = ["E501", "S101"]
 
 [tool.ruff.format]
 quote-style = "double"
