@@ -125,6 +125,10 @@ def test_frozen_enums_and_data_models() -> None:
         "pptx",
         "png",
         "jpeg",
+        "html",
+        "xml",
+        "zip",
+        "tar",
     ]
     expected_fields = {
         Document: ("id", "blocks", "metadata"),

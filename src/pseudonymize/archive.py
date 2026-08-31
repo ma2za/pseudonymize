@@ -13,8 +13,11 @@ from pseudonymize.formats import FileFormat
 
 
 def _is_safe_member(name: str) -> bool:
-    return not (name.startswith(("/", "\\")) or ".." in name)
-
+    if ".." in name or name.startswith(("/", "\\")):
+        return False
+    if len(name) >= 2 and name[1] == ":":
+        return False
+    return True
 
 class ArchiveAdapter:
     def __init__(self, format: FileFormat) -> None:
@@ -22,6 +25,10 @@ class ArchiveAdapter:
         self._temp_dir: tempfile.TemporaryDirectory[str] | None = None
         self._work_dir: Path | None = None
         self._sub_docs: dict[str, Document] = {}
+
+    def __del__(self) -> None:
+        if getattr(self, "_temp_dir", None):
+            self._temp_dir.cleanup()
 
     def extract(self, source: Path) -> Document:
         self._temp_dir = tempfile.TemporaryDirectory()

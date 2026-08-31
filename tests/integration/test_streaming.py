@@ -67,3 +67,20 @@ def test_stream_long_chunk() -> None:
     result = "".join(engine.process_stream(chunks))
     assert "<EMAIL_1>" in result
     assert len(result) > 9000
+
+
+def test_stream_tiny_chunks() -> None:
+    engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
+    text = "My email is tiny@example.com."
+    chunks = [c for c in text]
+
+    result = "".join(engine.process_stream(chunks))
+    assert result == "My email is <EMAIL_1>."
+
+
+def test_stream_empty_chunks() -> None:
+    engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
+    chunks = ["", "Hello ", "", "empty@example.com", ""]
+
+    result = "".join(engine.process_stream(chunks))
+    assert result == "Hello <EMAIL_1>"

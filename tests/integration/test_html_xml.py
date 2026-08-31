@@ -1,5 +1,4 @@
 from pathlib import Path
-
 from pseudonymize import Pseudonymizer, TransformationMode
 from pseudonymize.formats import FileFormat
 
@@ -56,3 +55,34 @@ def test_xml_sanitization(tmp_path: Path) -> None:
     assert "[REDACTED]" in result
     assert "secret@example.com" not in result
     assert 'contact="[REDACTED]"' in result
+
+
+def test_html_malformed(tmp_path: Path) -> None:
+    engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
+    html = "<div> <span>Contact me at malformed@example.com <p> Unclosed tag"
+
+    in_path = tmp_path / "malformed.html"
+    in_path.write_text(html, encoding="utf-8")
+
+    out_path = tmp_path / "malformed_safe.html"
+    engine.process_file(in_path, out_path, format=FileFormat.HTML)
+
+    result = out_path.read_text(encoding="utf-8")
+    assert "&lt;EMAIL_1&gt;" in result or "<EMAIL_1>" in result
+    assert "malformed@example.com" not in result
+
+
+def test_html_nested_tags(tmp_path: Path) -> None:
+    engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
+    html = "<div><p><span>Hello</span> my email is nested@example.com.</p></div>"
+
+    in_path = tmp_path / "nested.html"
+    in_path.write_text(html, encoding="utf-8")
+
+    out_path = tmp_path / "nested_safe.html"
+    engine.process_file(in_path, out_path, format=FileFormat.HTML)
+
+    result = out_path.read_text(encoding="utf-8")
+    assert "&lt;EMAIL_1&gt;" in result
+    assert "nested@example.com" not in result
+    assert "<span>Hello</span>" in result
