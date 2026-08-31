@@ -19,11 +19,11 @@ publishable without requiring unfinished later layers.
 | `0.15.0` | Published | Resilient parsing & large-scale pipelines |
 | `0.16.0` | Published | Advanced OCR degradation handling |
 | `0.17.0` - `0.22.0` | Published | Continued core hardening and ML heuristics |
-| `0.23.0` | Next | Async I/O and streaming LLM payloads |
-| `0.24.0` | Planned | HTML/XML DOM sanitization |
-| `0.25.0` | Planned | Deep archive (ZIP/TAR) recursive processing |
-| `0.26.0` | Planned | Expanded local ML (GGUF/llama.cpp) capabilities |
-| `0.27.0` | Planned | Local microservice DLP endpoint |
+| `0.23.0` | Published | Async I/O and streaming LLM payloads |
+| `0.24.0` | Published | HTML/XML DOM sanitization |
+| `0.25.0` | Published | Deep archive (ZIP/TAR) recursive processing |
+| `0.26.0` | Published | Expanded local ML (GGUF/llama.cpp) capabilities |
+| `0.27.0` | Published | Local microservice DLP endpoint |
 | `1.0.0` | Planned | Mature compatibility commitment |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may

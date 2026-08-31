@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-08-31
+
+### Added
+- **Local Microservice DLP Endpoint:** Introduced an optional `fastapi` server in `pseudonymize.server` that exposes the core engine as a lightweight, stateless REST API. This acts as a drop-in local DLP microservice for polyglot applications. Install the `api` extra to utilize it.
+
 ## [0.26.0] - 2026-08-31
 
 ### Added
