@@ -52,6 +52,7 @@ _SUFFIX_FORMATS = {
     ".log": FileFormat.LOG,
     ".json": FileFormat.JSON,
     ".jsonl": FileFormat.JSONL,
+    ".ndjson": FileFormat.JSONL,
     ".csv": FileFormat.CSV,
     ".pdf": FileFormat.PDF,
     ".docx": FileFormat.DOCX,
