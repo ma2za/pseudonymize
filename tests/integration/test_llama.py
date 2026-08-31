@@ -11,9 +11,11 @@ from pseudonymize.result import EntityType
 
 
 def test_llama_backend_missing_model() -> None:
-    with patch("pseudonymize.backends.ml.llama.Llama", MagicMock()):
-        with pytest.raises(FileNotFoundError):
-            LocalLlamaBackend(model_path="nonexistent.gguf")
+    with (
+        patch("pseudonymize.backends.ml.llama.Llama", MagicMock()),
+        pytest.raises(FileNotFoundError),
+    ):
+        LocalLlamaBackend(model_path="nonexistent.gguf")
 
 
 def test_llama_capabilities(tmp_path: Path) -> None:
@@ -21,9 +23,11 @@ def test_llama_capabilities(tmp_path: Path) -> None:
     model.write_text("fake")
 
     mock_llama = MagicMock(side_effect=Exception("Failed to load"))
-    with patch("pseudonymize.backends.ml.llama.Llama", mock_llama):
-        with pytest.raises(BackendExecutionError):
-            LocalLlamaBackend(model_path=model)
+    with (
+        patch("pseudonymize.backends.ml.llama.Llama", mock_llama),
+        pytest.raises(BackendExecutionError),
+    ):
+        LocalLlamaBackend(model_path=model)
 
 
 @patch("pseudonymize.backends.ml.llama.Llama")

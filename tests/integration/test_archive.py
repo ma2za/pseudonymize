@@ -81,7 +81,7 @@ def test_deeply_nested_archive(tmp_path: Path) -> None:
     inner_dir = tmp_path / "inner"
     inner_dir.mkdir()
     (inner_dir / "secret.txt").write_text("My email is nested@example.com", encoding="utf-8")
-    
+
     tar_path = tmp_path / "inner.tar.gz"
     with tarfile.open(tar_path, "w:gz") as tar:
         tar.add(inner_dir / "secret.txt", arcname="secret.txt")
@@ -95,14 +95,14 @@ def test_deeply_nested_archive(tmp_path: Path) -> None:
     engine.process_file(zip_path, out_path)
 
     assert out_path.exists()
-    
+
     # 3. Verify
     out_dir = tmp_path / "out_unzip"
     shutil.unpack_archive(str(out_path), extract_dir=out_dir, format="zip")
-    
+
     inner_out = out_dir / "inner.tar.gz"
     assert inner_out.exists()
-    
+
     out_tar_dir = tmp_path / "out_untar"
     out_tar_dir.mkdir()
     with tarfile.open(inner_out, "r:gz") as tar:
@@ -110,7 +110,7 @@ def test_deeply_nested_archive(tmp_path: Path) -> None:
             tar.extractall(path=out_tar_dir, filter="data")
         else:
             tar.extractall(path=out_tar_dir)
-        
+
     txt = (out_tar_dir / "secret.txt").read_text(encoding="utf-8")
     assert "<EMAIL_1>" in txt
     assert "nested@example.com" not in txt
@@ -124,15 +124,9 @@ def test_zipslip_prevention(tmp_path: Path) -> None:
         zf.writestr(
             "../../../../../../../../../../../../../../../../../../../../tmp/evil.txt", "evil"
         )
-        zf.writestr(
-            "/absolute/path/to/evil2.txt", "evil"
-        )
-        zf.writestr(
-            "C:\\Windows\\System32\\evil3.txt", "evil"
-        )
-        zf.writestr(
-            "safe_file.txt", "safe email@example.com"
-        )
+        zf.writestr("/absolute/path/to/evil2.txt", "evil")
+        zf.writestr("C:\\Windows\\System32\\evil3.txt", "evil")
+        zf.writestr("safe_file.txt", "safe email@example.com")
 
     out_path = tmp_path / "safe.zip"
     engine.process_file(zip_path, out_path)
@@ -145,25 +139,27 @@ def test_zipslip_prevention(tmp_path: Path) -> None:
         content = zf.read("safe_file.txt").decode("utf-8")
         assert "email@example.com" not in content
 
+
 def test_tar_traversal_prevention(tmp_path: Path) -> None:
     engine = Pseudonymizer()
     tar_path = tmp_path / "malicious.tar"
-    
+
     with tarfile.open(tar_path, "w") as tf:
         # Create a malicious tarinfo
         ti = tarfile.TarInfo(name="../../../evil.txt")
         ti.size = 4
         import io
+
         tf.addfile(ti, io.BytesIO(b"evil"))
-        
+
         # Add a safe file
         safe_path = tmp_path / "safe.txt"
         safe_path.write_text("safe email@example.com")
         tf.add(safe_path, arcname="safe.txt")
-        
+
     out_path = tmp_path / "safe.tar"
     engine.process_file(tar_path, out_path)
-    
+
     with tarfile.open(out_path, "r") as tf:
         names = tf.getnames()
         assert len(names) == 1
