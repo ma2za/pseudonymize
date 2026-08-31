@@ -19,15 +19,14 @@ Evaluated against the English subset of the `ai4privacy/pii-masking-200k` datase
 | Recall | 0.1875 |
 | F1 Score | 0.2571 |
 
-*Note: These baseline metrics reflect zero-configuration default detectors and the stock ML backend on a highly ambiguous, fine-grained synthetic dataset. Future releases (e.g., 0.13.0 ML Calibration) will optimize these metrics through tuned thresholds and improved boundaries.*
-
 To reproduce this benchmark locally:
 ```console
 uv run python benchmarks/evaluate_quality.py --ml --samples 50
 ```
+
 ## `0.8.0` (Detection Boundary & Tokenization Alignment)
 
-Evaluated on the pseudo-test holdout slice (last 8k English rows) of i4privacy/pii-masking-200k after fixing ML sub-word boundary parsing and respecting B- (beginning of entity) tokens.
+Evaluated on the pseudo-test holdout slice (last 8k English rows) of `ai4privacy/pii-masking-200k` after fixing ML sub-word boundary parsing and respecting B- (beginning of entity) tokens.
 
 **Results:**
 
@@ -39,7 +38,7 @@ Evaluated on the pseudo-test holdout slice (last 8k English rows) of i4privacy/
 
 ## `0.8.0` (OpenPII-1.5m Baseline)
 
-Evaluated on the English subset of the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows). This establishes the baseline for the 0.9.0 release and beyond.
+Evaluated on the English subset of the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows). This establishes the baseline for the 0.9.0 release and beyond.
 
 **Results:**
 
@@ -51,7 +50,7 @@ Evaluated on the English subset of the \i4privacy/pii-masking-openpii-1.5m\ dat
 
 ## `0.9.0` (Context-Aware Heuristics)
 
-Evaluated on the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split, 1000 randomly sampled rows) after introducing the \ContextualIdDetector\ to catch synthetically generated IDs, non-Luhn credit cards, and postal codes based on surrounding semantic keywords.
+Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows) after introducing the `ContextualIdDetector` to catch synthetically generated IDs, non-Luhn credit cards, and postal codes based on surrounding semantic keywords.
 
 **Results:**
 
@@ -60,3 +59,15 @@ Evaluated on the \i4privacy/pii-masking-openpii-1.5m\ dataset (validation split
 | Precision | 0.9511 |
 | Recall | 0.8333 |
 | F1 Score | 0.8883 |
+
+## `0.22.0` (Massive Recall Boost)
+
+Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 10000 randomly sampled rows). This incorporates all ML and contextual heuristic enhancements up through 0.22.0, officially breaking the 94% F1 threshold.
+
+**Results:**
+
+| Metric | Score |
+| --- | --- |
+| Precision | 0.9377 |
+| Recall | 0.9477 |
+| F1 Score | 0.9427 |

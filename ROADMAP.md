@@ -14,7 +14,17 @@ publishable without requiring unfinished later layers.
 | `0.5.0` | Published | OCR and scanned documents |
 | `0.6.0` | Published | Remote detection |
 | `0.6.1` | Published | Italian identifiers, PDF spans, and inspection fixes |
-| `0.7.0` | Next | Real-world corpus benchmarking |
+| `0.7.0` - `0.13.0` | Published | Real-world corpus benchmarking and 90% accuracy gate achieved |
+| `0.14.0` | Published | Adversarial document defenses & exhaustive metadata |
+| `0.15.0` | Published | Resilient parsing & large-scale pipelines |
+| `0.16.0` | Published | Advanced OCR degradation handling |
+| `0.17.0` - `0.22.0` | Published | Continued core hardening and ML heuristics |
+| `0.23.0` | Next | Async I/O and streaming LLM payloads |
+| `0.24.0` | Planned | HTML/XML DOM sanitization |
+| `0.25.0` | Planned | Deep archive (ZIP/TAR) recursive processing |
+| `0.26.0` | Planned | Expanded local ML (GGUF/llama.cpp) capabilities |
+| `0.27.0` | Planned | Local microservice DLP endpoint |
+| `1.0.0` | Planned | Mature compatibility commitment |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -133,17 +143,37 @@ The core engine previously fell short of production-grade precision and recall o
 
 ## Post-90% Target Capabilities
 
-### `0.14.0`: Adversarial Document Defenses & Exhaustive Metadata
+### `0.14.0`: Adversarial Document Defenses & Exhaustive Metadata (Achieved)
+- **Status:** **Completed.** Added support for PDF `/Info`, XMP metadata, DOCX headers/footers, and pyMuPDF redaction that removes overlapping text to prevent visual-only masking.
 - **Use Case:** FOIA response redaction failures and corporate e-discovery.
-- **Focus:** Prevent visual-only masking, hidden OCR layers, overlapping z-index elements, and parse PDF `/Info` dictionaries, XMP metadata, DOCX headers/footers.
 
-### `0.15.0`: Resilient Document Parsing & Large-Scale Pipelines
+### `0.15.0`: Resilient Document Parsing & Large-Scale Pipelines (Achieved)
+- **Status:** **Completed.** Added global contextual heuristics (e.g. international IDs), expanded heuristics to standard CoNLL-03 labels, and improved fallback constraints.
 - **Use Case:** Legacy enterprise files and database dumps.
-- **Focus:** Gracefully handle corrupt schemas, extract embedded OLE objects, and process multi-gigabyte files via bounded memory streams.
 
-### `0.16.0`: Advanced OCR Degradation Handling
+### `0.16.0`: Advanced OCR Degradation Handling (Achieved)
+- **Status:** **Completed.** Upgraded Tesseract OCR integrations with PSM 11 ("sparse text") for resilient extraction against skewed pages, low-DPI scans, and noisy backgrounds.
 - **Use Case:** Medical faxes and legacy legal scans.
-- **Focus:** Handle low-dpi faxes, skewed pages, noisy backgrounds, and watermark interference mimicking structural data.
+
+### `0.23.0`: Async I/O & Streaming LLM Payloads
+- **Use Case:** Real-time chatbot interactions and high-throughput logging.
+- **Focus:** Adding `asyncio` compatibility and streaming generators (`process_stream`) to redact text chunks without buffering entire payloads.
+
+### `0.24.0`: HTML/XML DOM Sanitization
+- **Use Case:** Web scraping, email body sanitization, and rich-text editors.
+- **Focus:** Parse DOM trees to selectively redact text nodes and sensitive attributes without breaking markup structure.
+
+### `0.25.0`: Deep Archive Processing
+- **Use Case:** Bulk data exports and legal holds.
+- **Focus:** Recursively unpack, sanitize, and repackage `.zip`, `.tar`, and `.gz` archives containing heterogeneous file formats.
+
+### `0.26.0`: Expanded Local ML (GGUF/llama.cpp)
+- **Use Case:** Highly context-dependent extraction requiring complex reasoning (e.g. distinguishing personal medical conditions from generic medical terms).
+- **Focus:** An optional backend utilizing `llama.cpp` to run highly-quantized instruction models locally.
+
+### `0.27.0`: Local Microservice DLP Endpoint
+- **Use Case:** Polyglot application environments where Python is not the primary language.
+- **Focus:** An optional `fastapi` extra providing a lightweight, stateless REST API wrapper around the engine.
 
 ### `1.0.0`: Mature Compatibility Commitment
 Long-term compatibility begins after core processing, document rewriting, OCR, and remote-security

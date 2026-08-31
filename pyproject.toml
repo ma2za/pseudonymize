@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pseudonymize"
-version = "0.22.0"
+version = "0.26.0"
 description = "Local-first PII pseudonymization for text, structured data, and LLM payloads."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -58,6 +58,13 @@ ocr = [
 ]
 remote = [
     "httpx>=0.28.1",
+]
+html = [
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",
+]
+llama = [
+    "llama-cpp-python>=0.2.77",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -118,7 +125,10 @@ module = [
     "pptx.*",
     "openpyxl.*",
     "httpx.*",
-    "respx.*"
+    "respx.*",
+    "bs4.*",
+    "lxml.*",
+    "llama_cpp.*"
 ]
 ignore_missing_imports = true
 follow_imports = "skip"

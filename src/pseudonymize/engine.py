@@ -2,7 +2,15 @@ import os
 import re
 import tempfile
 import unicodedata
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import (
+    AsyncIterable,
+    AsyncIterator,
+    Callable,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
@@ -47,6 +55,7 @@ from pseudonymize.processing import (
 from pseudonymize.resolution import EntityResolver, ExactEntityResolver, ResolvedEntity
 from pseudonymize.result import Detection, EntityType, Replacement, Result
 from pseudonymize.spans import resolve_overlaps
+from pseudonymize.stream import TextStreamProcessor
 from pseudonymize.transforms import (
     Alias,
     AliasAssigner,
@@ -268,6 +277,24 @@ class Pseudonymizer:
     def new_scope(self) -> "ProcessingScope":
         return ProcessingScope(self)
 
+    def process_stream(self, stream: Iterable[str]) -> Iterator[str]:
+        scope = self.new_scope()
+        processor = TextStreamProcessor(scope.process)
+        for chunk in stream:
+            if processed := processor.push(chunk):
+                yield processed
+        if processed := processor.flush():
+            yield processed
+
+    async def process_stream_async(self, stream: AsyncIterable[str]) -> AsyncIterator[str]:
+        scope = self.new_scope()
+        processor = TextStreamProcessor(scope.process)
+        async for chunk in stream:
+            if processed := processor.push(chunk):
+                yield processed
+        if processed := processor.flush():
+            yield processed
+
     def _process(self, text: str, context: AliasContext, include_mapping: bool) -> Result:
         block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
         return self._process_block(block, context, include_mapping, _OperationStatistics(), [])
@@ -461,6 +488,22 @@ class ProcessingScope:
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
         return self._engine._process(text, self._context, include_mapping)
 
+    def process_stream(self, stream: Iterable[str]) -> Iterator[str]:
+        processor = TextStreamProcessor(self.process)
+        for chunk in stream:
+            if processed := processor.push(chunk):
+                yield processed
+        if processed := processor.flush():
+            yield processed
+
+    async def process_stream_async(self, stream: AsyncIterable[str]) -> AsyncIterator[str]:
+        processor = TextStreamProcessor(self.process)
+        async for chunk in stream:
+            if processed := processor.push(chunk):
+                yield processed
+        if processed := processor.flush():
+            yield processed
+
     def process_data(self, data: Data | object, *, serializer: Serializer | None = None) -> Data:
         return self._engine._process_data(
             data, (), serializer, self._context, _OperationStatistics(), [], [0]
@@ -573,6 +616,14 @@ def _processing_adapters(
                 f"{selected_format.value} supports inspection only; "
                 "use inspect_file or supply custom adapters"
             )
+        if selected_format in {FileFormat.HTML, FileFormat.XML}:
+            from pseudonymize.html_xml import DOMAdapter
+            dom_adapter = DOMAdapter(selected_format, encoding)
+            return dom_adapter, dom_adapter
+        if selected_format in {FileFormat.ZIP, FileFormat.TAR}:
+            from pseudonymize.archive import ArchiveAdapter
+            archive_adapter = ArchiveAdapter(selected_format)
+            return archive_adapter, archive_adapter
         if selected_format in {FileFormat.DOCX, FileFormat.XLSX, FileFormat.PPTX, FileFormat.PDF}:
             if encoding is not None:
                 raise ValueError("encoding applies only to text-based formats")
@@ -623,6 +674,12 @@ def _inspection_adapter(
             from pseudonymize.inspection.office import OfficeInspectionAdapter
 
             return OfficeInspectionAdapter(selected_format)
+        if selected_format in {FileFormat.HTML, FileFormat.XML}:
+            from pseudonymize.html_xml import DOMAdapter
+            return DOMAdapter(selected_format, encoding)
+        if selected_format in {FileFormat.ZIP, FileFormat.TAR}:
+            from pseudonymize.archive import ArchiveAdapter
+            return ArchiveAdapter(selected_format)
         return BuiltinFileAdapter(selected_format, encoding)
     if format is not None or encoding is not None:
         raise ValueError("custom adapters cannot be combined with format or encoding")
