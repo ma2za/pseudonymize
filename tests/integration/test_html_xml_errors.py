@@ -1,8 +1,11 @@
-import pytest
 from pathlib import Path
-from pseudonymize.html_xml import DOMAdapter
+
+import pytest
+
 from pseudonymize.exceptions import AdapterExecutionError
-from pseudonymize.formats import FileFormat, Document
+from pseudonymize.formats import Document, FileFormat
+from pseudonymize.html_xml import DOMAdapter
+
 
 
 def test_dom_adapter_decode_error(tmp_path: Path) -> None:
