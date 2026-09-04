@@ -10,14 +10,14 @@ try:
     import pymupdf
 
     HAS_PDF = True
-except ImportError:
+except ImportError:  # pragma: no cover
     HAS_PDF = False
 
 try:
     import pytesseract
 
     HAS_OCR = True
-except ImportError:
+except ImportError:  # pragma: no cover
     HAS_OCR = False
 
 

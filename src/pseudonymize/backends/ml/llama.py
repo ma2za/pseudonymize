@@ -11,7 +11,7 @@ from pseudonymize.result import Detection, EntityType
 
 try:
     from llama_cpp import Llama
-except ImportError:
+except ImportError:  # pragma: no cover
     Llama = None
 
 
