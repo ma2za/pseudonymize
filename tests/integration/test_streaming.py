@@ -84,3 +84,22 @@ def test_stream_empty_chunks() -> None:
 
     result = "".join(engine.process_stream(chunks))
     assert result == "Hello <EMAIL_1>"
+def test_detection_stream() -> None:
+    engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
+    stream = engine.stream()
+    
+    chunks = [
+        "Hello! My em",
+        "ail is pao",
+        "lo@example.com.",
+        " Please write back to pao",
+        "lo@example.com when you have",
+        " time.",
+    ]
+    
+    result = ""
+    for c in chunks:
+        result += stream.feed(c)
+    result += stream.flush()
+    
+    assert result == "Hello! My email is <EMAIL_1>. Please write back to <EMAIL_1> when you have time."
