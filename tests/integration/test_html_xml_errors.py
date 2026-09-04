@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 
+from pseudonymize.document import Document
 from pseudonymize.exceptions import AdapterExecutionError
-from pseudonymize.formats import Document, FileFormat
+from pseudonymize.formats import FileFormat
 from pseudonymize.html_xml import DOMAdapter
 
 
