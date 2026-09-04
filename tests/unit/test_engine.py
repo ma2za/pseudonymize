@@ -1,10 +1,11 @@
+import unicodedata
 from dataclasses import dataclass
 from typing import cast
 
 import pytest
 
 from pseudonymize import Policy, Pseudonymizer
-from pseudonymize.engine import Data
+from pseudonymize.engine import Data, _strip_format_characters
 from pseudonymize.exceptions import UnsupportedDataError
 
 
@@ -130,3 +131,32 @@ def test_engine_remote_offset_mapping() -> None:
     assert "maria@example.com" not in result.text
     assert "Maria" not in result.text
     assert result.text == "Call <EMAIL_1> to reach <PERSON_1>."
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "maria@example.com",
+        "mar​ia@example.com",
+        "‮maria@example.com‬",
+        "Écrire à maria@example.com",
+        "⁦mar‌ia@example.com⁩ puis 192.168.1.1",
+    ],
+)
+def test_format_characters_never_shift_detection_offsets(text: str) -> None:
+    """The ASCII fast path and the stripping path must agree on source offsets."""
+    detections = Pseudonymizer().detect(text)
+    assert detections
+    for detection in detections:
+        matched = text[detection.start : detection.end]
+        assert "".join(char for char in matched if unicodedata.category(char) != "Cf").endswith(
+            ("example.com", "192.168.1.1")
+        )
+
+
+def test_format_character_stripping_skips_rebuild_when_nothing_is_removed() -> None:
+    assert _strip_format_characters("plain ascii") == ("plain ascii", None)
+    assert _strip_format_characters("café sans contrôles") == ("café sans contrôles", None)
+    stripped, mapping = _strip_format_characters("a​b")
+    assert stripped == "ab"
+    assert mapping == [0, 2, 3]
