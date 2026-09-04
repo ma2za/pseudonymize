@@ -81,6 +81,17 @@ _PLACEHOLDER = re.compile(
 )
 
 
+class DetectionStream:
+    def __init__(self, processor: TextStreamProcessor):
+        self._processor = processor
+
+    def feed(self, chunk: str) -> str:
+        return self._processor.push(chunk)
+
+    def flush(self) -> str:
+        return self._processor.flush()
+
+
 class Pseudonymizer:
     def __init__(
         self,
@@ -271,6 +282,9 @@ class Pseudonymizer:
 
     def new_scope(self) -> "ProcessingScope":
         return ProcessingScope(self)
+
+    def stream(self) -> DetectionStream:
+        return DetectionStream(TextStreamProcessor(self.new_scope().process))
 
     def process_stream(self, stream: Iterable[str]) -> Iterator[str]:
         scope = self.new_scope()
@@ -482,6 +496,9 @@ class ProcessingScope:
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
         return self._engine._process(text, self._context, include_mapping)
+
+    def stream(self) -> DetectionStream:
+        return DetectionStream(TextStreamProcessor(self.process))
 
     def process_stream(self, stream: Iterable[str]) -> Iterator[str]:
         processor = TextStreamProcessor(self.process)
