@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup, NavigableString  # type: ignore[attr-defined]
 
 from pseudonymize.document import ContentBlock, Document, JSONPathLocation
 from pseudonymize.exceptions import AdapterExecutionError

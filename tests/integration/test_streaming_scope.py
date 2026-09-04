@@ -1,3 +1,5 @@
+from collections.abc import AsyncIterator
+
 import pytest
 
 from pseudonymize import Pseudonymizer, TransformationMode
@@ -16,7 +18,7 @@ async def test_scope_process_stream_asynchronous() -> None:
     engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
     scope = engine.new_scope()
 
-    async def async_chunks():
+    async def async_chunks() -> AsyncIterator[str]:
         for c in ["Hello! My em", "ail is pao", "lo@example.com."]:
             yield c
 

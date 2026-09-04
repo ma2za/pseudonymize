@@ -1,7 +1,8 @@
 import json
+import typing
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from pseudonymize.backends.base import BackendCapabilities, DetectionBackend
 from pseudonymize.document import ContentBlock
@@ -9,10 +10,13 @@ from pseudonymize.exceptions import BackendExecutionError
 from pseudonymize.policy import Policy
 from pseudonymize.result import Detection, EntityType
 
-try:
+if typing.TYPE_CHECKING:
     from llama_cpp import Llama
-except ImportError:  # pragma: no cover
-    Llama = None
+else:
+    try:
+        from llama_cpp import Llama
+    except ImportError:  # pragma: no cover
+        Llama = None
 
 
 class LocalLlamaBackend(DetectionBackend):
@@ -83,7 +87,7 @@ class LocalLlamaBackend(DetectionBackend):
                 stop=["```", "\n\n"],
                 temperature=0.0,
             )
-            raw_output = response["choices"][0]["text"].strip()
+            raw_output = cast(dict[str, Any], response)["choices"][0]["text"].strip()
 
             if not raw_output.startswith("["):
                 idx = raw_output.find("[")
