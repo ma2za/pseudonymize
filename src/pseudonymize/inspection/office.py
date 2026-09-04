@@ -11,7 +11,7 @@ try:
     import pptx
 
     HAS_OFFICE = True
-except ImportError:
+except ImportError:  # pragma: no cover
     HAS_OFFICE = False
 
 

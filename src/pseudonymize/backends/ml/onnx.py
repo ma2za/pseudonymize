@@ -20,7 +20,7 @@ else:
         import numpy as np
         import onnxruntime as ort
         from tokenizers import Tokenizer
-    except ImportError:
+    except ImportError:  # pragma: no cover
         np = None
         ort = None
         Tokenizer = None

@@ -8,7 +8,7 @@ try:
     from PIL import Image
 
     HAS_OCR = True
-except ImportError:
+except ImportError:  # pragma: no cover
     HAS_OCR = False
 
 

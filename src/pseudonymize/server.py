@@ -51,5 +51,5 @@ try:
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
 
-except ImportError:
+except ImportError:  # pragma: no cover
     app = cast(Any, None)
