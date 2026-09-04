@@ -7,7 +7,6 @@ from pseudonymize.formats import Document, FileFormat
 from pseudonymize.html_xml import DOMAdapter
 
 
-
 def test_dom_adapter_decode_error(tmp_path: Path) -> None:
     bad_file = tmp_path / "bad.html"
     bad_file.write_bytes(b"\xff\xfe\x00\x00")
