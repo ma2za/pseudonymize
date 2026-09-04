@@ -12,10 +12,10 @@ try:
         version="0.27.0",
     )
 
-    class PseudonymizeRequest(BaseModel):
+    class PseudonymizeRequest(BaseModel):  # type: ignore[misc]
         text: str = Field(..., description="The text to analyze and pseudonymize.")
 
-    class ReplacementResponse(BaseModel):
+    class ReplacementResponse(BaseModel):  # type: ignore[misc]
         entity_type: str
         start: int
         end: int
@@ -23,14 +23,14 @@ try:
         confidence: float
         detector: str
 
-    class PseudonymizeResponse(BaseModel):
+    class PseudonymizeResponse(BaseModel):  # type: ignore[misc]
         text: str
         replacements: list[ReplacementResponse]
 
     # Global engine for performance
     _engine = Pseudonymizer()
 
-    @app.post("/pseudonymize", response_model=PseudonymizeResponse)
+    @app.post("/pseudonymize", response_model=PseudonymizeResponse)  # type: ignore[untyped-decorator]
     def pseudonymize_endpoint(req: PseudonymizeRequest) -> Any:
         try:
             result = _engine.process(req.text)

@@ -82,6 +82,7 @@ test = [
     "pytest-cov>=5",
     "fpdf2>=2.7.9",
     "respx>=0.23.1",
+    "pytest-asyncio>=1.4.0",
 ]
 benchmarks = [
     "datasets>=3.0.0",
@@ -133,7 +134,9 @@ module = [
     "respx.*",
     "bs4.*",
     "lxml.*",
-    "llama_cpp.*"
+    "llama_cpp.*",
+    "fastapi.*",
+    "pydantic.*"
 ]
 ignore_missing_imports = true
 follow_imports = "skip"
@@ -144,7 +147,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 python_files = ["test_*.py", "benchmark_*.py"]
 addopts = ["--strict-config", "--strict-markers", "-ra", "--cov=pseudonymize", "--cov-report=term-missing", "--cov-branch", "--cov-fail-under=95.36", "--basetemp=.pytest_temp"]
-markers = ["benchmark: performance benchmark", "integration: integration test", "slow: deliberately slow test"]
+markers = ["benchmark: performance benchmark", "integration: integration test", "slow: deliberately slow test", "asyncio: asyncio test"]
 filterwarnings = ["error"]
 
 [tool.coverage.run]
