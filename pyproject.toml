@@ -118,7 +118,7 @@ strict = true
 warn_unreachable = true
 show_error_codes = true
 pretty = true
-files = ["src", "tests", "scripts"]
+files = ["src", "tests", "scripts", "benchmarks"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -133,11 +133,7 @@ module = [
     "openpyxl.*",
     "httpx.*",
     "respx.*",
-    "bs4.*",
-    "lxml.*",
-    "llama_cpp.*",
-    "fastapi.*",
-    "pydantic.*"
+    "datasets.*"
 ]
 ignore_missing_imports = true
 follow_imports = "skip"

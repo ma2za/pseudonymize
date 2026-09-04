@@ -290,12 +290,20 @@ def test_ml_detect_raises_on_inference_failure(
     policy = Policy(network_policy=NetworkPolicy.DENY)
     block = ContentBlock(id="1", text="Hello John Doe", location=TextOffsetLocation(0, 14))
 
-    # Sabotage the _session object post-loading
+    # Sabotage the _session object post-loading, with a message quoting the input
     backend._load_model()
-    monkeypatch.setattr(backend._session, "run", lambda *args, **kwargs: 1 / 0)
 
-    with pytest.raises(BackendExecutionError, match="ONNX PII inference failed: division by zero"):
+    def _fail(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("inference failed on 'Hello John Doe'")
+
+    monkeypatch.setattr(backend._session, "run", _fail)
+
+    with pytest.raises(BackendExecutionError) as raised:
         backend.detect(block, policy)
+
+    assert str(raised.value) == "ONNX PII inference failed"
+    assert "John Doe" not in str(raised.value)
+    assert raised.value.__cause__ is None
 
 
 def test_ml_detect_raises_on_tokenizer_failure(
@@ -308,9 +316,17 @@ def test_ml_detect_raises_on_tokenizer_failure(
     policy = Policy(network_policy=NetworkPolicy.DENY)
     block = ContentBlock(id="1", text="Hello John Doe", location=TextOffsetLocation(0, 14))
 
-    # Sabotage the _tokenizer object post-loading
+    # Sabotage the _tokenizer object post-loading, with a message quoting the input
     backend._load_model()
-    monkeypatch.setattr(backend._tokenizer, "encode", lambda *args, **kwargs: 1 / 0)
 
-    with pytest.raises(BackendExecutionError, match="ONNX PII inference failed: division by zero"):
+    def _fail(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("cannot tokenize 'Hello John Doe'")
+
+    monkeypatch.setattr(backend._tokenizer, "encode", _fail)
+
+    with pytest.raises(BackendExecutionError) as raised:
         backend.detect(block, policy)
+
+    assert str(raised.value) == "ONNX PII inference failed"
+    assert "John Doe" not in str(raised.value)
+    assert raised.value.__cause__ is None

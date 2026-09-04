@@ -246,5 +246,7 @@ class LocalONNXPIIBackend(DetectionBackend):
 
             return tuple(results)
 
-        except Exception as e:
-            raise BackendExecutionError(f"ONNX PII inference failed: {e}") from e
+        except Exception:
+            # The originating message can quote the tokenized input, so it never
+            # reaches the caller. The chained cause is dropped for the same reason.
+            raise BackendExecutionError("ONNX PII inference failed") from None
