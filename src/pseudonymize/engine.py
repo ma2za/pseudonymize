@@ -123,16 +123,8 @@ class Pseudonymizer:
         if not remote:
             statistics.blocks_processed += 1
 
-        stripped_chars = []
-        stripped_to_orig = []
-        for i, char in enumerate(block.text):
-            if unicodedata.category(char) != "Cf":
-                stripped_chars.append(char)
-                stripped_to_orig.append(i)
-        stripped_to_orig.append(len(block.text))
-
-        stripped_text = "".join(stripped_chars)
-        stripped_block = replace(block, text=stripped_text)
+        stripped_text, stripped_to_orig = _strip_format_characters(block.text)
+        stripped_block = block if stripped_to_orig is None else replace(block, text=stripped_text)
 
         candidates: list[Detection] = []
         for backend in self.backends:
@@ -143,10 +135,13 @@ class Pseudonymizer:
                 continue
             raw_detections = invoke_backend(backend, stripped_block, self.policy)
 
-            for det in raw_detections:
-                mapped_start = stripped_to_orig[det.start]
-                mapped_end = stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
-                candidates.append(replace(det, start=mapped_start, end=mapped_end))
+            if stripped_to_orig is None:
+                candidates.extend(raw_detections)
+            else:
+                for det in raw_detections:
+                    mapped_start = stripped_to_orig[det.start]
+                    mapped_end = stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
+                    candidates.append(replace(det, start=mapped_start, end=mapped_end))
 
             statistics.record_backend(capabilities)
 
@@ -533,6 +528,28 @@ class _OperationStatistics:
             local_block_calls=self.local_block_calls,
             remote_block_calls=self.remote_block_calls,
         )
+
+
+def _strip_format_characters(text: str) -> tuple[str, list[int] | None]:
+    """Remove Unicode format characters and map stripped offsets back to the source.
+
+    Zero-width and bidirectional controls are dropped before detection so that
+    obfuscated values still match, then detections are mapped back onto the
+    original text. The mapping is ``None`` when nothing was removed, which lets
+    callers keep the source offsets and skip the per-character rebuild. No ASCII
+    character has category ``Cf``, so pure ASCII text takes a single C-level scan.
+    """
+    if text.isascii() or not any(unicodedata.category(char) == "Cf" for char in text):
+        return text, None
+
+    stripped_chars = []
+    stripped_to_orig = []
+    for index, char in enumerate(text):
+        if unicodedata.category(char) != "Cf":
+            stripped_chars.append(char)
+            stripped_to_orig.append(index)
+    stripped_to_orig.append(len(text))
+    return "".join(stripped_chars), stripped_to_orig
 
 
 def _detection_reports(

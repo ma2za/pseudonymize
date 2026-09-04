@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -267,7 +268,11 @@ def test_ml_engine_shares_one_alias_per_merged_entity(
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
-    engine = Pseudonymizer(backends=[backend])
+    # Confidences are the model's own probabilities, so a floor calibrated for
+    # deterministic detectors (0.8 by default) is too high for this short text.
+    engine = Pseudonymizer(
+        backends=[backend], policy=Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.5)
+    )
     result = engine.process("John Smith emailed John Smith from Seattle.")
 
     assert "John" not in result.text
@@ -290,12 +295,20 @@ def test_ml_detect_raises_on_inference_failure(
     policy = Policy(network_policy=NetworkPolicy.DENY)
     block = ContentBlock(id="1", text="Hello John Doe", location=TextOffsetLocation(0, 14))
 
-    # Sabotage the _session object post-loading
+    # Sabotage the _session object post-loading, with a message quoting the input
     backend._load_model()
-    monkeypatch.setattr(backend._session, "run", lambda *args, **kwargs: 1 / 0)
 
-    with pytest.raises(BackendExecutionError, match="ONNX PII inference failed: division by zero"):
+    def _fail(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("inference failed on 'Hello John Doe'")
+
+    monkeypatch.setattr(backend._session, "run", _fail)
+
+    with pytest.raises(BackendExecutionError) as raised:
         backend.detect(block, policy)
+
+    assert str(raised.value) == "ONNX PII inference failed"
+    assert "John Doe" not in str(raised.value)
+    assert raised.value.__cause__ is None
 
 
 def test_ml_detect_raises_on_tokenizer_failure(
@@ -308,9 +321,150 @@ def test_ml_detect_raises_on_tokenizer_failure(
     policy = Policy(network_policy=NetworkPolicy.DENY)
     block = ContentBlock(id="1", text="Hello John Doe", location=TextOffsetLocation(0, 14))
 
-    # Sabotage the _tokenizer object post-loading
+    # Sabotage the _tokenizer object post-loading, with a message quoting the input
     backend._load_model()
-    monkeypatch.setattr(backend._tokenizer, "encode", lambda *args, **kwargs: 1 / 0)
 
-    with pytest.raises(BackendExecutionError, match="ONNX PII inference failed: division by zero"):
+    def _fail(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("cannot tokenize 'Hello John Doe'")
+
+    monkeypatch.setattr(backend._tokenizer, "encode", _fail)
+
+    with pytest.raises(BackendExecutionError) as raised:
         backend.detect(block, policy)
+
+    assert str(raised.value) == "ONNX PII inference failed"
+    assert "John Doe" not in str(raised.value)
+    assert raised.value.__cause__ is None
+
+
+_FILLER = "The quarterly report was reviewed by the committee and approved without amendment. "
+_TAIL = "Contact Maria Rossi in Milan."
+
+
+@pytest.mark.parametrize("repetitions", [5, 40, 400])
+def test_ml_detects_personal_data_beyond_a_single_model_window(
+    distilbert_artifacts: tuple[Path, Path, Path], repetitions: int
+) -> None:
+    """PII in the tail of a long block must not be skipped.
+
+    The tokenizer ships with truncation at 512 tokens, so before windowing the
+    model never saw past roughly two kilobytes of text and the tail passed
+    through unredacted with no error and no warning.
+    """
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    text = (_FILLER * repetitions) + _TAIL
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    detections = backend.detect(block, Policy(network_policy=NetworkPolicy.DENY))
+    found = {
+        (detection.entity_type, text[detection.start : detection.end]) for detection in detections
+    }
+
+    assert (EntityType.PERSON, "Maria Rossi") in found
+    assert (EntityType.LOCATION, "Milan") in found
+
+
+def test_ml_windows_cover_the_whole_block(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    backend._load_model()
+
+    short = _FILLER
+    assert backend._windows(short) == [(0, len(short))]
+
+    long_text = _FILLER * 400
+    windows = backend._windows(long_text)
+    assert len(windows) > 1
+    assert windows[0][0] == 0
+    assert windows[-1][1] == len(long_text.rstrip())
+    # Consecutive windows overlap, so an entity on a boundary is seen whole once.
+    for (_, previous_end), (next_start, _) in itertools.pairwise(windows):
+        assert next_start < previous_end
+
+
+def test_ml_reported_confidence_is_the_model_probability(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    """A stricter policy must only ever remove detections, never relabel them.
+
+    The previous calibration mapped every surviving span onto the policy floor,
+    so the same weak prediction was reported at 0.51 under a 0.5 floor and at
+    0.99 under a 0.99 floor, and minimum_confidence could filter nothing.
+    """
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    text = "John Smith is currently visiting Microsoft's headquarters in Seattle, Washington!"
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    lenient = backend.detect(
+        block, Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.1)
+    )
+    strict = backend.detect(
+        block, Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.95)
+    )
+
+    lenient_spans = {(d.entity_type, d.start, d.end): d.confidence for d in lenient}
+    strict_spans = {(d.entity_type, d.start, d.end): d.confidence for d in strict}
+
+    assert strict_spans.keys() <= lenient_spans.keys()
+    # A span surviving both floors keeps the identical probability under each.
+    for key, confidence in strict_spans.items():
+        assert confidence == lenient_spans[key]
+        assert confidence >= 0.95
+
+
+def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    """The runner-up label wins only when it clears an absolute probability."""
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    text = "Please ship the Apollo unit to warehouse Beta before the Friday deadline, thanks."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+
+    def detections_at(threshold: float) -> list[float]:
+        backend = LocalONNXPIIBackend(
+            model_path=model_path,
+            tokenizer_path=tokenizer_path,
+            config_path=config_path,
+            entity_threshold=threshold,
+        )
+        return [detection.confidence for detection in backend.detect(block, policy)]
+
+    permissive = detections_at(0.01)
+    conservative = detections_at(0.99)
+
+    assert len(permissive) > len(conservative)
+    # Detections surfaced by a permissive threshold carry their real, low
+    # probability. The previous calibration reported this same span at 0.99
+    # whenever the policy floor was 0.99.
+    assert any(confidence < 0.1 for confidence in permissive)
+
+
+def test_ml_entity_threshold_is_validated(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    with pytest.raises(ValueError, match="entity_threshold"):
+        LocalONNXPIIBackend(
+            model_path=model_path,
+            tokenizer_path=tokenizer_path,
+            config_path=config_path,
+            entity_threshold=0.0,
+        )
+    with pytest.raises(ValueError, match="window_overlap_tokens"):
+        LocalONNXPIIBackend(
+            model_path=model_path,
+            tokenizer_path=tokenizer_path,
+            config_path=config_path,
+            window_overlap_tokens=-1,
+        )
