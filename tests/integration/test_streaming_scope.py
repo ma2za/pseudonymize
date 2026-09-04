@@ -1,4 +1,5 @@
 import pytest
+
 from pseudonymize import Pseudonymizer, TransformationMode
 
 

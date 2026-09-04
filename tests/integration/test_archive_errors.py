@@ -1,5 +1,7 @@
-import pytest
 from pathlib import Path
+
+import pytest
+
 from pseudonymize.archive import ArchiveAdapter
 from pseudonymize.exceptions import AdapterExecutionError
 from pseudonymize.formats import FileFormat
