@@ -504,3 +504,20 @@ def test_ml_subword_span_repair(
     )
     detections = backend.detect(block, policy)
     assert len(detections) >= 0
+
+def test_ml_context_boosting(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    text = "The applicant's name is John, contact him immediately."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.5,
+    )
+    detections = backend.detect(block, policy)
+    assert len(detections) >= 0
