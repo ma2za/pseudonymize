@@ -23,16 +23,29 @@
   --color-gray-900: var(--pz-text);
 }
 
+:root[data-theme="dark"] {
+  --pz-canvas: var(--pz-ink);
+  --pz-surface: var(--pz-surface-2);
+  --pz-surface-raised: var(--pz-ink-elevated);
+  --pz-surface-inset: var(--pz-surface-2);
+  --pz-border: var(--pz-line);
+  --pz-border-strong: var(--pz-line-strong);
+  --pz-text: var(--pz-text);
+  --pz-text-secondary: var(--pz-text-secondary);
+  --pz-text-muted: var(--pz-muted);
+}
+
 @media (prefers-color-scheme: dark) {
-  @theme inline {
-    --color-gray-50: var(--pz-surface-inset);
-    --color-gray-100: var(--pz-border);
-    --color-gray-200: var(--pz-border-strong);
-    --color-gray-300: var(--pz-text-muted);
-    --color-gray-500: var(--pz-text-secondary);
-    --color-gray-600: var(--pz-text-secondary);
-    --color-gray-700: var(--pz-text-secondary);
-    --color-gray-900: var(--pz-text);
+  :root:not([data-theme="light"]) {
+    --pz-canvas: var(--pz-ink);
+    --pz-surface: var(--pz-surface-2);
+    --pz-surface-raised: var(--pz-ink-elevated);
+    --pz-surface-inset: var(--pz-surface-2);
+    --pz-border: var(--pz-line);
+    --pz-border-strong: var(--pz-line-strong);
+    --pz-text: var(--pz-text);
+    --pz-text-secondary: var(--pz-text-secondary);
+    --pz-text-muted: var(--pz-muted);
   }
 }
 
