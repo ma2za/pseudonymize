@@ -141,5 +141,38 @@
     "confirmDelete": "Are you sure you want to delete your account?",
     "backToDashboard": "Back to Dashboard",
     "settingsLink": "Account Settings"
+  },
+  "About": {
+    "title": "Sensitive data should not travel farther than it needs to.",
+    "description": "Many workflows need the information around an identifier without needing the identifier itself. pseudonymize.io exists to make that separation practical."
+  },
+  "Developers": {
+    "title": "Put pseudonymization in the path of sensitive data.",
+    "description": "Use the API or supported integration surface to replace identifiers before content reaches downstream systems that do not require the originals.",
+    "primaryCta": "Read the docs",
+    "secondaryCta": "Pseudonymize data",
+    "requestHeading": "One real request. One real result.",
+    "authHeading": "Authentication",
+    "inputsHeading": "Supported inputs",
+    "errorsHeading": "Handle processing states explicitly.",
+    "sdksHeading": "SDKs"
+  },
+  "Product": {
+    "title": "One pseudonymization layer for text, structured data and files.",
+    "description": "Send supported content through one processing layer, replace detected identifiers with pseudonyms, and continue working with the surrounding context intact.",
+    "primaryCta": "Pseudonymize data",
+    "secondaryCta": "Read the docs",
+    "textHeading": "Text",
+    "textCopy": "Replace identifiers inside prose without flattening the text around them.",
+    "dataHeading": "Structured data",
+    "dataCopy": "Pseudonymize identifier fields while keeping rows and schemas usable.",
+    "filesHeading": "Files",
+    "filesCopy": "Process supported files without manually extracting their sensitive content first.",
+    "modelHeading": "The context stays. The identifiers change.",
+    "devHeading": "Integrate where the data moves."
+  },
+  "Security": {
+    "title": "Security claims should be inspectable.",
+    "description": "This page documents how pseudonymize.io handles data and infrastructure. Every claim shown here is backed by an internal source or public policy."
   }
 }
