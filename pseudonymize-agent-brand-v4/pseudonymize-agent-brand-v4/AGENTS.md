@@ -33,7 +33,9 @@ Never reinterpret the symbol as a shield, lock, delete icon, or disabled state.
 Do not change backend/security behavior to satisfy the design.
 
 ## 3. Mandatory files
-Read:
+Read in this order:
+- `agent/MESSAGING_SYSTEM.md`
+- `agent/SITEMAP_AND_MESSAGING.md`
 - `src/brand/brand.config.ts`
 - `src/brand/tokens.css`
 - `src/brand/components.css`
@@ -130,7 +132,27 @@ Prefer exact operational language:
 
 Avoid calling an output `Safe`, `Anonymous`, or `Secure` unless that is technically established in context.
 
-Homepage source copy lives in `src/brand/copy.ts`.
+Canonical page and product copy lives in `src/brand/copy.ts`. Route-level intent and section order live in `agent/specs/pages/`, `agent/specs/app/`, and `agent/specs/page-messaging.json`. Do not improvise a new positioning statement because another phrase sounds more “SaaS”.
+
+
+## 10A. Page/message implementation contract
+Before implementing any route:
+1. identify the route purpose in `agent/SITEMAP_AND_MESSAGING.md`
+2. read the matching JSON spec under `agent/specs/pages/` or `agent/specs/app/`
+3. use canonical copy from `src/brand/copy.ts` unless repository facts require a more specific version
+4. discover product facts from the repository before rendering formats, endpoints, plans, SDKs, mappings, retention, regions, or security claims
+5. omit sections whose required facts do not exist
+
+Messaging responsibilities are deliberately separated:
+- Homepage = what + why
+- Product = what happens
+- Developers = how it enters software
+- Security = verified handling facts
+- Pricing = what costs money
+- Docs = how to do the task
+- App = current state + next action
+
+Do not paste the same hero copy onto every page.
 
 ## 11. Marketing page
 Implement `agent/specs/homepage.json`.

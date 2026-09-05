@@ -1,0 +1,42 @@
+{
+  "route": "/developers",
+  "kind": "marketing",
+  "objective": "Show developers how pseudonymization can be inserted into real data flow.",
+  "seo": {
+    "title": "Developers \u2014 pseudonymize.io",
+    "description": "Integrate pseudonymization into supported data workflows with the pseudonymize.io API and developer tools."
+  },
+  "hero": {
+    "h1": "Put pseudonymization in the path of sensitive data.",
+    "lead": "Use the API or supported integration surface to replace identifiers before content reaches downstream systems that do not require the originals.",
+    "primaryCta": "Read the docs",
+    "secondaryCta": "Pseudonymize data"
+  },
+  "sections": [
+    {
+      "id": "request",
+      "heading": "One real request. One real result.",
+      "rule": "Use an endpoint and payload discovered from the repository. Never fabricate."
+    },
+    {
+      "id": "auth",
+      "heading": "Authentication",
+      "rule": "Show only configured authentication mechanism."
+    },
+    {
+      "id": "inputs",
+      "heading": "Supported inputs",
+      "rule": "Derive formats from product code/docs."
+    },
+    {
+      "id": "errors",
+      "heading": "Handle processing states explicitly.",
+      "rule": "Use actual response/error model."
+    },
+    {
+      "id": "sdks",
+      "heading": "SDKs",
+      "rule": "Render only packages that exist."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "routeCandidates": [
+    "/app/mappings",
+    "/mappings"
+  ],
+  "conditional": true,
+  "objective": "Inspect actual stored/reusable mappings when product architecture exposes them.",
+  "title": "Mappings",
+  "lead": "Inspect the relationship between original identifiers and their pseudonyms.",
+  "rule": "This page can contain sensitive originals. Do not claim mappings are reversible/deterministic unless verified."
+}

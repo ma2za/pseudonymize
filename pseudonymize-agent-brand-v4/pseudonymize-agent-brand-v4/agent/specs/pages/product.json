@@ -1,0 +1,52 @@
+{
+  "route": "/product",
+  "kind": "marketing",
+  "objective": "Explain supported inputs, transformation behavior, review states, and downstream output.",
+  "seo": {
+    "title": "Product \u2014 pseudonymize.io",
+    "description": "Pseudonymize identifiers across supported text, structured data and files while preserving useful context."
+  },
+  "hero": {
+    "h1": "One pseudonymization layer for text, structured data and files.",
+    "lead": "Send supported content through one processing layer, replace detected identifiers with pseudonyms, and continue working with the surrounding context intact.",
+    "primaryCta": "Pseudonymize data",
+    "secondaryCta": "Read the docs"
+  },
+  "sections": [
+    {
+      "id": "text",
+      "heading": "Text",
+      "copy": "Replace identifiers inside prose without flattening the text around them."
+    },
+    {
+      "id": "data",
+      "heading": "Structured data",
+      "copy": "Pseudonymize identifier fields while keeping rows and schemas usable."
+    },
+    {
+      "id": "files",
+      "heading": "Files",
+      "copy": "Process supported files without manually extracting their sensitive content first."
+    },
+    {
+      "id": "model",
+      "heading": "The context stays. The identifiers change.",
+      "copy": "Show the transformation model literally. Do not imply anonymization."
+    },
+    {
+      "id": "review",
+      "heading": "Review what needs attention.",
+      "copy": "Only include if review/uncertainty states exist in the product."
+    },
+    {
+      "id": "mapping",
+      "heading": "Use consistent mappings when the workflow requires them.",
+      "copy": "Conditional. Rewrite or omit unless consistent/stable mapping is verified."
+    },
+    {
+      "id": "developers",
+      "heading": "Integrate where the data moves.",
+      "copy": "Bridge to real API/docs capability."
+    }
+  ]
+}

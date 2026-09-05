@@ -1,0 +1,11 @@
+{
+  "404": {
+    "h1": "Page not found",
+    "body": "The page you requested does not exist or has moved.",
+    "cta": "Go to pseudonymize.io"
+  },
+  "genericError": {
+    "h1": "Something failed",
+    "rule": "Prefer a specific application error. Explain what failed, whether source data changed, and the next action. Do not joke."
+  }
+}

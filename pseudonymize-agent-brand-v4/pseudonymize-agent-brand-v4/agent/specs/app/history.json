@@ -1,0 +1,17 @@
+{
+  "routeCandidates": [
+    "/app/history",
+    "/history"
+  ],
+  "objective": "Let users find previously processed items without unnecessarily exposing original identifiers.",
+  "title": "Processing history",
+  "empty": "No processed items yet.",
+  "preferredColumns": [
+    "Name / input",
+    "Type",
+    "Status",
+    "Processed at",
+    "Action"
+  ],
+  "rule": "Use only fields actually stored. Do not put raw sensitive values into the list merely for context."
+}

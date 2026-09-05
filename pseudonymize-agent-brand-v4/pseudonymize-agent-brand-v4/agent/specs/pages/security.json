@@ -1,0 +1,25 @@
+{
+  "route": "/security",
+  "kind": "trust",
+  "objective": "Expose concrete and sourced data-handling/security facts.",
+  "seo": {
+    "title": "Security & privacy \u2014 pseudonymize.io",
+    "description": "Technical information about how pseudonymize.io handles data and infrastructure, using verified claims only."
+  },
+  "hero": {
+    "h1": "Security claims should be inspectable.",
+    "lead": "This page documents how pseudonymize.io handles data and infrastructure. Every claim shown here must be backed by an internal source or public policy."
+  },
+  "sectionOrder": [
+    "Data processing",
+    "Retention",
+    "Encryption",
+    "Infrastructure / region",
+    "Access controls",
+    "Subprocessors",
+    "Security reporting",
+    "Certifications / audits"
+  ],
+  "renderRule": "Render only verified sections. It is acceptable for this page to be short. Never fill gaps with reassurance copy.",
+  "claimSchema": "agent/specs/security-claims.schema.json"
+}

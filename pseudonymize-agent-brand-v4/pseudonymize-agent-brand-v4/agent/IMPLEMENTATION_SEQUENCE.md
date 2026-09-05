@@ -37,3 +37,7 @@ Do not create unused surfaces just because the kit contains a spec.
 - visual QA
 - security-claims QA
 - responsive keyboard check
+
+
+## Content pass
+For every implemented route, map it to `agent/SITEMAP_AND_MESSAGING.md`, load the matching page/app JSON spec, then wire copy from `src/brand/copy.ts`. Do not create unsupported proof, pricing, API, or trust content.
