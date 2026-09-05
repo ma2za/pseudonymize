@@ -133,11 +133,11 @@ Exit criteria:
 Stable local processing for text, nested Python data, and plain or machine-readable files, with a
 documented compatibility policy and zero base runtime dependencies.
 
-## The Road to 90% (Achieved in 0.21.0)
+## The Road to 90% (Historical Anomaly)
 
-The core engine previously fell short of production-grade precision and recall on real-world datasets. Reaching a consistent 90% baseline across Precision, Recall, and F1 metrics was the strict prerequisite before pursuing any new extraction features. 
+The core engine previously aimed for a production-grade precision and recall on real-world datasets, targeting a 90% baseline.
 
-**This milestone was successfully shattered in release `0.22.0`, which achieved an F1 score of >94% on a 10,000 sample validation run.**
+**While early releases (e.g., `0.22.0`) recorded an F1 score of >94%, this was discovered to be an anomaly caused by permissive benchmark overlapping rules.** Under the strictly enforced 1-to-1 label and boundary matching introduced in `1.0.0`, the true, robust baseline sits at ~70% F1. We remain committed to safe, generalized improvements without overfitting to the evaluation script.
 
 ### `0.13.0`: The 90% Benchmark Gate (Achieved)
 - **Status:** **Completed early.** The base model and heuristics have officially surpassed the 90% barrier without requiring custom fine-tuning pathways.

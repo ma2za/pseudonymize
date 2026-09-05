@@ -60,9 +60,9 @@ Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split
 | Recall | 0.8333 |
 | F1 Score | 0.8883 |
 
-## `0.22.0` (Massive Recall Boost)
+## `1.0.0` (Strict Evaluation Baseline)
 
-Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 10000 randomly sampled rows). This incorporates all ML and contextual heuristic enhancements up through 0.22.0, officially breaking the 94% F1 threshold.
+Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows). This incorporates all ML and contextual heuristic enhancements. *Note: Earlier releases reported scores >90%, but those were generated under an obsolete, permissive overlap scoring method. This is the honest baseline under strict 1-to-1 boundary and label matching.*
 
 **Results:**
 
