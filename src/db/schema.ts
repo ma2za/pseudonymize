@@ -8,8 +8,8 @@ export const user = pgTable("user", {
 					image: text('image'),
 					createdAt: timestamp('created_at').notNull(),
 					updatedAt: timestamp('updated_at').notNull(),
-          credits: integer('credits').notNull().default(0)
-				});
+					credits: integer('credits').notNull().default(5)
+					});
 
 export const session = pgTable("session", {
 					id: text("id").primaryKey(),
