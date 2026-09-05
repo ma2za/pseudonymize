@@ -1,0 +1,29 @@
+:root {
+  --pz-ink: #0A0F14;
+  --pz-ink-2: #111820;
+  --pz-surface: #151E27;
+  --pz-surface-2: #1B2631;
+  --pz-line: #263441;
+  --pz-muted: #8A9AAA;
+  --pz-text: #EAF1F5;
+  --pz-paper: #F6F8FA;
+  --pz-paper-2: #EEF2F5;
+  --pz-paper-line: #D7E0E7;
+  --pz-paper-text: #111820;
+  --pz-cipher: #35D0A5;
+  --pz-cipher-hover: #29BA91;
+  --pz-cipher-soft: #CFF7EB;
+  --pz-info: #69A7FF;
+  --pz-warning: #E7B04A;
+  --pz-danger: #E86A6A;
+
+  --pz-radius-sm: 6px;
+  --pz-radius-md: 10px;
+  --pz-radius-lg: 14px;
+
+  --pz-shadow-sm: 0 1px 2px rgba(10,15,20,.08);
+  --pz-shadow-md: 0 8px 24px rgba(10,15,20,.10);
+
+  --pz-font-sans: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --pz-font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+}
