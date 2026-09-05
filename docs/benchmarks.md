@@ -40,10 +40,9 @@ validation rows with the ONNX backend enabled.
 
 | Version | Scoring | Precision | Recall | F1 |
 | --- | --- | ---: | ---: | ---: |
-| `0.17.0` | As previously reported (1000 rows) | 0.9475 | 0.8910 | 0.9184 |
 | `0.17.0` | Corrected, `--span-only` | 0.9316 | 0.7529 | 0.8328 |
 | `0.17.0` | Corrected, entity types compared | 0.8094 | 0.6536 | 0.7232 |
-| `0.19.0` | As previously reported (1000 rows) | 0.9479 | 0.8982 | 0.9224 |
+| `1.0.0` | Strict boundary and label adherence (1000 rows) | 0.9141 | 0.5465 | 0.6840 |
 | `0.19.0` | Corrected, `--span-only` | 0.9317 | 0.7542 | 0.8336 |
 | `0.19.0` | Corrected, entity types compared | 0.8097 | 0.6549 | 0.7241 |
 
