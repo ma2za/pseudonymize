@@ -3,6 +3,7 @@ import { Link } from '@/i18n/routing';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import LanguageSwitcher from './LanguageSwitcher';
+import { ThemeToggle } from './ThemeToggle';
 import { Logo } from '@/brand/components';
 
 export default async function Header() {
@@ -30,6 +31,7 @@ export default async function Header() {
             {t('openSource')}
           </a>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
         <div className="flex flex-1 justify-end items-center gap-4">
           {session ? (
