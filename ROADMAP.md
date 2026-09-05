@@ -146,8 +146,11 @@ Replace rigid regex context lookaheads with lightweight dependency parsing to id
 ### `1.3.0`: Entity-Specific Confidence Calibration
 Calculate optimal, dynamic confidence thresholds per entity class based exclusively on the `train` split to boost recall for underperforming classes.
 
-### `1.4.0`: Secondary NER Ensembling
-Integrate a fast, secondary statistical model (e.g., CRF) to vote on tricky `PERSON` and `LOCATION` boundaries alongside the ONNX backend.
+### `1.4.0`: Lightweight PII Model Trials
+Evaluate alternative CPU-friendly, local PII models (e.g., smaller quantized BERT variants, specialized token classifiers) against the current ONNX backend. A new model will only be kept if it empirically improves strict boundary matching without requiring a GPU.
+
+### `1.4.1`: Secondary NER Ensembling
+Integrate the winning lightweight model as a secondary voting mechanism alongside the primary backend to resolve tricky `PERSON` and `LOCATION` boundaries.
 
 ### `1.5.0`: Advanced Punctuation Boundary Rules
 Implement language-aware boundary trimming that safely separates structural punctuation from valid entity characters.
