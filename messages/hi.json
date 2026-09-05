@@ -5,6 +5,39 @@
     "getStarted": "Get Started",
     "viewOpenSource": "View open source"
   },
+  "Global": {
+    "blog": "Blog",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "openSource": "Open Source",
+    "copyright": "© 2026 pseudonymize.io. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "Signup": {
+    "title": "Create your account",
+    "nameLabel": "Full Name",
+    "emailLabel": "Email address",
+    "passwordLabel": "Password",
+    "signUpButton": "Sign up",
+    "orContinueWith": "Or continue with",
+    "googleButton": "Google",
+    "alreadyHaveAccount": "Already have an account? Sign in"
+  },
+  "ForgotPassword": {
+    "title": "Reset your password",
+    "description": "Enter your email address and we will send you a link to reset your password.",
+    "emailLabel": "Email address",
+    "sendLinkButton": "Send reset link",
+    "backToLogin": "Back to login",
+    "checkEmail": "Check your email for the reset link!"
+  },
+  "ResetPassword": {
+    "title": "Set new password",
+    "passwordLabel": "New password",
+    "resetButton": "Reset password",
+    "successMessage": "Password reset successfully. Redirecting..."
+  },
   "Login": {
     "title": "Sign in to your account",
     "emailLabel": "Email address",
@@ -12,7 +45,9 @@
     "signInButton": "Sign in",
     "orContinueWith": "Or continue with",
     "googleButton": "Google",
-    "backToHome": "← Back to Home"
+    "backToHome": "← Back to Home",
+    "dontHaveAccount": "Don't have an account? Sign up",
+    "forgotPassword": "Forgot password?"
   },
   "Blog": {
     "blogTitle": "Our Blog",

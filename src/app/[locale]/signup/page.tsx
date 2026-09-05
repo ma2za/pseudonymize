@@ -4,16 +4,18 @@ import { authClient } from '@/lib/auth-client';
 import { Link, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 
-export default function LoginPage() {
-  const t = useTranslations('Login');
+export default function SignupPage() {
+  const t = useTranslations('Signup');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await authClient.signIn.email({
+    await authClient.signUp.email({
+      name,
       email,
       password,
       fetchOptions: {
@@ -24,7 +26,7 @@ export default function LoginPage() {
     });
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignup = async () => {
     await authClient.signIn.social({
       provider: "google",
       callbackURL: "/dashboard"
@@ -40,7 +42,13 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form className="space-y-6" onSubmit={handleLogin}>
+        <form className="space-y-6" onSubmit={handleSignup}>
+          <div>
+            <label htmlFor="name-input" className="block text-sm font-medium leading-6 text-gray-900">{t('nameLabel')}</label>
+            <div className="mt-2">
+              <input id="name-input" type="text" required className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3" value={name} onChange={e => setName(e.target.value)} />
+            </div>
+          </div>
           <div>
             <label htmlFor="email-input" className="block text-sm font-medium leading-6 text-gray-900">{t('emailLabel')}</label>
             <div className="mt-2">
@@ -53,13 +61,8 @@ export default function LoginPage() {
               <input id="password-input" type="password" required className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="text-sm leading-6">
-              <Link href="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-500">{t('forgotPassword')}</Link>
-            </div>
-          </div>
           <div>
-            <button type="submit" className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500">{t('signInButton')}</button>
+            <button type="submit" className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500">{t('signUpButton')}</button>
           </div>
         </form>
 
@@ -70,7 +73,7 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6">
-            <button onClick={handleGoogleLogin} className="flex w-full justify-center items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+            <button onClick={handleGoogleSignup} className="flex w-full justify-center items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
               <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" fill="currentColor" /></svg>
               {t('googleButton')}
             </button>
@@ -78,10 +81,7 @@ export default function LoginPage() {
         </div>
         
         <p className="mt-10 text-center text-sm text-gray-500">
-          <Link href="/signup" className="font-semibold leading-6 text-blue-600 hover:text-blue-500">{t('dontHaveAccount')}</Link>
-        </p>
-        <p className="mt-4 text-center text-sm text-gray-500">
-          <Link href="/" className="font-semibold leading-6 text-gray-900 hover:text-gray-700">{t('backToHome')}</Link>
+          <Link href="/login" className="font-semibold leading-6 text-blue-600 hover:text-blue-500">{t('alreadyHaveAccount')}</Link>
         </p>
       </div>
     </div>
