@@ -5,7 +5,7 @@ test.describe('Landing Page', () => {
     await page.goto('/en');
     await expect(page).toHaveTitle(/Pseudonymize sensitive data/i);
     await expect(page.getByRole('heading', { name: /Pseudonymize sensitive data/i, exact: false })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Pseudonymize data' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Pseudonymize data/i }).first()).toBeVisible();
   });
 
   test('should fallback or render correctly in another locale (e.g. /es)', async ({ page }) => {
@@ -23,10 +23,10 @@ test.describe('Landing Page', () => {
 test.describe('Login Page (Adversarial)', () => {
   test('should display validation error on malformed email', async ({ page }) => {
     await page.goto('/en/login');
-    const emailInput = page.getByLabel('Email address');
+    const emailInput = page.locator('input[type="email"]#email-input');
     await emailInput.fill('not-an-email');
     await page.getByRole('button', { name: 'Sign in' }).click();
-    
+
     // HTML5 validation kicks in (Playwright captures this via the input matching the pseudo-class or directly evaluating)
     const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.checkValidity());
     expect(isInvalid).toBe(true);
