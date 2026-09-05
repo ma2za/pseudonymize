@@ -8,17 +8,21 @@
   - F1 Score: `0.6826`
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, strict rules).*
 
-## Immediate Next Milestone: `1.0.0`
-**Focus:** Mature Compatibility Commitment
+## Immediate Next Milestone: `1.1.0` to `1.10.0`
+**Focus:** Benchmark Recovery Pipeline
 
-### Objective for the next session
-The final push to `1.0.0`. We need to freeze the public API, enforce `__all__` exports, run the full 10,000 sample benchmark one last time, and officially guarantee semantic versioning backward compatibility going forward.
-
-### Hard Constraints (DO NOT VIOLATE)
-1. **Quality Maintenance:** You are strictly forbidden from finalizing the `1.0.0` release if `uv run python benchmarks/evaluate_quality.py --ml --samples 1000` proves that Precision, Recall, or F1 scores have materially degraded.
-2. **Execution Context:** Use the `uv` toolchain for all checks.
+The next 10 releases are singularly focused on improving the F1 score back to >0.90 under the strict evaluation rules:
+- **1.1.0:** Token-to-Character Alignment Optimization
+- **1.2.0:** NLP-Driven Context Detectors
+- **1.3.0:** Entity-Specific Confidence Calibration
+- **1.4.0:** Secondary NER Ensembling
+- **1.5.0:** Advanced Punctuation Boundary Rules
+- **1.6.0:** Local Location & Address Parsing
+- **1.7.0:** Attention-Mask Context Boosting
+- **1.8.0:** Generative LLM Backend Integration
+- **1.9.0:** Multi-Pass Boundary Refinement
+- **1.10.0:** The Strict 90% Benchmark Gate
 
 ### Instructions to resume
-1. Audit `__all__` in `src/pseudonymize/__init__.py`.
-2. Final review of test coverage and `mypy --strict` compliance.
-3. Run all tests, formatting, and standard release validation steps.
+1. Start by investigating the fast tokenizer alignment offsets for 1.1.0.
+2. Develop robust boundary trim heuristics on the 	rain split exclusively.
