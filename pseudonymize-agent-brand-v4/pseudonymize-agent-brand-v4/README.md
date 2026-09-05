@@ -35,3 +35,15 @@ Implementation package for coding agents. This is not a presentation deck and co
 - `agent/specs/accessibility.json`
 
 The kit intentionally ships no static preview mockups. A coding agent should apply the system to the real product, not copy pixels from a screenshot.
+
+## For page implementation
+
+Coding agents should read, in order:
+1. `AGENTS.md`
+2. `agent/MESSAGING_SYSTEM.md`
+3. `agent/SITEMAP_AND_MESSAGING.md`
+4. the route spec under `agent/specs/pages/` or `agent/specs/app/`
+5. `src/brand/copy.ts`
+6. the relevant visual/component specs
+
+The page specs contain page purpose, H1/lead/CTA defaults, section order, conditional content rules, and explicit prohibitions against invented product/security/commercial facts.

@@ -1,0 +1,26 @@
+{
+  "route": "/pricing",
+  "kind": "commercial",
+  "objective": "State exactly what is charged and what the customer gets.",
+  "seo": {
+    "title": "Pricing \u2014 pseudonymize.io",
+    "description": "Pricing for pseudonymize.io. The implementation must source real plans, allowances and billing units from the product."
+  },
+  "hero": {
+    "h1": "Pricing that follows actual usage.",
+    "conditional": "Use only for a real usage-based billing model; otherwise replace with a factual model-specific headline."
+  },
+  "firstViewportMustContain": [
+    "billing unit",
+    "base/subscription fee if any",
+    "included allowance if any",
+    "overage behavior if any"
+  ],
+  "planRules": [
+    "Use real plan names only",
+    "No invented enterprise features",
+    "No crossed-out fake anchor price",
+    "Contact sales only if a sales path exists"
+  ],
+  "unknownBehavior": "Preserve existing pricing implementation and add a TODO/implementation note rather than inventing values."
+}

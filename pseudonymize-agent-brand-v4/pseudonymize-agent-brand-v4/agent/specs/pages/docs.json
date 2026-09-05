@@ -1,0 +1,21 @@
+{
+  "route": "/docs",
+  "kind": "documentation",
+  "objective": "Get a developer to first successful processing quickly.",
+  "seo": {
+    "title": "Documentation \u2014 pseudonymize.io",
+    "description": "Integrate and use pseudonymize.io for supported pseudonymization workflows."
+  },
+  "hero": {
+    "h1": "Documentation",
+    "lead": "Integrate pseudonymization into your workflow, understand supported inputs, and handle processing results and errors."
+  },
+  "entryLinks": [
+    "Quickstart",
+    "Pseudonymize text",
+    "Process structured data",
+    "Upload a file",
+    "API reference"
+  ],
+  "rule": "Only render links/pages that exist. Documentation is light/readable by default, with dark code blocks as needed."
+}

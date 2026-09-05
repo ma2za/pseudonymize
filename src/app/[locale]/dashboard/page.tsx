@@ -52,13 +52,19 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
               {t('apiKeysTitle')}
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500 mb-5">
+            <div className="mt-2 max-w-xl text-sm text-[var(--pz-text-secondary)] mb-5">
               <p>{t('apiKeysDescription')}</p>
             </div>
             
+            <div className="mb-6">
+              <Link href="/dashboard/settings" className="text-sm font-semibold text-[var(--pz-cipher-strong)] hover:text-[var(--pz-cipher)]">
+                {t.has('settingsLink') ? t('settingsLink') : 'Account Settings'} &rarr;
+              </Link>
+            </div>
+
             <ApiKeyManager initialKeys={initialKeys} dict={keyDict} />
             
           </div>

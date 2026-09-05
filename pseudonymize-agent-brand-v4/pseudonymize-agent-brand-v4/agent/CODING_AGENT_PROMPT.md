@@ -17,3 +17,12 @@ Critical requirements:
 - complete both supplied QA checklists before stopping
 
 Do not ask for trivial aesthetic choices. Make the implementation decisions implied by this system.
+
+## Page and messaging requirements
+Before editing a route, read:
+- `agent/MESSAGING_SYSTEM.md`
+- `agent/SITEMAP_AND_MESSAGING.md`
+- the matching route spec in `agent/specs/pages/` or `agent/specs/app/`
+- `src/brand/copy.ts`
+
+Treat the supplied page copy as the default source of truth. Replace or extend it only when repository facts make more specific wording necessary. Never invent product formats, SDKs, endpoints, pricing, customer proof, security claims, data handling, or compliance facts to fill a page. Omit unsupported sections instead.

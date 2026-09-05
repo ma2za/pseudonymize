@@ -1,0 +1,10 @@
+{
+  "route": "/about",
+  "kind": "company",
+  "objective": "Explain the product thesis and real company/team facts. Optional route.",
+  "hero": {
+    "h1": "Sensitive data should not travel farther than it needs to.",
+    "lead": "Many workflows need the information around an identifier without needing the identifier itself. pseudonymize.io exists to make that separation practical."
+  },
+  "rule": "Do not create solely to fill footer space. Use real company/team facts only."
+}

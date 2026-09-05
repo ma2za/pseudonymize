@@ -1,0 +1,17 @@
+{
+  "routeCandidates": [
+    "/app/settings",
+    "/settings"
+  ],
+  "objective": "Configure real workspace/account/product settings without marketing language.",
+  "title": "Settings",
+  "possibleSections": [
+    "Workspace",
+    "Members",
+    "Processing defaults",
+    "Billing",
+    "Data handling",
+    "API"
+  ],
+  "rule": "Render only concepts that exist. Prefer flat bordered sections over cards."
+}

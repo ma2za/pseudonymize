@@ -1,0 +1,379 @@
+{
+  "tagline": "Keep the context. Replace the identifiers.",
+  "positioning": "Pseudonymize sensitive identifiers before data reaches systems that do not need the originals, while preserving the surrounding context and structure the workflow still needs.",
+  "pages": {
+    "homepage": {
+      "route": "/",
+      "kind": "marketing",
+      "objective": "Explain pseudonymization in the first viewport and route visitors to product or documentation.",
+      "seo": {
+        "title": "pseudonymize.io \u2014 Pseudonymization for text, data and files",
+        "description": "Replace sensitive identifiers with pseudonyms while preserving the context and structure your workflows still need."
+      },
+      "hero": {
+        "eyebrow": "PSEUDONYMIZATION INFRASTRUCTURE",
+        "h1": "Pseudonymize sensitive data before it reaches systems that do not need the original identifiers.",
+        "lead": "Replace personal identifiers across text, structured data and files while preserving the surrounding context your workflow depends on.",
+        "primaryCta": "Pseudonymize data",
+        "secondaryCta": "View documentation"
+      },
+      "sections": [
+        {
+          "id": "inputs",
+          "heading": "One operation across the data you actually use.",
+          "message": "Use only input modes supported by the product. Default labels: Text, Structured data, Files.",
+          "layout": "compact rows, not floating feature cards"
+        },
+        {
+          "id": "proof",
+          "heading": "Replace the identifier. Keep everything around it.",
+          "message": "Use a real before/after example where surrounding context is visibly unchanged.",
+          "layout": "full-width source/result comparison"
+        },
+        {
+          "id": "workflow",
+          "heading": "Pseudonymization belongs before unnecessary exposure.",
+          "steps": [
+            "Detect identifiers",
+            "Replace them with pseudonyms",
+            "Continue the workflow with the remaining context"
+          ],
+          "layout": "single horizontal rail on desktop; vertical on mobile"
+        },
+        {
+          "id": "developers",
+          "heading": "Put it in the data path.",
+          "message": "Render a real API/integration example from repository evidence.",
+          "cta": "Read the docs"
+        },
+        {
+          "id": "trust",
+          "heading": "Inspect the handling, not the adjectives.",
+          "message": "Verified facts only from security source. Omit entire section when none exist."
+        },
+        {
+          "id": "final",
+          "heading": "Keep the context. Replace the identifiers.",
+          "primaryCta": "Pseudonymize data",
+          "secondaryCta": "View documentation"
+        }
+      ],
+      "forbidden": [
+        "testimonials without source",
+        "customer logos without source",
+        "compliance badges without evidence",
+        "fabricated metrics",
+        "generic AI/security illustration",
+        "FAQ filler"
+      ]
+    },
+    "product": {
+      "route": "/product",
+      "kind": "marketing",
+      "objective": "Explain supported inputs, transformation behavior, review states, and downstream output.",
+      "seo": {
+        "title": "Product \u2014 pseudonymize.io",
+        "description": "Pseudonymize identifiers across supported text, structured data and files while preserving useful context."
+      },
+      "hero": {
+        "h1": "One pseudonymization layer for text, structured data and files.",
+        "lead": "Send supported content through one processing layer, replace detected identifiers with pseudonyms, and continue working with the surrounding context intact.",
+        "primaryCta": "Pseudonymize data",
+        "secondaryCta": "Read the docs"
+      },
+      "sections": [
+        {
+          "id": "text",
+          "heading": "Text",
+          "copy": "Replace identifiers inside prose without flattening the text around them."
+        },
+        {
+          "id": "data",
+          "heading": "Structured data",
+          "copy": "Pseudonymize identifier fields while keeping rows and schemas usable."
+        },
+        {
+          "id": "files",
+          "heading": "Files",
+          "copy": "Process supported files without manually extracting their sensitive content first."
+        },
+        {
+          "id": "model",
+          "heading": "The context stays. The identifiers change.",
+          "copy": "Show the transformation model literally. Do not imply anonymization."
+        },
+        {
+          "id": "review",
+          "heading": "Review what needs attention.",
+          "copy": "Only include if review/uncertainty states exist in the product."
+        },
+        {
+          "id": "mapping",
+          "heading": "Use consistent mappings when the workflow requires them.",
+          "copy": "Conditional. Rewrite or omit unless consistent/stable mapping is verified."
+        },
+        {
+          "id": "developers",
+          "heading": "Integrate where the data moves.",
+          "copy": "Bridge to real API/docs capability."
+        }
+      ]
+    },
+    "developers": {
+      "route": "/developers",
+      "kind": "marketing",
+      "objective": "Show developers how pseudonymization can be inserted into real data flow.",
+      "seo": {
+        "title": "Developers \u2014 pseudonymize.io",
+        "description": "Integrate pseudonymization into supported data workflows with the pseudonymize.io API and developer tools."
+      },
+      "hero": {
+        "h1": "Put pseudonymization in the path of sensitive data.",
+        "lead": "Use the API or supported integration surface to replace identifiers before content reaches downstream systems that do not require the originals.",
+        "primaryCta": "Read the docs",
+        "secondaryCta": "Pseudonymize data"
+      },
+      "sections": [
+        {
+          "id": "request",
+          "heading": "One real request. One real result.",
+          "rule": "Use an endpoint and payload discovered from the repository. Never fabricate."
+        },
+        {
+          "id": "auth",
+          "heading": "Authentication",
+          "rule": "Show only configured authentication mechanism."
+        },
+        {
+          "id": "inputs",
+          "heading": "Supported inputs",
+          "rule": "Derive formats from product code/docs."
+        },
+        {
+          "id": "errors",
+          "heading": "Handle processing states explicitly.",
+          "rule": "Use actual response/error model."
+        },
+        {
+          "id": "sdks",
+          "heading": "SDKs",
+          "rule": "Render only packages that exist."
+        }
+      ]
+    },
+    "security": {
+      "route": "/security",
+      "kind": "trust",
+      "objective": "Expose concrete and sourced data-handling/security facts.",
+      "seo": {
+        "title": "Security & privacy \u2014 pseudonymize.io",
+        "description": "Technical information about how pseudonymize.io handles data and infrastructure, using verified claims only."
+      },
+      "hero": {
+        "h1": "Security claims should be inspectable.",
+        "lead": "This page documents how pseudonymize.io handles data and infrastructure. Every claim shown here must be backed by an internal source or public policy."
+      },
+      "sectionOrder": [
+        "Data processing",
+        "Retention",
+        "Encryption",
+        "Infrastructure / region",
+        "Access controls",
+        "Subprocessors",
+        "Security reporting",
+        "Certifications / audits"
+      ],
+      "renderRule": "Render only verified sections. It is acceptable for this page to be short. Never fill gaps with reassurance copy.",
+      "claimSchema": "agent/specs/security-claims.schema.json"
+    },
+    "pricing": {
+      "route": "/pricing",
+      "kind": "commercial",
+      "objective": "State exactly what is charged and what the customer gets.",
+      "seo": {
+        "title": "Pricing \u2014 pseudonymize.io",
+        "description": "Pricing for pseudonymize.io. The implementation must source real plans, allowances and billing units from the product."
+      },
+      "hero": {
+        "h1": "Pricing that follows actual usage.",
+        "conditional": "Use only for a real usage-based billing model; otherwise replace with a factual model-specific headline."
+      },
+      "firstViewportMustContain": [
+        "billing unit",
+        "base/subscription fee if any",
+        "included allowance if any",
+        "overage behavior if any"
+      ],
+      "planRules": [
+        "Use real plan names only",
+        "No invented enterprise features",
+        "No crossed-out fake anchor price",
+        "Contact sales only if a sales path exists"
+      ],
+      "unknownBehavior": "Preserve existing pricing implementation and add a TODO/implementation note rather than inventing values."
+    },
+    "docs": {
+      "route": "/docs",
+      "kind": "documentation",
+      "objective": "Get a developer to first successful processing quickly.",
+      "seo": {
+        "title": "Documentation \u2014 pseudonymize.io",
+        "description": "Integrate and use pseudonymize.io for supported pseudonymization workflows."
+      },
+      "hero": {
+        "h1": "Documentation",
+        "lead": "Integrate pseudonymization into your workflow, understand supported inputs, and handle processing results and errors."
+      },
+      "entryLinks": [
+        "Quickstart",
+        "Pseudonymize text",
+        "Process structured data",
+        "Upload a file",
+        "API reference"
+      ],
+      "rule": "Only render links/pages that exist. Documentation is light/readable by default, with dark code blocks as needed."
+    },
+    "about": {
+      "route": "/about",
+      "kind": "company",
+      "objective": "Explain the product thesis and real company/team facts. Optional route.",
+      "hero": {
+        "h1": "Sensitive data should not travel farther than it needs to.",
+        "lead": "Many workflows need the information around an identifier without needing the identifier itself. pseudonymize.io exists to make that separation practical."
+      },
+      "rule": "Do not create solely to fill footer space. Use real company/team facts only."
+    }
+  },
+  "app": {
+    "workspace": {
+      "routeCandidates": [
+        "/app",
+        "/app/new",
+        "/workspace"
+      ],
+      "objective": "Get source input through pseudonymization and make the result/status unambiguous.",
+      "title": "Pseudonymize",
+      "modes": [
+        "Text",
+        "Data",
+        "Files"
+      ],
+      "source": {
+        "title": "Source",
+        "textEmpty": "Paste text containing identifiers you want to replace.",
+        "fileEmpty": "Choose a supported file to process."
+      },
+      "action": "Pseudonymize",
+      "result": {
+        "title": "Result",
+        "empty": "The pseudonymized result will appear here.",
+        "success": "Pseudonymized",
+        "review": "Review required"
+      },
+      "resultActions": [
+        "Copy result",
+        "Download result",
+        "View mappings"
+      ],
+      "rule": "Render modes/actions only when implemented. Never use Secure or Anonymize as the primary action/status."
+    },
+    "history": {
+      "routeCandidates": [
+        "/app/history",
+        "/history"
+      ],
+      "objective": "Let users find previously processed items without unnecessarily exposing original identifiers.",
+      "title": "Processing history",
+      "empty": "No processed items yet.",
+      "preferredColumns": [
+        "Name / input",
+        "Type",
+        "Status",
+        "Processed at",
+        "Action"
+      ],
+      "rule": "Use only fields actually stored. Do not put raw sensitive values into the list merely for context."
+    },
+    "mappings": {
+      "routeCandidates": [
+        "/app/mappings",
+        "/mappings"
+      ],
+      "conditional": true,
+      "objective": "Inspect actual stored/reusable mappings when product architecture exposes them.",
+      "title": "Mappings",
+      "lead": "Inspect the relationship between original identifiers and their pseudonyms.",
+      "rule": "This page can contain sensitive originals. Do not claim mappings are reversible/deterministic unless verified."
+    },
+    "api-keys": {
+      "routeCandidates": [
+        "/app/api-keys",
+        "/settings/api-keys"
+      ],
+      "conditional": true,
+      "objective": "Manage API credentials when API authentication exists.",
+      "title": "API keys",
+      "lead": "Create and manage credentials used to access the pseudonymize.io API.",
+      "primaryCta": "Create API key",
+      "destructive": "Revoke key",
+      "oneTimeReveal": "Copy this key now. It may not be shown again.",
+      "oneTimeRevealConditional": "Use only if this is true in implementation."
+    },
+    "settings": {
+      "routeCandidates": [
+        "/app/settings",
+        "/settings"
+      ],
+      "objective": "Configure real workspace/account/product settings without marketing language.",
+      "title": "Settings",
+      "possibleSections": [
+        "Workspace",
+        "Members",
+        "Processing defaults",
+        "Billing",
+        "Data handling",
+        "API"
+      ],
+      "rule": "Render only concepts that exist. Prefer flat bordered sections over cards."
+    },
+    "auth": {
+      "routes": [
+        "/sign-in",
+        "/sign-up"
+      ],
+      "signIn": {
+        "h1": "Sign in",
+        "lead": ""
+      },
+      "signUp": {
+        "h1": "Create your account",
+        "lead": "Start pseudonymizing supported data and configure integrations available to your workspace."
+      },
+      "rule": "Authentication pages are quiet. Provider labels must match configured providers exactly."
+    },
+    "system": {
+      "404": {
+        "h1": "Page not found",
+        "body": "The page you requested does not exist or has moved.",
+        "cta": "Go to pseudonymize.io"
+      },
+      "genericError": {
+        "h1": "Something failed",
+        "rule": "Prefer a specific application error. Explain what failed, whether source data changed, and the next action. Do not joke."
+      }
+    }
+  },
+  "cta": {
+    "primaryMarketing": "Pseudonymize data",
+    "developer": "Read the docs",
+    "secondaryMarketing": "View documentation",
+    "auth": "Sign in"
+  },
+  "status": [
+    "Not processed",
+    "Processing",
+    "Pseudonymized",
+    "Review required",
+    "Failed"
+  ]
+}

@@ -84,6 +84,20 @@
     "package50k": "Pro Package",
     "mostPopular": "Most Popular",
     "creditsLabel": "Credits",
-    "redirecting": "Redirecting..."
+    "redirecting": "Redirecting...",
+    "profileSettingsTitle": "Profile Settings",
+    "profileSettingsDesc": "Update your account information.",
+    "nameLabel": "Full Name",
+    "emailLabel": "Email Address",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "profileUpdated": "Profile updated successfully.",
+    "dangerZone": "Danger Zone",
+    "deleteWarning": "Once you delete your account, there is no going back. Please be certain.",
+    "deleteAccountBtn": "Delete Account",
+    "deleting": "Deleting...",
+    "confirmDelete": "Are you sure you want to delete your account?",
+    "backToDashboard": "Back to Dashboard",
+    "settingsLink": "Account Settings"
   }
 }

@@ -1,0 +1,32 @@
+{
+  "routeCandidates": [
+    "/app",
+    "/app/new",
+    "/workspace"
+  ],
+  "objective": "Get source input through pseudonymization and make the result/status unambiguous.",
+  "title": "Pseudonymize",
+  "modes": [
+    "Text",
+    "Data",
+    "Files"
+  ],
+  "source": {
+    "title": "Source",
+    "textEmpty": "Paste text containing identifiers you want to replace.",
+    "fileEmpty": "Choose a supported file to process."
+  },
+  "action": "Pseudonymize",
+  "result": {
+    "title": "Result",
+    "empty": "The pseudonymized result will appear here.",
+    "success": "Pseudonymized",
+    "review": "Review required"
+  },
+  "resultActions": [
+    "Copy result",
+    "Download result",
+    "View mappings"
+  ],
+  "rule": "Render modes/actions only when implemented. Never use Secure or Anonymize as the primary action/status."
+}

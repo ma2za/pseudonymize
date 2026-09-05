@@ -1,0 +1,14 @@
+{
+  "routeCandidates": [
+    "/app/api-keys",
+    "/settings/api-keys"
+  ],
+  "conditional": true,
+  "objective": "Manage API credentials when API authentication exists.",
+  "title": "API keys",
+  "lead": "Create and manage credentials used to access the pseudonymize.io API.",
+  "primaryCta": "Create API key",
+  "destructive": "Revoke key",
+  "oneTimeReveal": "Copy this key now. It may not be shown again.",
+  "oneTimeRevealConditional": "Use only if this is true in implementation."
+}
