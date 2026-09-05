@@ -55,6 +55,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/src/db ./src/db
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 
+# Install drizzle-kit globally in the runner so the DB push command works
+RUN npm install -g drizzle-kit
+
 USER nextjs
 
 EXPOSE 3000
