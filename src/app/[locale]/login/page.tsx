@@ -1,87 +1,106 @@
 'use client';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
-import { Link, useRouter } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
+import { useTranslations, useLocale } from 'next-intl';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const t = useTranslations('Login');
+  const locale = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    await authClient.signIn.email({
-      email,
-      password,
-      fetchOptions: {
-        onSuccess: () => {
-          router.push('/dashboard');
+    try {
+      await authClient.signIn.email({
+        email,
+        password,
+        fetchOptions: {
+          onSuccess: () => {
+            // Bulletproof native navigation to avoid React injection bugs
+            window.location.href = `/${locale}/dashboard`;
+          },
         },
-      },
-    });
+      });
+    } catch (e) {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/dashboard"
+      callbackURL: `/${locale}/dashboard`
     });
   };
 
   return (
-    <div className="flex min-h-[100dvh] flex-col justify-center px-4 py-12 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+    <div className="flex min-h-[100dvh] flex-col justify-center px-4 py-12 sm:px-6 lg:px-8 bg-[var(--pz-canvas)] overflow-hidden">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-bold leading-9 tracking-tight text-[var(--pz-text)]">
           {t('title')}
         </h2>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form className="space-y-6" onSubmit={handleLogin}>
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+        <form className="space-y-6 bg-[var(--pz-surface)] border border-[var(--pz-border)] p-6 sm:p-8 rounded-xl shadow-lg" onSubmit={handleLogin}>
           <div>
-            <label htmlFor="email-input" className="block text-sm font-medium leading-6 text-gray-900">{t('emailLabel')}</label>
+            <label htmlFor="email-input" className="block text-sm font-medium leading-6 text-[var(--pz-text-secondary)]">{t('emailLabel')}</label>
             <div className="mt-2">
-              <input id="email-input" type="email" required className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3" value={email} onChange={e => setEmail(e.target.value)} />
+              <input id="email-input" type="email" required className="block w-full rounded-md border border-[var(--pz-border-strong)] py-2.5 text-[var(--pz-text)] bg-[var(--pz-surface-inset)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--pz-cipher)] focus:border-transparent sm:text-sm sm:leading-6 px-4 transition-all" value={email} onChange={e => setEmail(e.target.value)} disabled={loading} />
             </div>
           </div>
+          
           <div>
-            <label htmlFor="password-input" className="block text-sm font-medium leading-6 text-gray-900">{t('passwordLabel')}</label>
-            <div className="mt-2">
-              <input id="password-input" type="password" required className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3" value={password} onChange={e => setPassword(e.target.value)} />
+            <div className="flex items-center justify-between">
+              <label htmlFor="password-input" className="block text-sm font-medium leading-6 text-[var(--pz-text-secondary)]">{t('passwordLabel')}</label>
+              <div className="text-sm leading-6">
+                <Link href="/forgot-password" className="font-semibold text-[var(--pz-cipher)] hover:text-[var(--pz-cipher-hover)] transition-colors">{t('forgotPassword')}</Link>
+              </div>
+            </div>
+            <div className="mt-2 relative">
+              <input id="password-input" type={showPassword ? "text" : "password"} required className="block w-full rounded-md border border-[var(--pz-border-strong)] py-2.5 text-[var(--pz-text)] bg-[var(--pz-surface-inset)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--pz-cipher)] focus:border-transparent sm:text-sm sm:leading-6 px-4 pr-11 transition-all" value={password} onChange={e => setPassword(e.target.value)} disabled={loading} />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--pz-text-muted)] hover:text-[var(--pz-text)]"
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <div className="text-sm leading-6">
-              <Link href="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-500">{t('forgotPassword')}</Link>
-            </div>
-          </div>
-          <div>
-            <button type="submit" className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500">{t('signInButton')}</button>
+          
+          <div className="pt-2">
+            <button type="submit" disabled={loading} className="flex w-full justify-center rounded-md bg-[var(--pz-cipher)] px-4 py-2.5 text-sm font-semibold leading-6 text-[var(--pz-ink)] shadow-sm hover:bg-[var(--pz-cipher-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 transition-colors">{loading ? '...' : t('signInButton')}</button>
           </div>
         </form>
 
-        <div className="mt-6">
+        <div className="mt-8">
           <div className="relative">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-300" /></div>
-            <div className="relative flex justify-center text-sm"><span className="bg-gray-50 px-2 text-gray-500">{t('orContinueWith')}</span></div>
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--pz-border)]" /></div>
+            <div className="relative flex justify-center text-sm"><span className="bg-[var(--pz-canvas)] px-2 text-[var(--pz-text-muted)]">{t('orContinueWith')}</span></div>
           </div>
 
           <div className="mt-6">
-            <button onClick={handleGoogleLogin} className="flex w-full justify-center items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+            <button onClick={handleGoogleLogin} disabled={loading} className="flex w-full justify-center items-center gap-3 rounded-md bg-[var(--pz-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--pz-text)] shadow-sm border border-[var(--pz-border-strong)] hover:bg-[var(--pz-surface-inset)] transition-colors disabled:opacity-50">
               <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" fill="currentColor" /></svg>
               {t('googleButton')}
             </button>
           </div>
         </div>
         
-        <p className="mt-10 text-center text-sm text-gray-500">
-          <Link href="/signup" className="font-semibold leading-6 text-blue-600 hover:text-blue-500">{t('dontHaveAccount')}</Link>
+        <p className="mt-10 text-center text-sm text-[var(--pz-text-secondary)]">
+          <Link href="/signup" className="font-semibold leading-6 text-[var(--pz-cipher)] hover:text-[var(--pz-cipher-hover)] transition-colors">{t('dontHaveAccount')}</Link>
         </p>
-        <p className="mt-4 text-center text-sm text-gray-500">
-          <Link href="/" className="font-semibold leading-6 text-gray-900 hover:text-gray-700">{t('backToHome')}</Link>
+        <p className="mt-4 text-center text-sm text-[var(--pz-text-muted)]">
+          <Link href="/" className="font-semibold leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">{t('backToHome')}</Link>
         </p>
       </div>
     </div>

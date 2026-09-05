@@ -1,43 +1,71 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { useRouter, usePathname } from '@/i18n/routing';
-import { ChangeEvent, useTransition } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { Globe } from 'lucide-react';
 
 const locales = [
-  { code: 'en', name: 'EN' },
-  { code: 'es', name: 'ES' },
-  { code: 'fr', name: 'FR' },
-  { code: 'de', name: 'DE' },
-  { code: 'it', name: 'IT' },
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'fr', name: 'Français' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'pt', name: 'Português' },
+  { code: 'nl', name: 'Nederlands' },
+  { code: 'ru', name: 'Русский' },
+  { code: 'zh', name: '中文' },
+  { code: 'ja', name: '日本語' },
+  { code: 'ko', name: '한국語' },
+  { code: 'ar', name: 'العربية' },
+  { code: 'hi', name: 'हिन्दी' },
+  { code: 'tr', name: 'Türkçe' },
+  { code: 'pl', name: 'Polski' },
+  { code: 'sv', name: 'Svenska' },
+  { code: 'no', name: 'Norsk' },
+  { code: 'da', name: 'Dansk' },
+  { code: 'fi', name: 'Suomi' },
+  { code: 'el', name: 'Ελληνικά' },
 ];
 
 export default function LanguageSwitcher() {
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
-  const pathname = usePathname();
   const currentLocale = useLocale();
+  const [isPending, setIsPending] = useState(false);
 
   const onSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setIsPending(true);
     const nextLocale = e.target.value;
-    startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
-    });
+    
+    // Bulletproof language switching via hard navigation
+    // This avoids any SPA router caching bugs or missing params on dynamic routes
+    const currentPath = window.location.pathname;
+    
+    // Check if the path starts with the current locale
+    const regex = new RegExp(`^/${currentLocale}(/|$)`);
+    let newPath = currentPath;
+    
+    if (regex.test(currentPath)) {
+      newPath = currentPath.replace(`/${currentLocale}`, `/${nextLocale}`);
+    } else {
+      // Fallback if somehow there's no locale in the URL
+      newPath = `/${nextLocale}${currentPath}`;
+    }
+    
+    // Preserve search params (e.g. ?success=true)
+    window.location.href = newPath + window.location.search;
   };
 
   return (
-    <div className="relative inline-flex items-center text-gray-500 hover:text-gray-900">
+    <div className="relative inline-flex items-center text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
       <Globe className="w-4 h-4 absolute left-2 pointer-events-none" />
       <select
-        className="appearance-none bg-transparent py-1 pl-8 pr-4 text-sm font-semibold cursor-pointer outline-none focus:ring-0"
-        defaultValue={currentLocale}
+        className="appearance-none bg-transparent py-2 pl-8 pr-4 text-sm font-medium cursor-pointer outline-none focus:ring-2 focus:ring-[var(--pz-cipher)] rounded-md disabled:opacity-50"
+        value={currentLocale}
         disabled={isPending}
         onChange={onSelectChange}
         aria-label="Select language"
       >
         {locales.map((locale) => (
-          <option key={locale.code} value={locale.code}>
+          <option key={locale.code} value={locale.code} className="text-[var(--pz-ink)] bg-[var(--pz-canvas)]">
             {locale.name}
           </option>
         ))}
