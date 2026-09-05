@@ -2,7 +2,6 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import LanguageSwitcher from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { Logo, BrandButton } from '@/brand/components';
 import { GithubIcon } from './GithubIcon';
@@ -35,7 +34,6 @@ export default async function Header() {
             <GithubIcon className="w-4 h-4" />
             <span>ma2za/pseudonymize</span>
           </a>
-          <LanguageSwitcher />
           <ThemeToggle />
         </div>
         <div className="flex flex-1 justify-end items-center gap-4">
