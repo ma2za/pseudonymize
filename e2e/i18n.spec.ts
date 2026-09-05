@@ -4,10 +4,10 @@ test.describe('i18n & Language Switcher', () => {
   test('changing language via select updates URL and content', async ({ page }) => {
     // Start at english root
     await page.goto('/en');
-    
+
     // Ensure English text is present
     await expect(page.getByRole('heading', { name: /Pseudonymize sensitive data/i, exact: false })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Pseudonymize data' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Pseudonymize data' }).first()).toBeVisible();
 
     // Change language to Spanish using the switcher
     const languageSelect = page.getByRole('combobox', { name: 'Select language' });

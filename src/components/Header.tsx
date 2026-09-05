@@ -20,6 +20,9 @@ export default async function Header() {
           </Link>
         </div>
         <div className="flex gap-x-8 items-center">
+          <Link href="/pricing" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
+            {t('pricing')}
+          </Link>
           <Link href="/blog" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
             {t('blog')}
           </Link>
