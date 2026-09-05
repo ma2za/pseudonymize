@@ -19,7 +19,7 @@ The next 10 releases are singularly focused on improving the F1 score back to >0
 - **1.5.0:** Advanced Punctuation Boundary Rules
 - **1.6.0:** Local Location & Address Parsing
 - **1.7.0:** Attention-Mask Context Boosting
-- **1.8.0:** Generative LLM Backend Integration
+- **1.8.0:** Adaptive Windowing for Long Entities
 - **1.9.0:** Multi-Pass Boundary Refinement
 - **1.10.0:** The Strict 90% Benchmark Gate
 
