@@ -270,6 +270,27 @@ class LocalONNXPIIBackend(DetectionBackend):
             predictions.append(best_label)
             confidences.append(best_prob)
 
+        # Repair pass for subwords / zero-gap tokens to prevent premature entity truncation
+        for idx in range(1, len(predictions)):
+            label_id = predictions[idx]
+            label_str = (self._id2label or {}).get(int(label_id))
+
+            if not label_str or label_str == "O":
+                prev_label_id = predictions[idx - 1]
+                prev_label_str = (self._id2label or {}).get(int(prev_label_id))
+
+                if prev_label_str and prev_label_str != "O":
+                    prev_start, prev_end = encoding.offsets[idx - 1]
+                    curr_start, curr_end = encoding.offsets[idx]
+
+                    if curr_start == prev_end:
+                        # Only coerce if the token contains alphanumeric content,
+                        # preventing trailing punctuation (.,!?) from being dragged in.
+                        token_text = text[curr_start:curr_end]
+                        if any(c.isalnum() for c in token_text):
+                            predictions[idx] = prev_label_id
+                            confidences[idx] = confidences[idx - 1]
+
         # Token predictions are merged into entity spans: subword continuations
         # (zero gap) and same-type tokens separated by one whitespace character
         # collapse into a single detection so that "John Smith" is one PERSON.
