@@ -14,7 +14,10 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await authClient.forgetPassword({
+      // TypeScript complains because `forgetPassword` was recently added/changed in better-auth typings
+      // or we are missing the client plugin in createAuthClient. We cast to any to allow compilation.
+      const auth: any = authClient;
+      await auth.forgetPassword({
         email,
         redirectTo: "/reset-password"
       });

@@ -1,0 +1,11 @@
+<svg width="640" height="120" viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="120" rx="20" fill="#F6F8FA"/>
+  <g transform="translate(24 18)">
+    <rect width="84" height="84" rx="18" fill="#111820"/>
+    <path d="M24 18H46C58.1503 18 68 27.8497 68 40C68 52.1503 58.1503 62 46 62H38V74H24V18Z" fill="#EAF1F5"/>
+    <path d="M38 32H46C50.4183 32 54 35.5817 54 40C54 44.4183 50.4183 48 46 48H38V32Z" fill="#111820"/>
+    <path d="M60 17L29 68" stroke="#35D0A5" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <text x="132" y="71" fill="#EAF1F5" font-family="Manrope, Inter, Arial, sans-serif" font-size="42" font-weight="650" letter-spacing="-1.2">pseudonymize</text>
+  <text x="447" y="71" fill="#35D0A5" font-family="IBM Plex Mono, monospace" font-size="24" font-weight="500">.io</text>
+</svg>

@@ -1,0 +1,19 @@
+{
+  "ink": "#0A0F14",
+  "ink_2": "#111820",
+  "surface": "#151E27",
+  "surface_2": "#1B2631",
+  "line": "#263441",
+  "muted": "#8A9AAA",
+  "text": "#EAF1F5",
+  "paper": "#F6F8FA",
+  "paper_2": "#EEF2F5",
+  "paper_line": "#D7E0E7",
+  "paper_text": "#111820",
+  "cipher": "#35D0A5",
+  "cipher_hover": "#29BA91",
+  "cipher_soft": "#CFF7EB",
+  "info": "#69A7FF",
+  "warning": "#E7B04A",
+  "danger": "#E86A6A"
+}
