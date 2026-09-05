@@ -2,11 +2,11 @@
 
 ## Current State
 - **Just Completed:** `0.27.0` (Local Microservice DLP Endpoint)
-- **Current Baseline (0.27.0):** 
-  - Precision: `0.9406`
-  - Recall: `0.9406`
-  - F1 Score: `0.9406`
-  *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 100 samples).*
+- **Current Baseline (1.0.0 - Strict Match Rules):** 
+  - Precision: `0.9410`
+  - Recall: `0.5356`
+  - F1 Score: `0.6826`
+  *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, strict rules).*
 
 ## Immediate Next Milestone: `1.0.0`
 **Focus:** Mature Compatibility Commitment
