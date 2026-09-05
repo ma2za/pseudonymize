@@ -59,6 +59,20 @@ reported figures put the same interval at 0.9184 to 0.9224 and attributed it to 
 release. A gate that cannot distinguish a change from noise cannot gate anything, which
 is why per-entity counts belong in the published table alongside the aggregate.
 
+### Local Evaluation Harness
+
+You can evaluate quality on your own local datasets using the built-in benchmarking harness:
+
+```console
+python -m pseudonymize.bench path/to/your/dataset.jsonl --ml
+```
+
+The dataset file must be in JSONL format, where each line represents a row with the following schema:
+- `source_text`: The raw text to process.
+- `privacy_mask`: A list of ground-truth annotations. Each annotation is a dictionary with `start`, `end`, and `label` (e.g., `EMAIL`, `PERSON`, `LOCATION`).
+
+By default, the harness will calculate both global performance (Precision, Recall, F1) and print a detailed **Per-Entity Metrics** table. This is extremely useful for verifying exactly which types of PII are passing successfully versus failing on your specific data distribution.
+
 ## Timing
 
 Run `uv run pytest benchmarks --benchmark-only`. Record CPU, operating system, Python version,

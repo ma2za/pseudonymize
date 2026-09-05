@@ -132,20 +132,40 @@ will be rejected. The goal is real-world safety, not a high scoreboard number.
 """
 
 
+def load_local_jsonl(file_path: Path):
+    import json
+
+    with open(file_path, encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if "language" not in row:
+                row["language"] = "en"
+            yield row
+
+
 def evaluate(
     num_samples: int,
     use_ml: bool,
     strict_labels: bool = True,
     split: str = "validation",
     explain: bool = False,
+    file_path: Path | None = None,
 ) -> None:
     print(INTEGRITY_NOTICE)
-    logger.info(f"Loading ai4privacy/pii-masking-openpii-1.5m ({split} split, English subset)...")
 
-    # We shuffle with a fixed seed to ensure a consistent, reproducible
-    # pseudo-random sample of the evaluation dataset for A/B testing versions.
-    ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split=split, streaming=True)
-    ds = ds.shuffle(seed=42)
+    if file_path is not None:
+        logger.info(f"Loading local evaluation dataset from {file_path}...")
+        ds = load_local_jsonl(file_path)
+    else:
+        logger.info(
+            f"Loading ai4privacy/pii-masking-openpii-1.5m ({split} split, English subset)..."
+        )
+        # We shuffle with a fixed seed to ensure a consistent, reproducible
+        # pseudo-random sample of the evaluation dataset for A/B testing versions.
+        ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split=split, streaming=True)
+        ds = ds.shuffle(seed=42)
 
     engine = Pseudonymizer()
     if use_ml:
@@ -173,6 +193,11 @@ def evaluate(
     false_positives = 0
     false_negatives = 0
     out_of_scope = 0
+
+    # Per-entity metrics
+    tp_per_type: dict[EntityType, int] = dict.fromkeys(EntityType, 0)
+    fp_per_type: dict[EntityType, int] = dict.fromkeys(EntityType, 0)
+    fn_per_type: dict[EntityType, int] = dict.fromkeys(EntityType, 0)
 
     count = 0
     start_time = time.time()
@@ -207,12 +232,25 @@ def evaluate(
         true_positives += len(matched_truth)
         false_negatives += len(scored_spans) - len(matched_truth)
 
-        if explain:
-            for index, (g_start, g_end, label) in enumerate(scored_spans):
-                if index not in matched_truth:
+        # Matched (True Positives)
+        for truth_index in matched_truth:
+            _, _, label = scored_spans[truth_index]
+            entity_type = _LABEL_TO_ENTITY.get(label)
+            if entity_type is not None:
+                tp_per_type[entity_type] += 1
+
+        # Unmatched Truth (False Negatives)
+        for index, (g_start, g_end, label) in enumerate(scored_spans):
+            if index not in matched_truth:
+                entity_type = _LABEL_TO_ENTITY.get(label)
+                if entity_type is not None:
+                    fn_per_type[entity_type] += 1
+
+                if explain:
                     context = text[max(0, g_start - 40) : min(len(text), g_end + 40)]
                     logger.info(f"FN: '{text[g_start:g_end]}' should be {label} ({context})")
 
+        # Unmatched Detections (False Positives)
         for index, (d_start, d_end, entity_type) in enumerate(detections):
             if index in matched_detections:
                 continue
@@ -223,6 +261,8 @@ def evaluate(
             ):
                 out_of_scope += 1
                 continue
+
+            fp_per_type[entity_type] += 1
             false_positives += 1
             if explain:
                 logger.info(f"FP: '{text[d_start:d_end]}' as {entity_type.value}")
@@ -257,6 +297,29 @@ def evaluate(
     logger.info(f"Precision:       {precision:.4f}")
     logger.info(f"Recall:          {recall:.4f}")
     logger.info(f"F1 Score:        {f1:.4f}")
+    logger.info("\n--- Per-Entity Metrics ---")
+    logger.info(
+        f"{'Entity Type':<20} | {'TP':<6} | {'FP':<6} | {'FN':<6} | "
+        f"{'Precision':<9} | {'Recall':<6} | {'F1':<6}"
+    )
+    logger.info("-" * 75)
+    for et in sorted(EntityType, key=lambda x: x.name):
+        tp = tp_per_type.get(et, 0)
+        fp = fp_per_type.get(et, 0)
+        fn = fn_per_type.get(et, 0)
+        if tp == 0 and fp == 0 and fn == 0:
+            continue
+        et_precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+        et_recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+        et_f1 = (
+            2 * (et_precision * et_recall) / (et_precision + et_recall)
+            if (et_precision + et_recall) > 0
+            else 0
+        )
+        logger.info(
+            f"{et.name:<20} | {tp:<6} | {fp:<6} | {fn:<6} | "
+            f"{et_precision:.4f}    | {et_recall:.4f} | {et_f1:.4f}"
+        )
 
 
 if __name__ == "__main__":
@@ -264,6 +327,9 @@ if __name__ == "__main__":
         description="Evaluate pseudonymize precision and recall against real-world datasets."
     )
     parser.add_argument("--samples", type=int, default=1000, help="Number of samples to evaluate.")
+    parser.add_argument(
+        "--file", type=str, default=None, help="Path to local JSONL evaluation file."
+    )
     parser.add_argument(
         "--ml", action="store_true", help="Include the ONNX ML backend in evaluation."
     )
@@ -274,4 +340,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    evaluate(args.samples, args.ml, strict_labels=not args.span_only)
+    file_path = Path(args.file) if args.file is not None else None
+    evaluate(args.samples, args.ml, strict_labels=not args.span_only, file_path=file_path)
