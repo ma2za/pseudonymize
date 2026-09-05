@@ -55,6 +55,37 @@ body {
   font-family: var(--pz-font-sans);
 }
 
+/* P1: Semantic Typography */
+@layer components {
+  .pz-display {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[var(--pz-text)] leading-tight;
+  }
+  .pz-section-title {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--pz-text)] leading-snug;
+  }
+  .pz-subtitle {
+    @apply text-lg sm:text-xl text-[var(--pz-text-secondary)] leading-relaxed;
+  }
+  .pz-label {
+    @apply text-xs font-semibold uppercase tracking-widest text-[var(--pz-text-muted)] font-mono;
+  }
+  .pz-data {
+    @apply font-mono text-sm text-[var(--pz-text)] bg-[var(--pz-surface)] px-1.5 py-0.5 rounded border border-[var(--pz-border)];
+  }
+  .pz-caption {
+    @apply text-sm text-[var(--pz-text-muted)];
+  }
+
+  /* P2: Layout Spacing Tokens */
+  .pz-section-sm { @apply py-12 sm:py-16; }
+  .pz-section-md { @apply py-16 sm:py-24; }
+  .pz-section-lg { @apply py-24 sm:py-32; }
+  
+  .pz-gap-sm { @apply gap-4; }
+  .pz-gap-md { @apply gap-8; }
+  .pz-gap-lg { @apply gap-16; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-delay: -1ms !important;
