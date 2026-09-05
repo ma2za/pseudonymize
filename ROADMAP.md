@@ -158,8 +158,8 @@ Introduce strict geographic parsing heuristics to correctly segment `STREET`, `C
 ### `1.7.0`: Attention-Mask Context Boosting
 Feed explicit surrounding context into the ML model's attention masks to improve the detection of isolated or synthetic numerical identifiers.
 
-### `1.8.0`: Generative LLM Backend Integration
-Finalize the `LocalLlamaBackend` using strict JSON schema output parsing to extract perfect boundaries via contextual reasoning.
+### `1.8.0`: Adaptive Windowing for Long Entities
+Implement dynamic sliding windows during ML inference to prevent truncation of long multi-word entities spanning across chunk boundaries.
 
 ### `1.9.0`: Multi-Pass Boundary Refinement
 Implement a two-pass detection engine: Pass 1 identifies candidate regions, and Pass 2 applies strict cropping to isolate exact character indices.
