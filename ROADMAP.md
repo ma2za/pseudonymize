@@ -180,6 +180,16 @@ The core engine previously fell short of production-grade precision and recall o
 Long-term compatibility begins after core processing, document rewriting, OCR, and remote-security
 contracts have production fixtures, published benchmarks, and independent usage feedback against the hardening milestones above.
 
+## Performance & Detection Quality Horizon (Post-1.0 / Ongoing)
+
+To continually improve precision and recall (currently heavily measured in `benchmarks/evaluate_quality.py`) without introducing hardcoded or brittle regex artifacts, the following generalizable architectural improvements are slated for upcoming releases:
+
+1. **Dynamic Entity-Specific Thresholds (ML)**: Instead of a flat `entity_threshold` across all labels, allow per-entity calibration. For example, lower activation thresholds for `LOCATION` (which historically suffers from low recall but high precision) while keeping `PERSON` strictly bounded.
+2. **Context-Assisted ML Boosting**: Integrate the `ContextDetector` into the ML loop. If a token falls within 30 characters of a context trigger ("Name:", "Address:"), dynamically boost the ML logits for that specific text window, resolving the "missed isolated entities" problem.
+3. **Span-Level Subword Repair (Token-Merge Averaging)**: DistilBERT uses WordPiece. If the tokenizer splits a name into subwords and assigns conflicting probabilities across them (e.g., dropping a middle subword), implement a CRF-style continuation heuristic to coerce adjacent subwords into a unified entity unless separated by a hard boundary.
+4. **Ensemble Voting Arbitrator**: When multiple backends run simultaneously, introduce an `EnsembleArbitrator` allowing modes like `HighRecall` (Union), `HighPrecision` (Intersection - requires at least two backends to agree), or `Two-Pass` (Regex proposes, ML verifies).
+5. **Cross-Lingual Zero-Shot Backend (GLiNER)**: Introduce an optional backend using GLiNER (Generalist Model for NER). GLiNER uses prompt-based label injection natively supporting 20+ languages out of the box, allowing dynamic detection of arbitrary entities ("Internal Project Code") with a fundamentally higher recall ceiling than traditional BERT models.
+
 ## Optional dependency policy
 
 Extras appear only with the release that owns them: `ml`, `pdf`, `office`, `ocr`, `documents`,
