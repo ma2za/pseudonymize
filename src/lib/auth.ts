@@ -16,28 +16,41 @@ export const auth = betterAuth({
             verification: schema.verification
         }
     }),
+    trustedOrigins: [
+        "https://pseudonymize.io", 
+        "https://www.pseudonymize.io", 
+        "http://localhost:3000"
+    ],
     emailAndPassword: {
         enabled: true,
         sendResetPassword: async (data, request) => {
             if (!resend) return;
-            await resend.emails.send({
-                from: 'pseudonymize.io <noreply@pseudonymize.io>',
-                to: data.user.email,
-                subject: 'Reset your password',
-                html: `<p>Click <a href="${data.url}">here</a> to reset your password.</p>`
-            });
+            try {
+                await resend.emails.send({
+                    from: 'pseudonymize.io <noreply@pseudonymize.io>',
+                    to: data.user.email,
+                    subject: 'Reset your password',
+                    html: `<p>Click <a href="${data.url}">here</a> to reset your password.</p>`
+                });
+            } catch (e) {
+                console.error('Failed to send reset password email:', e);
+            }
         }
     },
     emailVerification: {
         sendOnSignUp: true,
         sendVerificationEmail: async (data, request) => {
             if (!resend) return;
-            await resend.emails.send({
-                from: 'pseudonymize.io <noreply@pseudonymize.io>',
-                to: data.user.email,
-                subject: 'Verify your email address',
-                html: `<p>Click <a href="${data.url}">here</a> to verify your email address.</p>`
-            });
+            try {
+                await resend.emails.send({
+                    from: 'pseudonymize.io <noreply@pseudonymize.io>',
+                    to: data.user.email,
+                    subject: 'Verify your email address',
+                    html: `<p>Click <a href="${data.url}">here</a> to verify your email address.</p>`
+                });
+            } catch (e) {
+                console.error('Failed to send verification email:', e);
+            }
         }
     },
     socialProviders: {
