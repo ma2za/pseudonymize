@@ -31,6 +31,7 @@
   },
   "Global": {
     "blog": "Blog",
+    "pricing": "Pricing",
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "dashboard": "Dashboard",
@@ -40,6 +41,28 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "backToHome": "← Back to Home"
+  },
+  "Pricing": {
+    "title": "Pricing that follows actual usage.",
+    "description": "Purchase credits to pseudonymize your data. We charge strictly based on the volume of data you process. No monthly subscriptions, no hidden fees.",
+    "unitExplanation": "1 Credit = 1 Million Input Tokens",
+    "starterName": "Starter Top-up",
+    "starterPrice": "$10",
+    "starterCredits": "10 Credits",
+    "starterTokens": "10 Million Tokens",
+    "proName": "Pro Top-up",
+    "proPrice": "$45",
+    "proCredits": "50 Credits",
+    "proTokens": "50 Million Tokens",
+    "mostPopular": "Most Popular",
+    "cta": "Start Top-up",
+    "faqTitle": "How it works",
+    "faq1Q": "What is an input token?",
+    "faq1A": "An input token corresponds to a chunk of text or data parsed by our pseudonymization engine. 1 million tokens is roughly equivalent to 750,000 words.",
+    "faq2Q": "Do credits expire?",
+    "faq2A": "No, your purchased credits remain in your account indefinitely until they are consumed by your API requests.",
+    "faq3Q": "How do I add more credits?",
+    "faq3A": "You can top up your balance at any time from your dashboard using a credit card."
   },
   "Signup": {
     "title": "Create your account",
