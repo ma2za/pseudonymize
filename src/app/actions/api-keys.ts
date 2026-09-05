@@ -1,11 +1,9 @@
 'use server';
 
-import { db } from '@/db';
-import { apiKey } from '@/db/schema';
+import { prisma } from '@/db';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { nanoid } from 'nanoid';
-import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function createApiKey(name: string) {
@@ -20,11 +18,13 @@ export async function createApiKey(name: string) {
   // Generate a key prefix for visual identification + random string
   const rawKey = `ps_live_${nanoid(32)}`;
 
-  await db.insert(apiKey).values({
-    id: nanoid(16),
-    userId: session.user.id,
-    name: name || "Default Key",
-    key: rawKey,
+  await prisma.apiKey.create({
+    data: {
+      id: nanoid(16),
+      userId: session.user.id,
+      name: name || "Default Key",
+      key: rawKey,
+    }
   });
 
   revalidatePath('/[locale]/dashboard', 'page');
@@ -38,14 +38,17 @@ export async function getApiKeys() {
 
   if (!session) return [];
 
-  const keys = await db.select({
-    id: apiKey.id,
-    name: apiKey.name,
-    key: apiKey.key,
-    createdAt: apiKey.createdAt,
-    lastUsedAt: apiKey.lastUsedAt,
-    isActive: apiKey.isActive,
-  }).from(apiKey).where(eq(apiKey.userId, session.user.id));
+  const keys = await prisma.apiKey.findMany({
+    where: { userId: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      key: true,
+      createdAt: true,
+      lastUsedAt: true,
+      isActive: true,
+    }
+  });
 
   // Mask keys before sending to client for display (except for the first generation)
   return keys.map(k => ({
@@ -64,12 +67,12 @@ export async function revokeApiKey(id: string) {
     throw new Error("Unauthorized");
   }
 
-  await db.delete(apiKey).where(
-    and(
-      eq(apiKey.id, id),
-      eq(apiKey.userId, session.user.id)
-    )
-  );
+  await prisma.apiKey.deleteMany({
+    where: {
+      id,
+      userId: session.user.id
+    }
+  });
 
   revalidatePath('/[locale]/dashboard', 'page');
   return { success: true };

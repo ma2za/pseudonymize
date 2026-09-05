@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { db } from "@/db";
-import { user, session as sessionTable, account, apiKey } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { prisma } from "@/db";
 import { randomUUID } from "crypto";
 
 test.describe("5 Critical Edge-Case & Security Flows", () => {
@@ -23,13 +21,9 @@ test.describe("5 Critical Edge-Case & Security Flows", () => {
 
   test.afterAll(async () => {
     try {
-      const u = await db.select().from(user).where(eq(user.email, email));
-      if (u.length > 0) {
-        const userId = u[0].id;
-        await db.delete(apiKey).where(eq(apiKey.userId, userId));
-        await db.delete(sessionTable).where(eq(sessionTable.userId, userId));
-        await db.delete(account).where(eq(account.userId, userId));
-        await db.delete(user).where(eq(user.id, userId));
+      const u = await prisma.user.findUnique({ where: { email } });
+      if (u) {
+        await prisma.user.delete({ where: { id: u.id } });
       }
     } catch (error) {
       console.error("Cleanup failed:", error);
@@ -83,7 +77,7 @@ test.describe("5 Critical Edge-Case & Security Flows", () => {
     await page.waitForURL("**/it/dashboard");
 
     // Navigate to settings, should remain in Italian
-    await page.locator('a', { hasText: /Account Settings|Impostazioni Account/i }).click();
+    await page.locator('a', { hasText: /Account Settings|Impostazioni Account|Impostazioni dell'account/i }).click();
     await page.waitForURL("**/it/dashboard/settings");
     
     await expect(page).toHaveURL(/.*\/it\/dashboard\/settings/);

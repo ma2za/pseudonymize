@@ -1,7 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { db } from "@/db";
-import { user, session as sessionTable, account, apiKey } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { prisma } from "@/db";
 import { randomUUID } from "crypto";
 
 test.describe("Proper E2E Flow: Auth, API Keys, Settings (No Mocks)", () => {
@@ -13,14 +11,10 @@ test.describe("Proper E2E Flow: Auth, API Keys, Settings (No Mocks)", () => {
   test.afterAll(async () => {
     // Clean up test user from the live database
     try {
-      // Deleting the user will cascade (or we clean explicitly)
-      const u = await db.select().from(user).where(eq(user.email, email));
-      if (u.length > 0) {
-        const userId = u[0].id;
-        await db.delete(apiKey).where(eq(apiKey.userId, userId));
-        await db.delete(sessionTable).where(eq(sessionTable.userId, userId));
-        await db.delete(account).where(eq(account.userId, userId));
-        await db.delete(user).where(eq(user.id, userId));
+      const u = await prisma.user.findUnique({ where: { email } });
+      if (u) {
+        // Cascade deletion via Prisma
+        await prisma.user.delete({ where: { id: u.id } });
       }
     } catch (error) {
       console.error("Database Cleanup failed:", error);

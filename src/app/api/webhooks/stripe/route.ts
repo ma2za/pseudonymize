@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { db } from '@/db';
-import { user } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { prisma } from '@/db';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
@@ -36,9 +34,12 @@ export async function POST(req: Request) {
 
         if (userId && credits > 0) {
           // Add credits to the user
-          await db.update(user)
-            .set({ credits: sql`${user.credits} + ${credits}` })
-            .where(eq(user.id, userId));
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              credits: { increment: credits }
+            }
+          });
             
           console.log(`Successfully added ${credits} credits to user ${userId}`);
         } else {
