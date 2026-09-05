@@ -133,16 +133,41 @@ Exit criteria:
 Stable local processing for text, nested Python data, and plain or machine-readable files, with a
 documented compatibility policy and zero base runtime dependencies.
 
-## The Road to 90% (Historical Anomaly)
+## The Road to 90% (Strict Evaluation Baseline)
 
-The core engine previously aimed for a production-grade precision and recall on real-world datasets, targeting a 90% baseline.
+Following the `1.0.0` realization that strict 1-to-1 boundary and label matching drops our baseline to ~0.70 F1, the next 10 releases are singularly focused on legitimately bridging this gap back to >0.90 F1 without overfitting.
 
-**While early releases (e.g., `0.22.0`) recorded an F1 score of >94%, this was discovered to be an anomaly caused by permissive benchmark overlapping rules.** Under the strictly enforced 1-to-1 label and boundary matching introduced in `1.0.0`, the true, robust baseline sits at ~70% F1. We remain committed to safe, generalized improvements without overfitting to the evaluation script.
+### `1.1.0`: Token-to-Character Alignment Optimization
+Fix tokenizer offset mapping to perfectly align subwords to raw text boundaries, eliminating "off-by-one" character penalties.
 
-### `0.13.0`: The 90% Benchmark Gate (Achieved)
-- **Status:** **Completed early.** The base model and heuristics have officially surpassed the 90% barrier without requiring custom fine-tuning pathways.
+### `1.2.0`: NLP-Driven Context Detectors
+Replace rigid regex context lookaheads with lightweight dependency parsing to identify `NATIONAL_ID`, `TAX_ID`, and `PAYMENT_CARD` entities safely.
 
-## Post-90% Target Capabilities
+### `1.3.0`: Entity-Specific Confidence Calibration
+Calculate optimal, dynamic confidence thresholds per entity class based exclusively on the `train` split to boost recall for underperforming classes.
+
+### `1.4.0`: Secondary NER Ensembling
+Integrate a fast, secondary statistical model (e.g., CRF) to vote on tricky `PERSON` and `LOCATION` boundaries alongside the ONNX backend.
+
+### `1.5.0`: Advanced Punctuation Boundary Rules
+Implement language-aware boundary trimming that safely separates structural punctuation from valid entity characters.
+
+### `1.6.0`: Local Location & Address Parsing
+Introduce strict geographic parsing heuristics to correctly segment `STREET`, `CITY`, and `ZIPCODE` spans which currently merge into single failed detections.
+
+### `1.7.0`: Attention-Mask Context Boosting
+Feed explicit surrounding context into the ML model's attention masks to improve the detection of isolated or synthetic numerical identifiers.
+
+### `1.8.0`: Generative LLM Backend Integration
+Finalize the `LocalLlamaBackend` using strict JSON schema output parsing to extract perfect boundaries via contextual reasoning.
+
+### `1.9.0`: Multi-Pass Boundary Refinement
+Implement a two-pass detection engine: Pass 1 identifies candidate regions, and Pass 2 applies strict cropping to isolate exact character indices.
+
+### `1.10.0`: The Strict 90% Benchmark Gate
+Achieve a >0.90 F1 Score strictly on the `ai4privacy` validation split, cementing pseudonymize as a state-of-the-art local DLP engine.
+
+## Post-1.10.0 Target Capabilities
 
 ### `0.14.0`: Adversarial Document Defenses & Exhaustive Metadata (Achieved)
 - **Status:** **Completed.** Added support for PDF `/Info`, XMP metadata, DOCX headers/footers, and pyMuPDF redaction that removes overlapping text to prevent visual-only masking.
