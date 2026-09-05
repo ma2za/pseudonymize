@@ -11,6 +11,7 @@
 - **Email:** Use **Resend** for all outgoing emails (verification, password resets, notifications). This must be hooked into Better Auth.
 - **Backend:** PostgreSQL + Drizzle ORM.
 - **Auth:** Better Auth.
+- **Deployment (STRICT):** NO MANUAL TERMINAL COMMANDS IN PRODUCTION. All database migrations (`drizzle-kit push`) must execute automatically during the build/deployment pipeline (e.g., via Docker `CMD` or Coolify Post-deployment hooks).
 
 ## Bot & LLM Automation (STRICT)
 - **Frictionless Access:** The application MUST be entirely accessible to automated browsers, bots, and LLMs. Do NOT implement CAPTCHAs (e.g., Turnstile, reCAPTCHA) or arbitrary rate limits that prevent automated agent registration or credit purchasing.
