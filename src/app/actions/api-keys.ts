@@ -51,7 +51,7 @@ export async function getApiKeys() {
   });
 
   // Mask keys before sending to client for display (except for the first generation)
-  return keys.map(k => ({
+  return keys.map((k: { id: string, name: string | null, key: string, createdAt: Date, lastUsedAt: Date | null, isActive: boolean }) => ({
     ...k,
     // Only show first 12 chars of the live key, mask the rest
     maskedKey: `${k.key.substring(0, 12)}${'*'.repeat(16)}`,
