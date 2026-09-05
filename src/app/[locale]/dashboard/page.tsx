@@ -47,26 +47,7 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Shield className="w-8 h-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900 hidden sm:block">{t('brandName')}</span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-sm text-gray-700 mr-4 truncate max-w-[120px] sm:max-w-xs">{session.user.email}</span>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" className="text-sm font-semibold text-gray-900 hover:text-blue-600 whitespace-nowrap">
-                  {t('signOut')}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="bg-gray-50 flex flex-col">
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
           <div className="px-4 py-5 sm:p-6">

@@ -5,6 +5,8 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, setRequestLocale, getTranslations} from 'next-intl/server';
 import {routing} from '@/i18n/routing';
 import { notFound } from "next/navigation";
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -79,9 +81,13 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${inter.className} bg-white text-gray-900 antialiased`}>
+      <body className={`${inter.className} bg-white text-gray-900 antialiased flex flex-col min-h-screen`}>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <Header />
+          <div className="flex-1">
+            {children}
+          </div>
+          <Footer />
         </NextIntlClientProvider>
       </body>
     </html>
