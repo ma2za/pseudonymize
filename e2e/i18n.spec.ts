@@ -6,8 +6,8 @@ test.describe('i18n & Language Switcher', () => {
     await page.goto('/en');
     
     // Ensure English text is present
-    await expect(page.getByRole('heading', { name: 'pseudonymize.io', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Get Started' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Pseudonymize sensitive data/i, exact: false })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Pseudonymize data' })).toBeVisible();
 
     // Change language to Spanish using the switcher
     const languageSelect = page.getByRole('combobox', { name: 'Select language' });

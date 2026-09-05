@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Verified pseudonymize.io trust claims",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "label", "value", "source", "verifiedAt"],
+    "properties": {
+      "id": {"type":"string"},
+      "label": {"type":"string", "minLength":1},
+      "value": {"type":"string", "minLength":1},
+      "source": {"type":"string", "minLength":1},
+      "verifiedAt": {"type":"string", "format":"date"}
+    },
+    "additionalProperties": false
+  }
+}

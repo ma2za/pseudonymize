@@ -16,7 +16,7 @@ test.describe('Mobile Viewport Responsiveness', () => {
     const signUpBtn = page.getByRole('link', { name: /Sign Up/i });
     await expect(signUpBtn).toBeHidden();
 
-    const openSourceLink = page.getByRole('link', { name: /Open Source/i });
+    const openSourceLink = page.getByRole('navigation', { name: 'Global' }).getByRole('link', { name: /Open Source/i, exact: true });
     await expect(openSourceLink).toBeHidden();
 
     // The "Sign In" button and "Blog" should still be visible (or in a hamburger menu, if implemented)

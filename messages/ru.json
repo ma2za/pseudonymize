@@ -1,9 +1,14 @@
 {
   "Home": {
-    "title": "pseudonymize.io",
-    "description": "The hosted solution for scalable data anonymization and pseudonymization. Secure your PII pipelines with a simple API.",
-    "getStarted": "Get Started",
-    "viewOpenSource": "View open source"
+    "title": "Pseudonymize sensitive data before it reaches systems that do not need the original identifiers.",
+    "eyebrow": "PSEUDONYMIZATION INFRASTRUCTURE",
+    "description": "Replace personal identifiers across text, structured data and files while preserving the surrounding context your workflow depends on.",
+    "getStarted": "Pseudonymize data",
+    "viewOpenSource": "View documentation",
+    "sampleEmailText1": "Email ",
+    "sampleEmailText2": " about invoice INV-204.",
+    "sampleEmailAddress": "alice@example.com",
+    "sampleEmailLabel": "Email"
   },
   "Global": {
     "blog": "Blog",

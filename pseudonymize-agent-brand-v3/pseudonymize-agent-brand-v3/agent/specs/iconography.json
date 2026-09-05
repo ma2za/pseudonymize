@@ -1,0 +1,45 @@
+{
+  "preferredLibrary": [
+    "Lucide",
+    "Phosphor Regular"
+  ],
+  "strokePx": "1.5\u20131.75 at 20\u201324px",
+  "defaultSizes": [
+    16,
+    18,
+    20,
+    24
+  ],
+  "allowedConcepts": [
+    "file",
+    "file-text",
+    "database",
+    "table",
+    "braces",
+    "terminal",
+    "scan-text",
+    "user",
+    "mail",
+    "map-pin",
+    "key",
+    "replace",
+    "workflow",
+    "history",
+    "download",
+    "upload",
+    "code",
+    "check-circle",
+    "alert-triangle",
+    "x-circle"
+  ],
+  "restricted": {
+    "shield": "Only for a literal verified security control",
+    "lock": "Only for a literal locked/encrypted state if technically accurate"
+  },
+  "forbidden": [
+    "decorative fingerprint",
+    "hacker silhouette",
+    "sparkles as AI shorthand",
+    "custom icon set unless product requires unique domain semantics"
+  ]
+}

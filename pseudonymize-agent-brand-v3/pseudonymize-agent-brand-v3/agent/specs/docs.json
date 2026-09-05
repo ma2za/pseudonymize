@@ -1,0 +1,19 @@
+{
+  "page": "docs",
+  "theme": "light",
+  "contentWidth": 760,
+  "sidebarWidth": 240,
+  "rules": [
+    "Prioritize reading contrast",
+    "Code blocks dark-neutral, not green",
+    "Mono only for code/identifiers",
+    "Use logo light-surface variant",
+    "Actual API names from repository only"
+  ],
+  "callouts": {
+    "info": "blue",
+    "warning": "sensitive amber",
+    "danger": "red",
+    "success": "cipher only if it represents completed transformation"
+  }
+}

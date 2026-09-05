@@ -1,0 +1,31 @@
+{
+  "tagline": "Keep the context. Replace the identifiers.",
+  "terms": {
+    "preferred": [
+      "pseudonymize",
+      "pseudonymized",
+      "original identifier",
+      "pseudonym",
+      "sensitive identifier",
+      "mapping",
+      "processing"
+    ],
+    "avoid": [
+      "anonymize unless technically correct",
+      "safe data as an absolute claim",
+      "military-grade",
+      "unhackable",
+      "zero-risk",
+      "privacy magic",
+      "AI-powered unless AI is materially and verifiably involved"
+    ]
+  },
+  "status": [
+    "Not processed",
+    "Processing",
+    "Pseudonymized",
+    "Review required",
+    "Failed"
+  ],
+  "securityRule": "A security claim requires evidence. Omit what cannot be verified."
+}

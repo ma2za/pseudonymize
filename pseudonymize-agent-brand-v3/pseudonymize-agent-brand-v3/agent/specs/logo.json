@@ -1,0 +1,28 @@
+{
+  "concept": "preserved frame / mapped identity",
+  "meaning": {
+    "brackets": "context/structure preserved",
+    "circle": "original identifier",
+    "square": "pseudonym token",
+    "bond": "mapping relationship"
+  },
+  "assets": {
+    "darkSurface": "/brand/lockup-dark.svg",
+    "lightSurface": "/brand/lockup-light.svg",
+    "compactDark": "/brand/mark-dark.svg",
+    "compactLight": "/brand/mark-light.svg",
+    "mono": "/brand/mark-mono.svg"
+  },
+  "minimum": {
+    "markPx": 20,
+    "lockupPxWide": 120
+  },
+  "clearSpace": "At least 0.5\u00d7 compact mark width around the full logo.",
+  "rules": [
+    "Do not use the symbol as a delete/prohibition icon",
+    "Do not add a shield, keyhole or lock",
+    "Do not rotate or animate the mapping bond",
+    "Do not recolor circle and square into arbitrary status colors",
+    "Use monochrome only when the brand accent is unavailable"
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "page": "homepage",
+  "theme": "dark",
+  "maxWidth": 1160,
+  "goal": "Explain the product in one screen, prove the transformation visually, then supply verified details.",
+  "navbar": {
+    "height": 68,
+    "items": [
+      "Product",
+      "Developers",
+      "Security",
+      "Pricing",
+      "Docs"
+    ],
+    "actions": [
+      "Sign in",
+      "Pseudonymize data"
+    ],
+    "rules": [
+      "No announcement bar by default",
+      "No mega menu unless product actually needs one"
+    ]
+  },
+  "hero": {
+    "layout": "56/44 split at >=1024px; stacked below",
+    "copySource": "src/brand/copy.ts",
+    "rightSurface": "real interactive or realistic transformation sample, not illustration",
+    "requiredExample": {
+      "raw": "alice@example.com",
+      "pseudonym": "EMAIL_01"
+    },
+    "rules": [
+      "No gradient headline",
+      "No glowing background blob",
+      "Accent belongs in mapped output and primary CTA",
+      "Hero may contain one thin structural rail motif only"
+    ]
+  },
+  "sections": [
+    {
+      "id": "inputs",
+      "pattern": "three compact capability rows, not three floating feature cards",
+      "content": [
+        "Text",
+        "Structured data",
+        "Files"
+      ]
+    },
+    {
+      "id": "transformation",
+      "pattern": "full-width before/after context comparison",
+      "rules": [
+        "Preserve surrounding text/rows",
+        "Highlight original identifiers in sensitive amber",
+        "Render pseudonyms in mono + cipher"
+      ]
+    },
+    {
+      "id": "workflow",
+      "pattern": "three numbered steps on one shared rail",
+      "steps": [
+        "Detect",
+        "Replace",
+        "Continue the workflow"
+      ]
+    },
+    {
+      "id": "developers",
+      "pattern": "copy + repository-verified API example",
+      "rules": [
+        "Never fabricate endpoint names or SDKs"
+      ]
+    },
+    {
+      "id": "trust",
+      "pattern": "verified facts only",
+      "dataSource": "src/brand/security.ts",
+      "emptyBehavior": "omit section"
+    },
+    {
+      "id": "final",
+      "pattern": "quiet CTA, no illustration",
+      "headline": "Keep the context. Replace the identifiers."
+    }
+  ],
+  "footer": {
+    "columns": [
+      "Product",
+      "Developers",
+      "Company",
+      "Legal"
+    ],
+    "rules": [
+      "Only include routes that exist",
+      "No fake compliance badges"
+    ]
+  }
+}

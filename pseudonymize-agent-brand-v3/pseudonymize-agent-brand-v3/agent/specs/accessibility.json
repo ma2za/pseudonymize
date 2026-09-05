@@ -1,0 +1,10 @@
+{
+  "contrast": "WCAG 2.2 AA minimum for body/UI text; do not rely on accent text on light background without checking contrast.",
+  "focus": "Visible focus-visible ring on every interactive control.",
+  "status": "Color must never be the only status carrier.",
+  "touch": "Aim for 44\u00d744px touch target on touch-first surfaces even if visual control is 40px.",
+  "motion": "Respect prefers-reduced-motion.",
+  "tables": "Use semantic table markup when data is tabular.",
+  "diffs": "Original vs pseudonymized must be named in text/ARIA, not conveyed only by amber/green.",
+  "forms": "Persistent labels; errors associated to fields; never clear user data on validation failure."
+}

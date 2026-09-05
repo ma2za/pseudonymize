@@ -1,0 +1,22 @@
+{
+  "principle": "Motion explains state change, never performs trust theatrics.",
+  "durations": {
+    "micro": "100ms",
+    "default": "160ms",
+    "transform": "160\u2013240ms",
+    "overlay": "240ms"
+  },
+  "transformSequence": [
+    "identify exact original token",
+    "replace text/token without moving surrounding layout",
+    "settle pseudonym in cipher semantic style"
+  ],
+  "forbidden": [
+    "spinning shield",
+    "pulsing security glow",
+    "continuous scanning decoration",
+    "parallax on data surfaces",
+    "layout shift during token replacement"
+  ],
+  "reducedMotion": "Skip morph/slide; swap state immediately while preserving focus and announcement semantics."
+}

@@ -71,12 +71,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run dev -- -p 3001',
+    url: 'http://localhost:3001',
+    reuseExistingServer: false,
     timeout: 120 * 1000,
     env: {
-      NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+      NEXT_PUBLIC_APP_URL: 'http://localhost:3001',
     },
   },
 });
