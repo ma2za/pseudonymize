@@ -60,7 +60,7 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ### Fixed
 
 - **Context-Aware Over-Extraction Prevention:** Added lookahead constraints to context detectors to enforce that alphanumeric generic IDs actually contain at least one digit, avoiding false positives where trailing words matched `[A-Z0-9]` regexes.
-- **The 90% Benchmark Gate Achieved:** Contextual detectors for `NATIONAL_ID`, `DRIVERLICENSENUM`, and `ZIPCODE` were systematically expanded to capture generic alphanumeric and numeric patterns when preceded by common trigger phrases ("ticket id", "serial", "receipt number", etc.). This broke through the 90% ceiling on the `ai4privacy` holdout dataset, hitting `0.9560` Precision and `0.8962` Recall (`0.9251` F1 Score).
+- **The 90% Benchmark Gate Achieved:** Contextual detectors for `NATIONAL_ID`, `DRIVERLICENSENUM`, and `ZIPCODE` were systematically expanded to capture generic alphanumeric and numeric patterns when preceded by common trigger phrases ("ticket id", "serial", "receipt number", etc.). This broke through the 90% ceiling on the `ai4privacy` holdout dataset under permissive overlap scoring, hitting `0.9560` Precision and `0.8962` Recall (`0.9251` F1 Score). *(Note: Strict 1-to-1 scoring introduced in v1.0.0 reveals the true generalized baseline is lower).*
 
 ## [0.12.0] - 2026-08-28
 
