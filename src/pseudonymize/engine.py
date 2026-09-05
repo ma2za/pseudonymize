@@ -14,7 +14,7 @@ from collections.abc import (
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import MappingProxyType
-from typing import TypeAlias, cast
+from typing import Any, TypeAlias, cast
 
 from pseudonymize.adapters import InputAdapter, OutputAdapter
 from pseudonymize.backends import (
@@ -79,6 +79,50 @@ _PLACEHOLDER = re.compile(
     rf"<PZ1:(?:{_ENTITY_NAMES}):[A-Z2-7]{{16}}>|"
     rf"\[REDACTED(?:_(?:{_ENTITY_NAMES}))?\]"
 )
+
+
+class Session:
+    def __init__(self, engine: "Pseudonymizer"):
+        self._engine = engine
+        self._scope = engine.new_scope()
+        self._carry_buffer = ""
+
+    def forward(self, value: Any) -> Any:
+        return self._scope.process_data(value)
+
+    def restore(self, text: str) -> str:
+        full_text = self._carry_buffer + text
+        self._carry_buffer = ""
+
+        last_open_idx = max(full_text.rfind("<"), full_text.rfind("["))
+        if last_open_idx != -1:
+            close_char = ">" if full_text[last_open_idx] == "<" else "]"
+            last_close_idx = full_text.find(close_char, last_open_idx)
+            if last_close_idx == -1:
+                self._carry_buffer = full_text[last_open_idx:]
+                full_text = full_text[:last_open_idx]
+
+        reverse_map = {}
+        for (entity_type, original_value), alias in self._scope._context.aliases.items():
+            if alias.identifier is not None:
+                placeholder = f"<{entity_type.value}_{alias.identifier}>"
+                reverse_map[placeholder] = original_value
+                pz_placeholder = f"<PZ1:{entity_type.value}:{alias.identifier}>"
+                reverse_map[pz_placeholder] = original_value
+            else:
+                placeholder = f"<{entity_type.value}>"
+                reverse_map[placeholder] = original_value
+
+        def repl(match: Any) -> str:
+            placeholder = match.group()
+            return cast(str, reverse_map.get(placeholder, placeholder))
+
+        return _PLACEHOLDER.sub(repl, full_text)
+
+    def flush(self) -> str:
+        text = self._carry_buffer
+        self._carry_buffer = ""
+        return self.restore(text)
 
 
 class DetectionStream:
@@ -282,6 +326,9 @@ class Pseudonymizer:
 
     def new_scope(self) -> "ProcessingScope":
         return ProcessingScope(self)
+
+    def session(self) -> Session:
+        return Session(self)
 
     def stream(self) -> DetectionStream:
         return DetectionStream(TextStreamProcessor(self.new_scope().process))
