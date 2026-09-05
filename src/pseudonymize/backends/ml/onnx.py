@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import typing
 from collections.abc import Sequence
 from pathlib import Path
@@ -64,6 +65,11 @@ _DEFAULT_ENTITY_THRESHOLDS: dict[EntityType, float] = {
     EntityType.PERSON: 0.40,
     EntityType.ORGANIZATION: 0.35,
 }
+
+_CONTEXT_BOOSTS: tuple[tuple[re.Pattern[str], EntityType, int], ...] = (
+    (re.compile(r"(?i)\b(?:mr|ms|mrs|dr|prof|sir|ceo|name is|named)\b\.?\s*"), EntityType.PERSON, 20),
+    (re.compile(r"(?i)\b(?:in|at|from|city of|visit|street|road|address)\b\.?\s*"), EntityType.LOCATION, 20),
+)
 
 
 class LocalONNXPIIBackend(DetectionBackend):
@@ -233,10 +239,21 @@ class LocalONNXPIIBackend(DetectionBackend):
         exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
         probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
 
+        # Pre-calculate boosted ranges based on context keywords in window text
+        boosted_ranges: dict[EntityType, list[tuple[int, int]]] = {
+            EntityType.PERSON: [],
+            EntityType.LOCATION: [],
+        }
+        for pattern, entity_type, boost_len in _CONTEXT_BOOSTS:
+            for match in pattern.finditer(text):
+                start = match.end()
+                end = start + boost_len
+                boosted_ranges[entity_type].append((start, end))
+
         predictions = []
         confidences = []
 
-        for token_probs in probs:
+        for idx, token_probs in enumerate(probs):
             best_label = int(np.argmax(token_probs))
             best_prob = float(token_probs[best_label])
 
@@ -262,6 +279,17 @@ class LocalONNXPIIBackend(DetectionBackend):
                 threshold = self._entity_threshold
                 if second_entity_type is not None:
                     threshold = self._entity_thresholds.get(second_entity_type, threshold)
+
+                    # Apply context boosting: if this token lands in a boosted zone, cut threshold
+                    token_start, token_end = encoding.offsets[idx]
+                    is_boosted = False
+                    if second_entity_type in boosted_ranges:
+                        for b_start, b_end in boosted_ranges[second_entity_type]:
+                            if b_start <= token_start < b_end:
+                                is_boosted = True
+                                break
+                    if is_boosted:
+                        threshold *= 0.5
 
                 if second_prob >= threshold:
                     best_label = second_best
