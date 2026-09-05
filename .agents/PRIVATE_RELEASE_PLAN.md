@@ -15,7 +15,8 @@ The next 10 releases are singularly focused on improving the F1 score back to >0
 - **1.1.0:** Token-to-Character Alignment Optimization
 - **1.2.0:** NLP-Driven Context Detectors
 - **1.3.0:** Entity-Specific Confidence Calibration
-- **1.4.0:** Secondary NER Ensembling
+- **1.4.0:** Lightweight PII Model Trials (CPU-only)
+- **1.4.1:** Secondary NER Ensembling
 - **1.5.0:** Advanced Punctuation Boundary Rules
 - **1.6.0:** Local Location & Address Parsing
 - **1.7.0:** Attention-Mask Context Boosting
