@@ -17,6 +17,25 @@ export const auth = betterAuth({
             verification: schema.verification
         }
     }),
+    databaseHooks: {
+        user: {
+            create: {
+                after: async (user) => {
+                    if (!resend) return;
+                    try {
+                        await resend.emails.send({
+                            from: 'pseudonymize.io <noreply@pseudonymize.io>',
+                            to: 'mazzapaolo2019@gmail.com',
+                            subject: 'New User Registration: ' + user.email,
+                            html: `<p>A new user registered on pseudonymize.io:</p><ul><li>Name: ${user.name}</li><li>Email: ${user.email}</li></ul>`
+                        });
+                    } catch (e) {
+                        console.error('Failed to send admin notification email:', e);
+                    }
+                }
+            }
+        }
+    },
     trustedOrigins: [
         "https://pseudonymize.io", 
         "https://www.pseudonymize.io", 

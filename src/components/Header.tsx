@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import LanguageSwitcher from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { Logo, BrandButton } from '@/brand/components';
+import { GithubIcon } from './GithubIcon';
 
 export default async function Header() {
   const t = await getTranslations('Global');
@@ -27,8 +28,12 @@ export default async function Header() {
           <Link href="/blog" className="text-sm font-semibold leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('blog')}
           </Link>
-          <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors hidden sm:block">
-            {t('openSource')}
+          <Link href="/docs" className="text-sm font-semibold leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            Docs
+          </Link>
+          <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors hidden sm:flex">
+            <GithubIcon className="w-4 h-4" />
+            <span>ma2za/pseudonymize</span>
           </a>
           <LanguageSwitcher />
           <ThemeToggle />

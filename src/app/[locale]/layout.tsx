@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { PostHogProvider } from '@/components/PostHogProvider';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -87,15 +88,17 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} bg-[var(--pz-canvas)] text-[var(--pz-text)] antialiased flex flex-col min-h-screen`}>
-        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <NextIntlClientProvider messages={messages}>
-            <Header />
-            <div className="flex-1">
-              {children}
-            </div>
-            <Footer />
-          </NextIntlClientProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <NextIntlClientProvider messages={messages}>
+              <Header />
+              <div className="flex-1">
+                {children}
+              </div>
+              <Footer />
+            </NextIntlClientProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
