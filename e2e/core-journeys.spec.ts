@@ -40,7 +40,7 @@ test.describe("Proper E2E Flow: Auth, API Keys, Settings (No Mocks)", () => {
     await page.locator('input[type="password"]#password-input').fill(password);
     
     console.log("Submitting sign-up form...");
-    await page.getByRole("button", { name: /Sign up/i }).click();
+    await page.locator('button[type="submit"]').click();
 
     console.log("Waiting for redirection to dashboard...");
     await page.waitForURL("**/en/dashboard", { timeout: 15000 });
