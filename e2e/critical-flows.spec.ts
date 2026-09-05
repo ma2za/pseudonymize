@@ -16,7 +16,7 @@ test.describe("5 Critical Edge-Case & Security Flows", () => {
     await page.locator('input[type="text"]#name-input').fill('Critical Tester');
     await page.locator('input[type="email"]#email-input').fill(email);
     await page.locator('input[type="password"]#password-input').fill(password);
-    await page.getByRole("button", { name: /Sign up/i }).click();
+    await page.locator('button[type="submit"]').click();
     await page.waitForURL("**/en/dashboard", { timeout: 15000 });
     await page.close();
   });

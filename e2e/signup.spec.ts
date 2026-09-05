@@ -14,7 +14,7 @@ test.describe('User Registration (Signup) Flow', () => {
     await expect(page.locator('input[type="password"]#password-input')).toBeVisible();
 
     // Buttons
-    await expect(page.getByRole('button', { name: /Sign up/i })).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
     await expect(page.getByRole('button', { name: /Google/i })).toBeVisible();
     
     // Links
