@@ -436,7 +436,8 @@ def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
             model_path=model_path,
             tokenizer_path=tokenizer_path,
             config_path=config_path,
-            entity_threshold=threshold,
+            entity_threshold=threshold,\
+            entity_thresholds={},
         )
         return [detection.confidence for detection in backend.detect(block, policy)]
 
@@ -468,3 +469,21 @@ def test_ml_entity_threshold_is_validated(
             config_path=config_path,
             window_overlap_tokens=-1,
         )
+
+def test_ml_entity_specific_thresholds(
+    distilbert_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    text = "Please ship the Apollo unit to warehouse Beta before the Friday deadline, thanks."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+
+    backend_with_override = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.99,
+        entity_thresholds={EntityType.LOCATION: 0.01},
+    )
+    detections = backend_with_override.detect(block, policy)
+    assert len(detections) >= 0

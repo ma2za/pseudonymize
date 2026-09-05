@@ -59,6 +59,13 @@ def _entity_type_for(label: str) -> EntityType | None:
     return None
 
 
+_DEFAULT_ENTITY_THRESHOLDS: dict[EntityType, float] = {
+    EntityType.LOCATION: 0.35,
+    EntityType.PERSON: 0.40,
+    EntityType.ORGANIZATION: 0.35,
+}
+
+
 class LocalONNXPIIBackend(DetectionBackend):
     def __init__(
         self,
@@ -69,6 +76,7 @@ class LocalONNXPIIBackend(DetectionBackend):
         providers: Sequence[str] = ("CPUExecutionProvider",),
         entity_threshold: float = 0.5,
         window_overlap_tokens: int = 64,
+        entity_thresholds: dict[EntityType, float] | None = None,
     ) -> None:
         if ort is None or Tokenizer is None or np is None:
             raise ImportError(
@@ -87,6 +95,9 @@ class LocalONNXPIIBackend(DetectionBackend):
 
         self._name = name
         self._entity_threshold = entity_threshold
+        self._entity_thresholds = (
+            entity_thresholds if entity_thresholds is not None else _DEFAULT_ENTITY_THRESHOLDS
+        )
         self._window_overlap_tokens = window_overlap_tokens
         self._model_path = str(model_path)
         self._tokenizer_path = str(tokenizer_path)
@@ -243,7 +254,16 @@ class LocalONNXPIIBackend(DetectionBackend):
                 second_best = int(np.argmax(runner_up_probs))
                 second_prob = float(runner_up_probs[second_best])
 
-                if second_prob >= self._entity_threshold:
+                second_label_str = (self._id2label or {}).get(second_best)
+                second_entity_type = (
+                    _entity_type_for(second_label_str) if second_label_str else None
+                )
+
+                threshold = self._entity_threshold
+                if second_entity_type is not None:
+                    threshold = self._entity_thresholds.get(second_entity_type, threshold)
+
+                if second_prob >= threshold:
                     best_label = second_best
                     best_prob = second_prob
 
