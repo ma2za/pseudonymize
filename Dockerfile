@@ -52,11 +52,7 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/src/db ./src/db
-COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
-
-# Install drizzle-kit globally in the runner so the DB push command works
-RUN npm install -g drizzle-kit
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
 USER nextjs
 
@@ -66,5 +62,5 @@ ENV PORT=3000
 # set hostname to localhost
 ENV HOSTNAME="0.0.0.0"
 
-# Automatically run Drizzle migrations before starting Next.js using the traced node_modules
-CMD ["sh", "-c", "npx drizzle-kit push && node server.js"]
+# Automatically run Prisma migrations before starting Next.js using the traced node_modules
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]

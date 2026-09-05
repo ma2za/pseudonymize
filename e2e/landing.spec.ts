@@ -10,8 +10,8 @@ test.describe('Landing Page', () => {
 
   test('should fallback or render correctly in another locale (e.g. /es)', async ({ page }) => {
     await page.goto('/es');
-    await expect(page).toHaveTitle(/Pseudonymize sensitive data/i);
-    await expect(page.getByRole('heading', { name: /Pseudonymize sensitive data/i, exact: false })).toBeVisible();
+    await expect(page).toHaveTitle(/Seudonimizar los datos confidenciales/i);
+    await expect(page.getByRole('heading', { name: /Seudonimizar los datos confidenciales/i, exact: false })).toBeVisible();
   });
 
   test('should redirect root to default locale (/en)', async ({ page }) => {
