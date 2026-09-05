@@ -1,0 +1,18 @@
+{
+  "surface": "light",
+  "maxWidth": 600,
+  "logo": "compact light-surface mark + text lockup",
+  "rules": [
+    "Transactional first",
+    "No gradients",
+    "No oversized hero",
+    "No unverified security footers",
+    "Buttons use cipher only for primary action"
+  ],
+  "templates": [
+    "verify email if product has auth",
+    "workspace invite if product has teams",
+    "processing complete if async jobs exist",
+    "security notification only when actual security event semantics exist"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "buttons": {
+    "height": 40,
+    "radius": 8,
+    "primary": "cipher fill, dark text",
+    "secondary": "transparent, strong neutral border",
+    "ghost": "transparent neutral text",
+    "rules": [
+      "One primary action per local decision area",
+      "Destructive actions use danger semantics, never cipher"
+    ]
+  },
+  "inputs": {
+    "height": 40,
+    "radius": 8,
+    "border": "neutral",
+    "focus": "2px focus token + 3px offset when appropriate",
+    "invalid": "danger border/message only after validation",
+    "rules": [
+      "Do not use sensitive amber for generic input focus",
+      "Labels remain visible; placeholder is not a label"
+    ]
+  },
+  "entityHighlight": {
+    "originalIdentifier": "subtle sensitive amber background/underline",
+    "pseudonym": "mono + cipher token"
+  },
+  "tables": {
+    "rowHeight": "40\u201348 desktop",
+    "header": "small neutral semibold",
+    "borders": "horizontal or full grid only when data needs it",
+    "numericAndIds": "mono where machine-readable",
+    "rules": [
+      "Avoid oversized 64px rows",
+      "Do not tint entire pseudonymized rows green"
+    ]
+  },
+  "dropzone": {
+    "style": "neutral dashed border only while empty/dragging",
+    "icon": "file/upload icon, neutral",
+    "active": "border may move toward cipher",
+    "rules": [
+      "No giant cloud illustration",
+      "Supported types come from actual product config"
+    ]
+  },
+  "dialogs": {
+    "radius": 12,
+    "shadow": "allowed",
+    "backdrop": "neutral",
+    "rules": [
+      "Use for focused interruption, not normal settings navigation"
+    ]
+  },
+  "cards": {
+    "rule": "Use only for actual objects or grouped controls. Prefer rows/sections for narrative marketing content."
+  },
+  "status": {
+    "idle": "neutral",
+    "processing": "info",
+    "pseudonymized": "cipher",
+    "review": "sensitive",
+    "failed": "danger",
+    "rule": "Always pair color with text/icon."
+  }
+}

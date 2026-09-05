@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "brand:lint": "node scripts/brand-lint.mjs ."
+  },
+  "note": "Merge the script entry into the target package.json; do not replace the target package.json."
+}

@@ -1,0 +1,110 @@
+export const brand = {
+  "meta": {
+    "name": "pseudonymize.io",
+    "version": "3.0.0",
+    "concept": "Preserved frame, replaced identifier",
+    "tagline": "Keep the context. Replace the identifiers."
+  },
+  "color": {
+    "dark": {
+      "canvas": "#0B1013",
+      "surface": "#10171B",
+      "surfaceRaised": "#151E23",
+      "surfaceInset": "#080C0E",
+      "border": "#263238",
+      "borderStrong": "#37474F",
+      "text": "#F2F6F4",
+      "textSecondary": "#A8B5B0",
+      "textMuted": "#74827D"
+    },
+    "light": {
+      "canvas": "#F7F9F8",
+      "surface": "#FFFFFF",
+      "surfaceRaised": "#FFFFFF",
+      "surfaceInset": "#EFF3F1",
+      "border": "#D8E0DC",
+      "borderStrong": "#B7C4BE",
+      "text": "#101619",
+      "textSecondary": "#50605A",
+      "textMuted": "#718079"
+    },
+    "semantic": {
+      "cipher": "#5BD6AE",
+      "cipherHover": "#48C59C",
+      "cipherStrong": "#1F755D",
+      "cipherSoft": "#D6F6EA",
+      "sensitive": "#E7B35A",
+      "sensitiveSoft": "#FAEBCB",
+      "info": "#72A7F7",
+      "danger": "#E97474",
+      "success": "#5BCB91",
+      "focus": "#86E5C6"
+    }
+  },
+  "type": {
+    "sans": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+    "mono": "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, Consolas, \"Liberation Mono\", monospace",
+    "weight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "size": {
+      "xs": 12,
+      "sm": 14,
+      "base": 16,
+      "lg": 18,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 32,
+      "4xl": 44,
+      "5xl": 60
+    },
+    "lineHeight": {
+      "tight": 1.08,
+      "heading": 1.15,
+      "body": 1.55
+    }
+  },
+  "radius": {
+    "xs": 4,
+    "sm": 6,
+    "md": 8,
+    "lg": 12,
+    "pill": 999
+  },
+  "spacing": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 20,
+    "6": 24,
+    "8": 32,
+    "10": 40,
+    "12": 48,
+    "16": 64,
+    "20": 80,
+    "24": 96
+  },
+  "layout": {
+    "container": 1160,
+    "reading": 700,
+    "navHeight": 68,
+    "controlHeight": 40
+  },
+  "motion": {
+    "fast": "100ms",
+    "base": "160ms",
+    "slow": "240ms",
+    "ease": "cubic-bezier(.2,.8,.2,1)"
+  },
+  "breakpoint": {
+    "sm": 640,
+    "md": 768,
+    "lg": 1024,
+    "xl": 1280
+  }
+} as const
+export type Brand = typeof brand

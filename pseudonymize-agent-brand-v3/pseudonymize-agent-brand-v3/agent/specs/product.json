@@ -1,0 +1,40 @@
+{
+  "page": "product",
+  "defaultTheme": "light",
+  "goal": "Make processing state and data provenance obvious; keep chrome quiet.",
+  "shell": {
+    "sidebarWidth": 232,
+    "topbarHeight": 56,
+    "contentMax": 1440
+  },
+  "primaryWorkspace": {
+    "desktop": "source / result split with shared toolbar",
+    "mobile": "source then result; never side-by-side below 768px",
+    "toolbar": [
+      "input type",
+      "policy if real",
+      "process action",
+      "status"
+    ],
+    "sourceSemantics": "original identifiers use subtle sensitive highlight",
+    "resultSemantics": "pseudonyms use mono + cipher; surrounding content remains normal text"
+  },
+  "surfaces": [
+    "Text",
+    "Table",
+    "File"
+  ],
+  "states": {
+    "empty": "Explain accepted input without illustration",
+    "processing": "Use status label and subtle progress; do not imply completion",
+    "success": "Use Pseudonymized, not Secure",
+    "review": "Use sensitive amber, never danger red",
+    "error": "Use danger only for actual failure"
+  },
+  "rules": [
+    "No green-tinted entire page",
+    "Do not hide original/result distinction behind tabs on wide screens unless product complexity requires it",
+    "Do not use cards for every setting",
+    "Table density should be professional, not oversized marketing UI"
+  ]
+}
