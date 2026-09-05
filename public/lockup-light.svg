@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="120" viewBox="0 0 640 120">
+<rect width="640" height="120" rx="20" fill="#F7F9FA"/>
+<g transform="translate(20 18) scale(.65625)">
+<rect width="128" height="128" rx="26" fill="#EEF3F5"/><path fill="#111B21" fill-rule="evenodd" d="M34 25h37c19.33 0 35 15.67 35 35S90.33 95 71 95H55v15H34V25Zm21 20v30h16c8.28 0 15-6.72 15-15s-6.72-15-15-15H55Z"/><path d="M86 24 41 102" stroke="#48D6B0" stroke-width="9" stroke-linecap="round"/>
+</g>
+<text x="124" y="70" fill="#111B21" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="650" letter-spacing="-1.5">pseudonymize</text>
+<text x="432" y="70" fill="#48D6B0" font-family="monospace" font-size="24">.io</text>
+</svg>

@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {Link} from '@/i18n/routing';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 
 export default async function HomePage({params}: {params: Promise<{locale: string}>}) {
   const { locale } = await params;
@@ -12,7 +12,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
       <article className="w-full max-w-2xl text-center space-y-8">
         <header className="flex flex-col items-center">
           <div className="flex justify-center mb-6">
-            <Shield className="w-16 h-16 text-blue-600" aria-hidden="true" />
+            <Image src="/mark-dark.svg" alt="Logo" width={64} height={64} className="w-16 h-16" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
             {t('title')}

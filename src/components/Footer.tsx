@@ -11,12 +11,12 @@ export default function Footer() {
           <Link href="/blog" className="text-gray-600 hover:text-gray-900">
             {t('blog')}
           </Link>
-          <a href="#" className="text-gray-600 hover:text-gray-900">
+          <Link href="/privacy" className="text-gray-600 hover:text-gray-900">
             {t('privacy')}
-          </a>
-          <a href="#" className="text-gray-600 hover:text-gray-900">
+          </Link>
+          <Link href="/terms" className="text-gray-600 hover:text-gray-900">
             {t('terms')}
-          </a>
+          </Link>
           <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">
             {t('openSource')}
           </a>

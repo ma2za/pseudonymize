@@ -1,11 +1,12 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { Shield } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import CreditPurchase from '@/components/CreditPurchase';
 import { getApiKeys } from '@/app/actions/api-keys';
+import Image from 'next/image';
+import { Link } from '@/i18n/routing';
 
 export default async function DashboardPage({params}: {params: Promise<{locale: string}>}) {
   const { locale } = await params;

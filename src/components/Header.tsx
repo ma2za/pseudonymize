@@ -1,8 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
-import { Shield } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import LanguageSwitcher from './LanguageSwitcher';
+import Image from 'next/image';
 
 export default async function Header() {
   const t = await getTranslations('Global');
@@ -15,17 +16,17 @@ export default async function Header() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2">
-            <Shield className="h-8 w-auto text-blue-600" />
-            <span className="font-bold text-gray-900 text-xl tracking-tight">pseudonymize.io</span>
+            <Image src="/lockup-dark.svg" alt="pseudonymize.io" width={180} height={40} className="h-8 w-auto" />
           </Link>
         </div>
-        <div className="flex gap-x-8">
+        <div className="flex gap-x-8 items-center">
           <Link href="/blog" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
             {t('blog')}
           </Link>
           <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600 hidden sm:block">
             {t('openSource')}
           </a>
+          <LanguageSwitcher />
         </div>
         <div className="flex flex-1 justify-end items-center gap-4">
           {session ? (
