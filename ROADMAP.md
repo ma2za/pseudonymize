@@ -1,75 +1,66 @@
-# Roadmap: pseudonymize.io to v1.0
+# Roadmap: pseudonymize.io (v1.1 to v2.0)
 
-This document outlines the 10-release strategy to take **pseudonymize.io** from initialization to a production-ready v1.0.
+With v1.0 successfully launched, this roadmap outlines the next 10 releases aimed at improving user acquisition, account management, and platform maturity.
 
-### Release 0.1: Foundation & Scaffolding
-- **Goal:** Set up the Next.js project with App Router, TypeScript, and Tailwind CSS.
-- **Features:** 
-  - Monorepo/project structure initialization.
-  - Setup internationalization (i18n) framework for 20 languages.
-  - Setup basic theme (minimalist design system).
-
-### Release 0.2: Better Auth Integration
-- **Goal:** Implement secure user authentication.
+### Release 1.1: Global Layouts & Navigation
+- **Goal:** Unify the brand experience across all public pages.
 - **Features:**
-  - Setup Better Auth.
-  - Google SSO integration.
-  - Email/Password authentication.
-  - Protected routes scaffolding.
+  - Implement a global, responsive Header (Logo, Blog, Auth links).
+  - Implement a minimal Footer (Copyright, social links, legal placeholders).
 
-### Release 0.3: Database & Core Models
-- **Goal:** Establish the data layer for users, credits, and API keys.
+### Release 1.2: User Registration Flow
+- **Goal:** Allow frictionless onboarding.
 - **Features:**
-  - Setup ORM (e.g., Drizzle or Prisma) and PostgreSQL.
-  - Models for User, API Key, and Credit Balance.
-  - Initial database migrations.
+  - Dedicated `/signup` page.
+  - Native Email/Password registration bridging with Better Auth.
+  - Seamless redirect to the dashboard upon successful registration.
 
-### Release 0.4: Landing Page & Multi-language Structure
-- **Goal:** Build the public face of the service.
+### Release 1.3: Password Recovery 
+- **Goal:** Prevent user lockouts.
 - **Features:**
-  - High-converting, minimal landing page.
-  - Translation files stubbed for all 20 target languages.
-  - Language switcher component.
+  - `/forgot-password` flow to trigger Resend recovery emails.
+  - `/reset-password` page to securely set a new password via token.
 
-### Release 0.5: Dashboard & API Key Management
-- **Goal:** Allow users to manage their integration.
+### Release 1.4: Profile Settings & Account Deletion
+- **Goal:** Give users control over their data (GDPR compliance).
 - **Features:**
-  - Secure developer dashboard.
-  - Generate, revoke, and view API keys.
-  - Display current credit balance.
+  - Add a "Settings" tab in the dashboard.
+  - Allow users to update their name/email.
+  - 1-click account deletion and data wipe.
 
-### Release 0.6: Monetization (Stripe Credits System)
-- **Goal:** Implement the business model.
+### Release 1.5: Interactive API Documentation
+- **Goal:** Developer enablement.
 - **Features:**
-  - Stripe integration (webhooks, checkout sessions).
-  - Purchase flows for credit packages.
-  - Update user credit balance upon successful payment.
+  - Add a `/docs` sub-route powered by our Markdown CMS.
+  - Code snippets in Python, Node.js, and Go.
+  - Live interactive payload playground.
 
-### Release 0.7: Headless CMS Integration
-- **Goal:** Lay the groundwork for content marketing.
+### Release 1.6: Usage Analytics Dashboard
+- **Goal:** Transparency in billing.
 - **Features:**
-  - Connect a Headless CMS (e.g., Sanity, Strapi, or robust markdown parsing).
-  - Define schema for Blog Posts (Title, Content, Meta, Slug).
-  - Support content variations for the 20 languages.
+  - Track API usage in the backend (using a Redis or fast Postgres table).
+  - Display a usage graph/chart on the user dashboard.
 
-### Release 0.8: Multilingual Blog & Global SEO
-- **Goal:** Maximize discoverability across regions.
+### Release 1.7: Subscription & Auto-Reload
+- **Goal:** Advanced monetization.
 - **Features:**
-  - Build the `/blog` frontend to fetch and render CMS content.
-  - Implement hreflang tags, dynamic sitemaps, and canonical URLs.
-  - Geo-optimization logic for regional rendering.
+  - Integrate Stripe Billing Portal.
+  - Option to auto-reload credits when balance falls below a threshold.
 
-### Release 0.9: Infrastructure & CI/CD Pipeline
-- **Goal:** Automate deployments to Hetzner via Coolify.
+### Release 1.8: Organization & Team Support
+- **Goal:** B2B capabilities.
 - **Features:**
-  - Dockerize the Next.js application.
-  - Configure Coolify deployment webhooks.
-  - GitHub Actions for linting, type-checking, and auto-deploy.
+  - Allow users to create "Organizations".
+  - Invite team members via email.
+  - Shared credit pools and API keys.
 
-### Release 1.0: Polish, Analytics & Production Launch
-- **Goal:** The official launch.
+### Release 1.9: Multi-Region API Routing
+- **Goal:** Latency optimization for enterprise.
 - **Features:**
-  - End-to-end testing of auth, billing, and localization flows.
-  - Integration of privacy-friendly analytics.
-  - Final UX review, ensuring the "simple, minimal, straight to the point" ethos.
-  - Go live!
+  - Allow users to select API processing regions (EU vs US) for strict compliance.
+
+### Release 2.0: Platform Marketplace
+- **Goal:** Extend pseudonymization logic.
+- **Features:**
+  - Custom data masking rules (e.g., regex patterns, specific NLP models).
+  - Open the platform for community-contributed masking strategies.
