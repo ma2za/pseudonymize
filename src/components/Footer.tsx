@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
+import { GithubIcon } from './GithubIcon';
 
 export default function Footer() {
   const t = useTranslations('Global');
@@ -11,14 +12,18 @@ export default function Footer() {
           <Link href="/blog" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('blog')}
           </Link>
+          <Link href="/docs" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            Docs
+          </Link>
           <Link href="/privacy" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('privacy')}
           </Link>
           <Link href="/terms" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('terms')}
           </Link>
-          <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
-            {t('openSource')}
+          <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            <GithubIcon className="w-4 h-4" />
+            <span>ma2za/pseudonymize</span>
           </a>
         </nav>
         <p className="mt-10 text-center text-xs leading-5 text-[var(--pz-text-muted)] font-mono">
