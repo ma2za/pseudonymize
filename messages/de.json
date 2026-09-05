@@ -1,0 +1,46 @@
+{
+  "Home": {
+    "title": "pseudonymize.io",
+    "description": "The hosted solution for scalable data anonymization and pseudonymization. Secure your PII pipelines with a simple API.",
+    "getStarted": "Get Started",
+    "viewOpenSource": "View open source"
+  },
+  "Login": {
+    "title": "Sign in to your account",
+    "emailLabel": "Email address",
+    "passwordLabel": "Password",
+    "signInButton": "Sign in",
+    "orContinueWith": "Or continue with",
+    "googleButton": "Google",
+    "backToHome": "← Back to Home"
+  },
+  "Blog": {
+    "blogTitle": "Our Blog",
+    "blogDescription": "Latest news, updates, and deep-dives into modern PII management and deterministic pseudonymization.",
+    "readMore": "Read more",
+    "backToBlog": "← Back to Blog"
+  },
+  "Dashboard": {
+    "brandName": "pseudonymize.io",
+    "signOut": "Sign out",
+    "apiKeysTitle": "API Keys",
+    "apiKeysDescription": "Manage your API keys for programmatic access to the pseudonymization API.",
+    "createNewKey": "Create new API key",
+    "yourKeysTitle": "Your Keys",
+    "noKeysYet": "No keys generated yet.",
+    "billingTitle": "Billing & Credits",
+    "creditsRemaining": "You have {credits} credits remaining.",
+    "buyCredits": "Buy Credits",
+    "keyNamePlaceholder": "Name your API key (e.g., Production App)",
+    "defaultKeyName": "Default Key",
+    "creating": "Creating...",
+    "keyGeneratedWarning": "Please copy your API key now. You won't be able to see it again!",
+    "created": "Created",
+    "revokeKey": "Revoke key",
+    "package10k": "Starter Package",
+    "package50k": "Pro Package",
+    "mostPopular": "Most Popular",
+    "creditsLabel": "Credits",
+    "redirecting": "Redirecting..."
+  }
+}
