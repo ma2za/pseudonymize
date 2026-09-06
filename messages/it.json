@@ -228,5 +228,10 @@
   "Security": {
     "title": "Le dichiarazioni di sicurezza dovrebbero essere ispezionabili.",
     "description": "Questa pagina documenta il modo in cui pseudonymize.io gestisce i dati e l'infrastruttura. Ogni affermazione mostrata qui è supportata da una fonte interna o da una politica pubblica."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

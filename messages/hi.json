@@ -228,5 +228,10 @@
   "Security": {
     "title": "सुरक्षा दावों का निरीक्षण किया जाना चाहिए.",
     "description": "यह पृष्ठ दस्तावेज करता है कि कैसे छद्मनामाइज़.आईओ डेटा और बुनियादी ढांचे को संभालता है। यहां दिखाया गया प्रत्येक दावा किसी आंतरिक स्रोत या सार्वजनिक नीति द्वारा समर्थित है।"
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

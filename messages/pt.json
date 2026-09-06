@@ -228,5 +228,10 @@
   "Security": {
     "title": "As reivindicações de segurança devem ser inspecionáveis.",
     "description": "Esta página documenta como pseudonymize.io lida com dados e infraestrutura. Cada afirmação mostrada aqui é apoiada por uma fonte interna ou política pública."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

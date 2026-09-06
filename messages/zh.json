@@ -228,5 +228,10 @@
   "Security": {
     "title": "安全声明应该是可检查的。",
     "description": "本页面记录了pseudonymize.io如何处理数据和基础设施。 这里显示的每项主张都有内部来源或公共政策的支持。"
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

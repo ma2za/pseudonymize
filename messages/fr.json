@@ -228,5 +228,10 @@
   "Security": {
     "title": "Les réclamations en matière de sécurité doivent être inspectables.",
     "description": "Cette page documente comment pseudonymize.io gère les données et l'infrastructure. Chaque affirmation présentée ici est étayée par une source interne ou une politique publique."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

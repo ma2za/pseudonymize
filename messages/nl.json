@@ -228,5 +228,10 @@
   "Security": {
     "title": "Beveiligingsclaims moeten controleerbaar zijn.",
     "description": "Deze pagina documenteert hoe pseudonymize.io omgaat met gegevens en infrastructuur. Elke hier getoonde claim wordt ondersteund door een interne bron of openbaar beleid."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

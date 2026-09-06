@@ -228,5 +228,10 @@
   "Security": {
     "title": "يجب أن تكون المطالبات الأمنية قابلة للفحص.",
     "description": "توثق هذه الصفحة كيفية تعامل pseudonymize.io مع البيانات والبنية التحتية. كل مطالبة تظهر هنا مدعومة بمصدر داخلي أو سياسة عامة."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

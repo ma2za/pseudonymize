@@ -228,5 +228,10 @@
   "Security": {
     "title": "Sikkerhetskrav bør være inspiserbare.",
     "description": "Denne siden dokumenterer hvordan pseudonymize.io håndterer data og infrastruktur. Hvert krav som vises her er støttet av en intern kilde eller offentlig politikk."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }
