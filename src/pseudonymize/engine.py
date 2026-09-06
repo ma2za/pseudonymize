@@ -223,18 +223,75 @@ class Pseudonymizer:
                 }:
                     start = detection.start
                     end = detection.end
+
+                    # Two-Pass Boundary Refinement (v1.9.0)
+                    # Pass 1 identified candidate regions.
+                    # Pass 2: Apply strict cropping of leading/trailing function words.
+                    croppable_words = {
+                        "the",
+                        "a",
+                        "an",
+                        "in",
+                        "at",
+                        "from",
+                        "on",
+                        "to",
+                        "with",
+                        "by",
+                        "of",
+                        "for",
+                        "and",
+                        "or",
+                        "is",
+                        "was",
+                        "were",
+                        "are",
+                        "about",
+                        "through",
+                    }
+
+                    # Crop leading croppable words
+                    while start < end:
+                        span_text = text[start:end]
+                        words = span_text.split()
+                        if not words:
+                            break
+                        first_word = "".join(c for c in words[0] if c.isalnum()).lower()
+                        if first_word in croppable_words:
+                            word_len = len(words[0])
+                            start += span_text.find(words[0]) + word_len
+                        else:
+                            break
+
+                    # Crop trailing croppable words
+                    while end > start:
+                        span_text = text[start:end]
+                        words = span_text.split()
+                        if not words:
+                            break
+                        last_word = "".join(c for c in words[-1] if c.isalnum()).lower()
+                        if last_word in croppable_words:
+                            word_index = span_text.rfind(words[-1])
+                            end = start + word_index
+                        else:
+                            break
+
+                    # Trim leading punctuation / symbols / whitespace
                     while start < end:
                         cat = unicodedata.category(text[start])
                         if cat.startswith(("P", "S", "Z", "C")):
                             start += 1
                         else:
                             break
+
+                    # Trim trailing punctuation / symbols / whitespace
                     while end > start:
                         cat = unicodedata.category(text[end - 1])
                         if cat.startswith(("P", "S", "Z", "C")):
                             end -= 1
                         else:
                             break
+
                     if start >= end:
                         continue
                     if start != detection.start or end != detection.end:

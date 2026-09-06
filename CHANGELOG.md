@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.9.0] - 2026-09-06
+
+### Added
+
+- **Multi-Pass Boundary Refinement:** Implemented a robust two-pass boundary refinement engine. In Pass 1, candidate regions are proposed by the detection backends. In Pass 2, strict cropping is applied to isolate exact character indices of `PERSON`, `LOCATION`, and `ORGANIZATION` entities. It iteratively strips leading and trailing function words (e.g., prepositions like "in", "at", "from", "on" and articles like "the", "a") that ML models commonly include in their spans, before applying localized Unicode category punctuation trimming. This isolates precise, semantic entity offsets without truncating core words.
+
 ## [1.8.0] - 2026-09-06
 
 ### Added
