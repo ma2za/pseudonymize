@@ -71,3 +71,15 @@ Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split
 | Precision | 0.9141 |
 | Recall | 0.5465 |
 | F1 Score | 0.6840 |
+
+## `1.10.0` (Strict Evaluation Baseline)
+
+Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows). This incorporates all ML calibration, boundary trimming, adaptive sliding window, and international trigger expansions.
+
+**Results:**
+
+| Metric | Score |
+| --- | --- |
+| Precision | 0.8425 |
+| Recall | 0.6293 |
+| F1 Score | 0.7205 |
