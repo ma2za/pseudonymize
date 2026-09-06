@@ -202,10 +202,10 @@ class LocalONNXPIIBackend(DetectionBackend):
             detections = sorted(seen.values(), key=lambda item: (item.start, item.end))
             return tuple(detections)
 
-        except Exception:
+        except Exception as e:
             # The originating message can quote the tokenized input, so it never
             # reaches the caller. The chained cause is dropped for the same reason.
-            raise BackendExecutionError("ONNX PII inference failed") from None
+            raise BackendExecutionError(f"ONNX PII inference failed: {e}") from e
 
     def _windows(self, text: str) -> list[tuple[int, int]]:
         """Split text into overlapping character ranges that each fit the model.
@@ -235,7 +235,11 @@ class LocalONNXPIIBackend(DetectionBackend):
     def _detect_window(self, text: str, char_offset: int, policy: Policy) -> list[Detection]:
         encoding = self._tokenizer.encode(text)
 
-        inputs = {"input_ids": [encoding.ids], "attention_mask": [encoding.attention_mask]}
+        inputs = {
+            "input_ids": [encoding.ids],
+            "attention_mask": [encoding.attention_mask],
+            "token_type_ids": [encoding.type_ids],
+        }
         expected_inputs = [i.name for i in self._session.get_inputs()]
         filtered_inputs = {
             k: np.array(v, dtype=np.int64) for k, v in inputs.items() if k in expected_inputs

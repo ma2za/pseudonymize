@@ -202,17 +202,38 @@ class Pseudonymizer:
 
         text = block.text
         protected = tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
-        filtered = (
-            detection
-            for detection in candidates
-            if detection.entity_type in self.policy.entity_types
-            and detection.confidence >= self.policy.minimum_confidence
-            and not any(
-                detection.start < token_end and token_start < detection.end
-                for token_start, token_end in protected
-            )
-        )
-        return resolve_overlaps(filtered, self.policy.detector_priority)
+        
+        def _trim_and_filter():
+            for detection in candidates:
+                if detection.entity_type not in self.policy.entity_types:
+                    continue
+                if detection.confidence < self.policy.minimum_confidence:
+                    continue
+                if any(detection.start < token_end and token_start < detection.end for token_start, token_end in protected):
+                    continue
+
+                if detection.entity_type in {EntityType.PERSON, EntityType.LOCATION, EntityType.ORGANIZATION}:
+                    start = detection.start
+                    end = detection.end
+                    while start < end:
+                        cat = unicodedata.category(text[start])
+                        if cat.startswith("P") or cat.startswith("S") or cat.startswith("Z") or cat.startswith("C"):
+                            start += 1
+                        else:
+                            break
+                    while end > start:
+                        cat = unicodedata.category(text[end - 1])
+                        if cat.startswith("P") or cat.startswith("S") or cat.startswith("Z") or cat.startswith("C"):
+                            end -= 1
+                        else:
+                            break
+                    if start >= end:
+                        continue
+                    if start != detection.start or end != detection.end:
+                        detection = replace(detection, start=start, end=end)
+                yield detection
+                
+        return resolve_overlaps(_trim_and_filter(), self.policy.detector_priority)
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
         return self._process(text, AliasContext(), include_mapping)
