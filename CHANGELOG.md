@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.8.0] - 2026-09-06
+
+### Added
+
+- **Adaptive Windowing for Long Entities:** Implemented dynamic sliding window adjustments during ML inference. Previously, static token windows could split and truncate long multi-word entities on window boundaries. When sequentially scanning text windows, the backend now checks if an active entity was truncated at the very end of a window (within 15 characters). If so, it dynamically slides the start of the next window to align exactly with the beginning of the truncated entity. This allows the transformer to evaluate the full entity with proper surrounding context, preventing premature boundary cutoffs.
+
 ## [1.7.0] - 2026-09-06
 
 ### Added

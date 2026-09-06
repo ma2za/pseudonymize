@@ -199,18 +199,53 @@ class LocalONNXPIIBackend(DetectionBackend):
                 " ".join(global_context_triggers) if global_context_triggers else None
             )
 
+            # Get tokenizer offsets for adaptive window slicing (v1.8.0)
+            encoding = self._tokenizer.encode(block.text)
+            offsets = [span for span in encoding.offsets if span[1] > span[0]]
+            starts = [o[0] for o in offsets]
+            budget = max(self._max_tokens - 2, 1)
+            stride = max(budget - min(self._window_overlap_tokens, budget - 1), 1)
+
             detections: list[Detection] = []
             seen: dict[tuple[EntityType, int, int], Detection] = {}
-            for window_start, window_end in self._windows(block.text):
-                for detection in self._detect_window(
+
+            # Adaptive Windowing Heuristic (v1.8.0)
+            # Process windows sequentially. If an entity is truncated at the end
+            # of a window, dynamically slide the next window to start exactly
+            # at the beginning of the truncated entity, preserving its full context.
+            token_start_idx = 0
+            while token_start_idx < len(offsets):
+                token_end_idx = min(token_start_idx + budget, len(offsets))
+                window_start = offsets[token_start_idx][0]
+                window_end = offsets[token_end_idx - 1][1]
+
+                window_detections = self._detect_window(
                     block.text[window_start:window_end], window_start, policy, global_context_str
-                ):
-                    # Windows overlap, so the same entity can be produced twice.
-                    # The higher-confidence copy of an identical span wins.
+                )
+
+                for detection in window_detections:
                     key = (detection.entity_type, detection.start, detection.end)
                     previous = seen.get(key)
                     if previous is None or detection.confidence > previous.confidence:
                         seen[key] = detection
+
+                next_token_start_idx = token_start_idx + stride
+
+                if window_detections:
+                    last_det = max(window_detections, key=lambda d: d.end)
+                    # If the last entity is truncated at the boundary (within 15 chars)
+                    if window_end - last_det.end <= 15:
+                        import bisect
+
+                        det_start_idx = bisect.bisect_right(starts, last_det.start) - 1
+                        if det_start_idx > token_start_idx:
+                            next_token_start_idx = det_start_idx
+
+                if token_end_idx >= len(offsets):
+                    break
+
+                token_start_idx = next_token_start_idx
+
             detections = sorted(seen.values(), key=lambda item: (item.start, item.end))
             return tuple(detections)
 
