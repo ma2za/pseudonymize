@@ -436,7 +436,7 @@ def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
             model_path=model_path,
             tokenizer_path=tokenizer_path,
             config_path=config_path,
-            entity_threshold=threshold,\
+            entity_threshold=threshold,
             entity_thresholds={},
         )
         return [detection.confidence for detection in backend.detect(block, policy)]
@@ -470,6 +470,7 @@ def test_ml_entity_threshold_is_validated(
             window_overlap_tokens=-1,
         )
 
+
 def test_ml_entity_specific_thresholds(
     distilbert_artifacts: tuple[Path, Path, Path],
 ) -> None:
@@ -488,6 +489,7 @@ def test_ml_entity_specific_thresholds(
     detections = backend_with_override.detect(block, policy)
     assert len(detections) >= 0
 
+
 def test_ml_subword_span_repair(
     distilbert_artifacts: tuple[Path, Path, Path],
 ) -> None:
@@ -504,6 +506,7 @@ def test_ml_subword_span_repair(
     )
     detections = backend.detect(block, policy)
     assert len(detections) >= 0
+
 
 def test_ml_context_boosting(
     distilbert_artifacts: tuple[Path, Path, Path],
