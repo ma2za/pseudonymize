@@ -31,6 +31,9 @@ export default async function Header() {
             <Link href="/security" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
               {t('security')}
             </Link>
+            <Link href="/benchmarks" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+              {t('benchmarks')}
+            </Link>
             <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
               <GithubIcon className="w-4 h-4" />
               <span>{t('github')}</span>

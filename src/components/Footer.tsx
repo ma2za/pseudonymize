@@ -15,6 +15,12 @@ export default function Footer() {
           <Link href="/docs" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('docs')}
           </Link>
+          <Link href="/benchmarks" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            {t('benchmarks')}
+          </Link>
+          <Link href="/changelog" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            {t('changelog')}
+          </Link>
           <Link href="/privacy" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('privacy')}
           </Link>
