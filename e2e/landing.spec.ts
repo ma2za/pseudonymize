@@ -3,15 +3,15 @@ import { test, expect } from '@playwright/test';
 test.describe('Landing Page', () => {
   test('should render properly and have correct title in English', async ({ page }) => {
     await page.goto('/en');
-    await expect(page).toHaveTitle(/Pseudonymize sensitive data/i);
-    await expect(page.getByRole('heading', { name: /Pseudonymize sensitive data/i, exact: false })).toBeVisible();
+    await expect(page).toHaveTitle(/Send useful data to AI/i);
+    await expect(page.getByRole('heading', { name: /Send useful data to AI/i, exact: false })).toBeVisible();
     await expect(page.getByRole('link', { name: /Pseudonymize data/i }).first()).toBeVisible();
   });
 
   test('should fallback or render correctly in another locale (e.g. /es)', async ({ page }) => {
     await page.goto('/es');
-    await expect(page).toHaveTitle(/Seudonimizar los datos confidenciales/i);
-    await expect(page.getByRole('heading', { name: /Seudonimizar los datos confidenciales/i, exact: false })).toBeVisible();
+    await expect(page).toHaveTitle(/datos útiles a la IA/i);
+    await expect(page.getByRole('heading', { name: /datos útiles a la IA/i, exact: false })).toBeVisible();
   });
 
   test('should redirect root to default locale (/en)', async ({ page }) => {
@@ -27,8 +27,8 @@ test.describe('Login Page (Adversarial)', () => {
     await emailInput.fill('not-an-email');
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    // HTML5 validation kicks in (Playwright captures this via the input matching the pseudo-class or directly evaluating)
-    const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.checkValidity());
+    // HTML5 validation check
+    const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
     expect(isInvalid).toBe(true);
   });
 });
