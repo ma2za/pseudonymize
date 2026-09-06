@@ -1,8 +1,6 @@
-'use client';
-
 import { useLocale } from 'next-intl';
 import { ChangeEvent, useState } from 'react';
-import { Globe } from 'lucide-react';
+import { Globe, ChevronDown } from 'lucide-react';
 
 const locales = [
   { code: 'en', name: 'English' },
@@ -58,7 +56,7 @@ export default function LanguageSwitcher() {
     <div className="relative inline-flex items-center text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
       <Globe className="w-4 h-4 absolute left-2 pointer-events-none" />
       <select
-        className="appearance-none bg-transparent py-2 pl-8 pr-4 text-sm font-medium cursor-pointer outline-none focus:ring-2 focus:ring-[var(--pz-cipher)] rounded-md disabled:opacity-50 max-w-[100px] sm:max-w-none truncate"
+        className="appearance-none bg-transparent py-2 pl-8 pr-8 text-sm font-medium cursor-pointer outline-none focus:ring-2 focus:ring-[var(--pz-cipher)] rounded-md disabled:opacity-50 max-w-[100px] sm:max-w-none truncate"
         value={currentLocale}
         disabled={isPending}
         onChange={onSelectChange}
@@ -70,6 +68,7 @@ export default function LanguageSwitcher() {
           </option>
         ))}
       </select>
+      <ChevronDown className="w-4 h-4 absolute right-2 pointer-events-none opacity-60" />
     </div>
   );
 }
