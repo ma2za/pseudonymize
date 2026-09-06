@@ -67,8 +67,16 @@ _DEFAULT_ENTITY_THRESHOLDS: dict[EntityType, float] = {
 }
 
 _CONTEXT_BOOSTS: tuple[tuple[re.Pattern[str], EntityType, int], ...] = (
-    (re.compile(r"(?i)\b(?:mr|ms|mrs|dr|prof|sir|ceo|name is|named)\b\.?\s*"), EntityType.PERSON, 20),
-    (re.compile(r"(?i)\b(?:in|at|from|city of|visit|street|road|address)\b\.?\s*"), EntityType.LOCATION, 20),
+    (
+        re.compile(r"(?i)\b(?:mr|ms|mrs|dr|prof|sir|ceo|name is|named)\b\.?\s*"),
+        EntityType.PERSON,
+        20,
+    ),
+    (
+        re.compile(r"(?i)\b(?:in|at|from|city of|visit|street|road|address)\b\.?\s*"),
+        EntityType.LOCATION,
+        20,
+    ),
 )
 
 
@@ -244,11 +252,11 @@ class LocalONNXPIIBackend(DetectionBackend):
             EntityType.PERSON: [],
             EntityType.LOCATION: [],
         }
-        for pattern, entity_type, boost_len in _CONTEXT_BOOSTS:
+        for pattern, boost_entity_type, boost_len in _CONTEXT_BOOSTS:
             for match in pattern.finditer(text):
                 start = match.end()
                 end = start + boost_len
-                boosted_ranges[entity_type].append((start, end))
+                boosted_ranges[boost_entity_type].append((start, end))
 
         predictions = []
         confidences = []
@@ -281,7 +289,7 @@ class LocalONNXPIIBackend(DetectionBackend):
                     threshold = self._entity_thresholds.get(second_entity_type, threshold)
 
                     # Apply context boosting: if this token lands in a boosted zone, cut threshold
-                    token_start, token_end = encoding.offsets[idx]
+                    token_start, _token_end = encoding.offsets[idx]
                     is_boosted = False
                     if second_entity_type in boosted_ranges:
                         for b_start, b_end in boosted_ranges[second_entity_type]:
@@ -308,7 +316,7 @@ class LocalONNXPIIBackend(DetectionBackend):
                 prev_label_str = (self._id2label or {}).get(int(prev_label_id))
 
                 if prev_label_str and prev_label_str != "O":
-                    prev_start, prev_end = encoding.offsets[idx - 1]
+                    _prev_start, prev_end = encoding.offsets[idx - 1]
                     curr_start, curr_end = encoding.offsets[idx]
 
                     if curr_start == prev_end:
@@ -356,18 +364,22 @@ class LocalONNXPIIBackend(DetectionBackend):
         for entity_type, start, end, token_confs in spans:
             confidence = max(token_confs)
 
-            # Boundary Expansion Heuristic:
-            # If an ML span cuts a word in half (e.g., ends in the middle of a continuous
-            # alphanumeric string), expand the boundary to the nearest natural whitespace or
-            # punctuation break to prevent leaking sub-words.
+            # Token-to-Character Alignment Optimization
+            # If an ML span cuts a word in half, expand the boundary to the full word
+            # using the tokenizer's exact character offsets to prevent leaking sub-words.
+            if start < len(text):
+                start_word = encoding.char_to_word(start)
+                if start_word is not None:
+                    word_chars = encoding.word_to_chars(start_word)
+                    if word_chars is not None:
+                        start = min(start, word_chars[0])
 
-            # Expand left
-            while start > 0 and text[start - 1].isalnum():
-                start -= 1
-
-            # Expand right
-            while end < len(text) and text[end].isalnum():
-                end += 1
+            if end > 0 and end <= len(text):
+                end_word = encoding.char_to_word(end - 1)
+                if end_word is not None:
+                    word_chars = encoding.word_to_chars(end_word)
+                    if word_chars is not None:
+                        end = max(end, word_chars[1])
 
             if confidence >= policy.minimum_confidence:
                 results.append(

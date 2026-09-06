@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.1.0] - 2026-09-06
+
+### Fixed
+
+- **Token-to-Character Alignment Optimization:** Fixed tokenizer offset mapping for the Local ONNX backend. Subword offsets are now correctly mapped and aligned to exact character boundaries using the `tokenizers` word-level offset mappings. This completely eliminates "off-by-one" character penalties and the brittle alphanumeric heuristic, preventing multi-word personal data and sub-words from leaking during redaction.
+
 ## [1.0.0] - 2026-09-05
 
 ### Fixed

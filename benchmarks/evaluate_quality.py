@@ -2,6 +2,7 @@ import argparse
 import logging
 import sys
 import time
+import typing
 from pathlib import Path
 
 try:
@@ -132,7 +133,7 @@ will be rejected. The goal is real-world safety, not a high scoreboard number.
 """
 
 
-def load_local_jsonl(file_path: Path):
+def load_local_jsonl(file_path: Path) -> typing.Iterator[dict[str, typing.Any]]:
     import json
 
     with open(file_path, encoding="utf-8") as f:
