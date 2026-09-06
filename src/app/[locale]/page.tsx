@@ -62,62 +62,113 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
         </div>
       </section>
 
-      {/* 2. Inputs Section */}
-      <section className="py-24 border-t border-[var(--pz-border)] text-center">
+      {/* 2. Predictable Transformations Section */}
+      <section className="py-24 border-t border-[var(--pz-border)]">
         <div className="pz-container">
-          <h2 className="text-3xl font-bold mb-12">{t('inputsTitle')}</h2>
-          <div className="flex flex-col sm:flex-row justify-center gap-8 text-[var(--pz-text-secondary)] font-mono text-sm">
-            <div className="px-6 py-4 border border-[var(--pz-border-strong)] rounded-lg bg-[var(--pz-surface-inset)]">
-              [ {t('inputsText')} ]
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold mb-4">{t('predictableTitle')}</h2>
+            <p className="text-lg text-[var(--pz-text-secondary)]">{t('predictableSubtitle')}</p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-12 lg:gap-16">
+            
+            <div>
+              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
+                {t('featIdentityTitle')}
+              </h3>
+              <p className="text-[var(--pz-text-secondary)] mb-6">{t('featIdentityDesc')}</p>
+              <div className="bg-[var(--pz-surface-inset)] border border-[var(--pz-border-strong)] rounded-lg p-5 font-mono text-sm text-[var(--pz-text)] shadow-sm">
+                Alice opened ticket #182<br/>
+                Alice requested a refund<br/>
+                <div className="my-3 text-[var(--pz-cipher)] font-bold">&darr;</div>
+                <span className="text-[var(--pz-cipher-strong)]">PERSON_01</span> opened ticket #182<br/>
+                <span className="text-[var(--pz-cipher-strong)]">PERSON_01</span> requested a refund
+              </div>
             </div>
-            <div className="px-6 py-4 border border-[var(--pz-border-strong)] rounded-lg bg-[var(--pz-surface-inset)]">
-              [ {t('inputsStructured')} ]
+
+            <div>
+              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
+                {t('featStructureTitle')}
+              </h3>
+              <p className="text-[var(--pz-text-secondary)] mb-6">{t('featStructureDesc')}</p>
+              <div className="bg-[var(--pz-surface-inset)] border border-[var(--pz-border-strong)] rounded-lg p-5 font-mono text-sm text-[var(--pz-text)] shadow-sm overflow-x-auto">
+                <span className="text-[var(--pz-text-muted)]">&#123;</span><br/>
+                &nbsp;&nbsp;<span className="text-[#78AFFF]">"user"</span>: <span className="text-[var(--pz-text-muted)]">&#123;</span><br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#78AFFF]">"name"</span>: <span className="text-[var(--pz-cipher-strong)]">"PERSON_01"</span>,<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#78AFFF]">"email"</span>: <span className="text-[var(--pz-cipher-strong)]">"EMAIL_01"</span><br/>
+                &nbsp;&nbsp;<span className="text-[var(--pz-text-muted)]">&#125;</span>,<br/>
+                &nbsp;&nbsp;<span className="text-[#78AFFF]">"ticket_id"</span>: <span className="text-[#48D6B0]">"TK-4821"</span><br/>
+                <span className="text-[var(--pz-text-muted)]">&#125;</span>
+              </div>
             </div>
-            <div className="px-6 py-4 border border-[var(--pz-border-strong)] rounded-lg bg-[var(--pz-surface-inset)]">
-              [ {t('inputsFiles')} ]
+            
+            <div>
+              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
+                {t('featPolicyTitle')}
+              </h3>
+              <p className="text-[var(--pz-text-secondary)] mb-6">{t('featPolicyDesc')}</p>
+              <div className="bg-[var(--pz-surface-inset)] border border-[var(--pz-border-strong)] rounded-lg p-5 font-mono text-sm text-[var(--pz-text)] shadow-sm">
+                <span className="text-[var(--pz-text-muted)]">&#123;</span><br/>
+                &nbsp;&nbsp;<span className="text-[#78AFFF]">"entities"</span>: [<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#48D6B0]">"person"</span>,<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#48D6B0]">"email"</span>,<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#48D6B0]">"phone"</span>,<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-[#48D6B0]">"iban"</span><br/>
+                &nbsp;&nbsp;]<br/>
+                <span className="text-[var(--pz-text-muted)]">&#125;</span>
+              </div>
             </div>
+
+            <div>
+              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
+                {t('featDeployTitle')}
+              </h3>
+              <p className="text-[var(--pz-text-secondary)] mb-6">{t('featDeployDesc')}</p>
+              <div className="flex gap-4">
+                 <Link href="/docs" className="text-sm font-semibold leading-6 text-[var(--pz-cipher-strong)] hover:text-[var(--pz-cipher)] transition-colors">
+                    Explore API Docs <span aria-hidden="true">→</span>
+                 </Link>
+                 <a href="https://github.com/ma2za/pseudonymize" className="text-sm font-semibold leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+                    View GitHub <span aria-hidden="true">→</span>
+                 </a>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* 3. Proof Section */}
+      {/* 3. Redaction vs Pseudonymization Section */}
       <section className="py-24 bg-[var(--pz-surface)] border-t border-[var(--pz-border)]">
-        <div className="pz-container">
-          <h2 className="text-3xl font-bold mb-16 text-center">{t('proofTitle')}</h2>
-          <div className="grid sm:grid-cols-2 gap-px bg-[var(--pz-border)] border border-[var(--pz-border)] rounded-xl overflow-hidden">
-            <div className="bg-[var(--pz-canvas)] p-8">
-              <h3 className="text-lg font-semibold mb-6">{t('proofOriginal')}</h3>
-              <div className="font-mono text-sm leading-loose text-[var(--pz-text-secondary)]">
-                User <EntityHighlight>Alice</EntityHighlight> logged in from <EntityHighlight>Munich</EntityHighlight>.<br/>
-                Contact: <EntityHighlight>alice@example.com</EntityHighlight>
+        <div className="pz-container text-center max-w-4xl">
+          <h2 className="text-3xl font-bold mb-16 leading-tight">{t('redactionTitle')}</h2>
+          <div className="grid md:grid-cols-3 gap-px bg-[var(--pz-border)] border border-[var(--pz-border)] rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-[var(--pz-canvas)] p-8 text-left">
+              <h3 className="text-sm uppercase tracking-widest font-semibold mb-6 text-[var(--pz-text-muted)]">Original</h3>
+              <div className="font-mono text-sm leading-loose text-[var(--pz-text)]">
+                {t('redactionOriginal')}
               </div>
             </div>
-            <div className="bg-[var(--pz-canvas)] p-8">
-              <h3 className="text-lg font-semibold mb-6 text-[var(--pz-cipher-strong)]">{t('proofPseudonymized')}</h3>
-              <div className="font-mono text-sm leading-loose text-[var(--pz-text-secondary)]">
-                User <PseudonymToken>PERSON_01</PseudonymToken> logged in from <PseudonymToken>CITY_01</PseudonymToken>.<br/>
-                Contact: <PseudonymToken>EMAIL_01</PseudonymToken>
+            <div className="bg-[var(--pz-canvas)] p-8 text-left">
+              <h3 className="text-sm uppercase tracking-widest font-semibold mb-6 text-[var(--pz-danger)]">Redaction</h3>
+              <div className="font-mono text-sm leading-loose text-[var(--pz-text-secondary)] line-through decoration-[var(--pz-danger)] opacity-80">
+                {t('redactionMasked')}
+              </div>
+            </div>
+            <div className="bg-[var(--pz-canvas)] p-8 text-left">
+              <h3 className="text-sm uppercase tracking-widest font-semibold mb-6 text-[var(--pz-cipher-strong)]">Pseudonymization</h3>
+              <div className="font-mono text-sm leading-loose text-[var(--pz-text)] font-semibold text-[var(--pz-cipher-strong)]">
+                {t('redactionPseudonymized')}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. Workflow Section */}
-      <section className="py-24 border-t border-[var(--pz-border)] text-center">
-        <div className="pz-container">
-          <h2 className="text-3xl font-bold mb-12">{t('workflowTitle')}</h2>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-sm font-mono text-[var(--pz-text-secondary)]">
-            <div className="px-6 py-3 bg-[var(--pz-surface)] border border-[var(--pz-border)] rounded-full">1. {t('workflowStep1')}</div>
-            <span className="text-[var(--pz-border-strong)]">&rarr;</span>
-            <div className="px-6 py-3 bg-[var(--pz-surface)] border border-[var(--pz-border)] rounded-full text-[var(--pz-cipher-strong)]">2. {t('workflowStep2')}</div>
-            <span className="text-[var(--pz-border-strong)]">&rarr;</span>
-            <div className="px-6 py-3 bg-[var(--pz-surface)] border border-[var(--pz-border)] rounded-full">3. {t('workflowStep3')}</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Developers Section */}
+      {/* 4. Developers Section */}
       <section className="py-24 bg-[var(--pz-ink)] text-white border-t border-[var(--pz-border)]">
         <div className="pz-container grid md:grid-cols-2 gap-12 align-middle items-center">
           <div>
@@ -138,18 +189,19 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
         </div>
       </section>
 
-      {/* 6. Trust Section */}
+      {/* 5. Trust Section (Operational Characteristics) */}
       <section className="py-24 border-t border-[var(--pz-border)]">
         <div className="pz-container text-center">
           <h2 className="text-3xl font-bold mb-12">{t('trustTitle')}</h2>
           <TrustFacts facts={[
-            { label: 'Data Retention', value: t('trust1') },
-            { label: 'Data Processing', value: t('trust2') }
+            { label: 'Latency', value: t('trust1') },
+            { label: 'Telemetry', value: t('trust2') },
+            { label: 'Region', value: 'Hetzner EU (Falkenstein)' }
           ]} />
         </div>
       </section>
 
-      {/* 7. Final CTA */}
+      {/* 6. Final CTA */}
       <section className="py-32 bg-[var(--pz-surface)] border-t border-[var(--pz-border)] text-center">
         <div className="pz-container">
           <h2 className="text-4xl sm:text-5xl font-bold mb-10 max-w-2xl mx-auto leading-tight">{t('finalTitle')}</h2>
