@@ -3,6 +3,10 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 600 14px/1 var(--pz-font-sans); cursor: pointer;
   transition: background 160ms var(--pz-ease), border-color 160ms var(--pz-ease), color 160ms var(--pz-ease), transform 100ms var(--pz-ease);
 }
+.pz-btn:focus-visible {
+  outline: 2px solid var(--pz-focus);
+  outline-offset: 2px;
+}
 .pz-btn:active { transform: translateY(1px); }
 .pz-btn--primary { background: var(--pz-cipher); color: #0B1013; }
 .pz-btn--primary:hover { background: var(--pz-cipher-hover); }

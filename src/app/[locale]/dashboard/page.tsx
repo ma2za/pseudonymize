@@ -50,7 +50,7 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
   return (
     <div className="bg-[var(--pz-canvas)] flex flex-col min-h-[100dvh]">
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-        <div className="bg-[var(--pz-surface)] overflow-hidden shadow rounded-lg border border-[var(--pz-border)]">
+        <div className="bg-[var(--pz-surface)] overflow-hidden rounded-lg border border-[var(--pz-border)] shadow-sm hover:shadow-md hover:border-[var(--pz-border-strong)] transition-all duration-300">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
               {t('apiKeysTitle')}
@@ -70,7 +70,7 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
           </div>
         </div>
 
-        <div className="bg-[var(--pz-surface)] overflow-hidden shadow rounded-lg border border-[var(--pz-border)]">
+        <div className="bg-[var(--pz-surface)] overflow-hidden rounded-lg border border-[var(--pz-border)] shadow-sm hover:shadow-md hover:border-[var(--pz-border-strong)] transition-all duration-300">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
               {t('billingTitle')}

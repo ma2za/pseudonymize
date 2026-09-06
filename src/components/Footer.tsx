@@ -33,7 +33,7 @@ export default function Footer() {
           </a>
         </nav>
         <p className="mt-10 text-center text-xs leading-5 text-[var(--pz-text-muted)] font-mono">
-          {t('copyright')}
+          {t('copyright', { year: new Date().getFullYear() })}
         </p>
       </div>
     </footer>
