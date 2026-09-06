@@ -187,11 +187,23 @@ class LocalONNXPIIBackend(DetectionBackend):
         try:
             self._load_model()
 
+            # Calculate explicit global surrounding context (v1.7.0)
+            global_context_triggers = []
+            for pattern, _, _ in _CONTEXT_BOOSTS:
+                for match in pattern.finditer(block.text):
+                    trigger_word = match.group().strip().strip(":.-#")
+                    if trigger_word and trigger_word not in global_context_triggers:
+                        global_context_triggers.append(trigger_word)
+
+            global_context_str = (
+                " ".join(global_context_triggers) if global_context_triggers else None
+            )
+
             detections: list[Detection] = []
             seen: dict[tuple[EntityType, int, int], Detection] = {}
             for window_start, window_end in self._windows(block.text):
                 for detection in self._detect_window(
-                    block.text[window_start:window_end], window_start, policy
+                    block.text[window_start:window_end], window_start, policy, global_context_str
                 ):
                     # Windows overlap, so the same entity can be produced twice.
                     # The higher-confidence copy of an identical span wins.
@@ -232,13 +244,31 @@ class LocalONNXPIIBackend(DetectionBackend):
                 break
         return windows
 
-    def _detect_window(self, text: str, char_offset: int, policy: Policy) -> list[Detection]:
-        encoding = self._tokenizer.encode(text)
+    def _detect_window(
+        self, text: str, char_offset: int, policy: Policy, context_pair: str | None = None
+    ) -> list[Detection]:
+        # Only use context pair boosting for short, isolated texts (v1.7.0)
+        # to prevent format mismatch degradation on long natural sentences.
+        if context_pair and len(text.split()) < 10:
+            encoding = self._tokenizer.encode(text, pair=context_pair)
+        else:
+            encoding = self._tokenizer.encode(text)
+
+        ids = encoding.ids
+        attention_mask = encoding.attention_mask
+        type_ids = encoding.type_ids
+
+        # Safeguard against ONNX broadcasting errors by strictly clipping to max_tokens (v1.7.0)
+        if len(ids) > self._max_tokens:
+            ids = ids[: self._max_tokens]
+            attention_mask = attention_mask[: self._max_tokens]
+            type_ids = type_ids[: self._max_tokens]
+            ids[-1] = 102  # force last token to [SEP]
 
         inputs = {
-            "input_ids": [encoding.ids],
-            "attention_mask": [encoding.attention_mask],
-            "token_type_ids": [encoding.type_ids],
+            "input_ids": [ids],
+            "attention_mask": [attention_mask],
+            "token_type_ids": [type_ids],
         }
         expected_inputs = [i.name for i in self._session.get_inputs()]
         filtered_inputs = {
@@ -264,8 +294,15 @@ class LocalONNXPIIBackend(DetectionBackend):
 
         predictions = []
         confidences = []
+        o_label_id = next((k for k, v in (self._id2label or {}).items() if v == "O"), 0)
 
         for idx, token_probs in enumerate(probs):
+            is_seq_b = idx < len(type_ids) and type_ids[idx] == 1
+            if is_seq_b:
+                predictions.append(o_label_id)
+                confidences.append(1.0)
+                continue
+
             best_label = int(np.argmax(token_probs))
             best_prob = float(token_probs[best_label])
 

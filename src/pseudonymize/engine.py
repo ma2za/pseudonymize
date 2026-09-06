@@ -1,6 +1,7 @@
 import os
 import re
 import tempfile
+import typing
 import unicodedata
 from collections.abc import (
     AsyncIterable,
@@ -202,28 +203,35 @@ class Pseudonymizer:
 
         text = block.text
         protected = tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
-        
-        def _trim_and_filter():
+
+        def _trim_and_filter() -> typing.Iterator[Detection]:
             for detection in candidates:
                 if detection.entity_type not in self.policy.entity_types:
                     continue
                 if detection.confidence < self.policy.minimum_confidence:
                     continue
-                if any(detection.start < token_end and token_start < detection.end for token_start, token_end in protected):
+                if any(
+                    detection.start < token_end and token_start < detection.end
+                    for token_start, token_end in protected
+                ):
                     continue
 
-                if detection.entity_type in {EntityType.PERSON, EntityType.LOCATION, EntityType.ORGANIZATION}:
+                if detection.entity_type in {
+                    EntityType.PERSON,
+                    EntityType.LOCATION,
+                    EntityType.ORGANIZATION,
+                }:
                     start = detection.start
                     end = detection.end
                     while start < end:
                         cat = unicodedata.category(text[start])
-                        if cat.startswith("P") or cat.startswith("S") or cat.startswith("Z") or cat.startswith("C"):
+                        if cat.startswith(("P", "S", "Z", "C")):
                             start += 1
                         else:
                             break
                     while end > start:
                         cat = unicodedata.category(text[end - 1])
-                        if cat.startswith("P") or cat.startswith("S") or cat.startswith("Z") or cat.startswith("C"):
+                        if cat.startswith(("P", "S", "Z", "C")):
                             end -= 1
                         else:
                             break
@@ -231,8 +239,83 @@ class Pseudonymizer:
                         continue
                     if start != detection.start or end != detection.end:
                         detection = replace(detection, start=start, end=end)
+
+                # Strict Geographic Parsing & Address Segmentation Heuristic (v1.6.0)
+                # If a LOCATION span captures multiple nested sub-spans like STREET and ZIP,
+                # segment it into distinct individual LOCATION detections.
+                if detection.entity_type is EntityType.LOCATION:
+                    from pseudonymize.detectors.location import _STREET_RX, _ZIPCODE_RX
+
+                    span_text = text[detection.start : detection.end]
+                    streets = list(_STREET_RX.finditer(span_text))
+                    zips = list(_ZIPCODE_RX.finditer(span_text))
+
+                    if streets or zips:
+                        sub_spans = [
+                            (detection.start + m.start(), detection.start + m.end())
+                            for m in streets
+                        ]
+                        sub_spans.extend(
+                            (detection.start + m.start(), detection.start + m.end()) for m in zips
+                        )
+
+                        sub_spans.sort(key=lambda x: x[0])
+
+                        resolved_sub_spans: list[tuple[int, int]] = []
+                        for s, e in sub_spans:
+                            if not resolved_sub_spans:
+                                resolved_sub_spans.append((s, e))
+                            else:
+                                ls, le = resolved_sub_spans[-1]
+                                if s >= le:
+                                    resolved_sub_spans.append((s, e))
+                                else:
+                                    resolved_sub_spans[-1] = (ls, max(le, e))
+
+                        current = detection.start
+                        for s, e in resolved_sub_spans:
+                            if s > current:
+                                g_start, g_end = current, s
+                                while g_start < g_end:
+                                    cat = unicodedata.category(text[g_start])
+                                    if cat.startswith(("P", "S", "Z", "C")):
+                                        g_start += 1
+                                    else:
+                                        break
+                                while g_end > g_start:
+                                    cat = unicodedata.category(text[g_end - 1])
+                                    if cat.startswith(("P", "S", "Z", "C")):
+                                        g_end -= 1
+                                    else:
+                                        break
+                                if g_start < g_end and any(
+                                    c.isalnum() for c in text[g_start:g_end]
+                                ):
+                                    yield replace(detection, start=g_start, end=g_end)
+
+                            yield replace(detection, start=s, end=e)
+                            current = e
+
+                        if detection.end > current:
+                            g_start, g_end = current, detection.end
+                            while g_start < g_end:
+                                cat = unicodedata.category(text[g_start])
+                                if cat.startswith(("P", "S", "Z", "C")):
+                                    g_start += 1
+                                else:
+                                    break
+                            while g_end > g_start:
+                                cat = unicodedata.category(text[g_end - 1])
+                                if cat.startswith(("P", "S", "Z", "C")):
+                                    g_end -= 1
+                                else:
+                                    break
+                            if g_start < g_end and any(c.isalnum() for c in text[g_start:g_end]):
+                                yield replace(detection, start=g_start, end=g_end)
+                        continue
+
                 yield detection
-                
+
         return resolve_overlaps(_trim_and_filter(), self.policy.detector_priority)
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
