@@ -8,6 +8,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseRoutes = [
     '',
     '/login',
+    '/signup',
+    '/pricing',
+    '/about',
+    '/docs',
+    '/security',
+    '/benchmarks',
+    '/changelog',
+    '/blog',
+    '/forgot-password',
+    '/reset-password',
   ];
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
