@@ -36,7 +36,8 @@ export default function Header() {
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Global">
         <div className="flex items-center gap-6 lg:gap-10">
           <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2" onClick={closeMenu}>
-            <Logo surface="light" width={150} />
+            <Logo surface="light" width={150} className="dark:hidden" />
+            <Logo surface="dark" width={150} className="hidden dark:block" />
           </Link>
           <div className="hidden lg:flex gap-x-6 items-center">
             <Link href="/docs" className={`text-sm font-medium leading-6 transition-colors ${isActive('/docs') ? 'text-[var(--pz-text)] font-semibold' : 'text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)]'}`}>
