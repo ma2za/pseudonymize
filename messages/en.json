@@ -225,6 +225,11 @@
     "patientPseudonymized3": " on ",
     "devHeading": "Integrate where the data moves."
   },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
+  },
   "Security": {
     "title": "Security claims should be inspectable.",
     "description": "This page documents how pseudonymize.io handles data and infrastructure. Every claim shown here is backed by an internal source or public policy."

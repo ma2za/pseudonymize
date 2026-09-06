@@ -228,5 +228,10 @@
   "Security": {
     "title": "보안 주장은 검사 가능해야 합니다.",
     "description": "이 페이지에서는 pseudonymize.io가 데이터와 인프라를 처리하는 방법을 설명합니다. 여기에 표시된 모든 주장은 내부 소스 또는 공공 정책에 의해 뒷받침됩니다."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

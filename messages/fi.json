@@ -228,5 +228,10 @@
   "Security": {
     "title": "Turvallisuusvaatimusten tulee olla tarkastettavissa.",
     "description": "Tällä sivulla kerrotaan, kuinka pseudonymize.io käsittelee tietoja ja infrastruktuuria. Jokainen tässä esitetty väite perustuu sisäiseen lähteeseen tai julkiseen käytäntöön."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

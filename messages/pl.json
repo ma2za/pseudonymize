@@ -228,5 +228,10 @@
   "Security": {
     "title": "Roszczenia dotyczące bezpieczeństwa powinny być możliwe do sprawdzenia.",
     "description": "Ta strona dokumentuje, w jaki sposób pseudonimize.io obsługuje dane i infrastrukturę. Każde przedstawione tutaj twierdzenie jest poparte źródłem wewnętrznym lub polityką publiczną."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

@@ -228,5 +228,10 @@
   "Security": {
     "title": "Sicherheitsansprüche sollten einsehbar sein.",
     "description": "Auf dieser Seite wird dokumentiert, wie pseudonymize.io mit Daten und Infrastruktur umgeht. Jede hier gezeigte Behauptung wird durch eine interne Quelle oder öffentliche Ordnung gestützt."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

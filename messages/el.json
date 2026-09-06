@@ -228,5 +228,10 @@
   "Security": {
     "title": "Οι αξιώσεις ασφαλείας πρέπει να είναι επιθεωρήσιμες.",
     "description": "Αυτή η σελίδα τεκμηριώνει τον τρόπο με τον οποίο το pseudonymize.io χειρίζεται δεδομένα και υποδομές. Κάθε ισχυρισμός που εμφανίζεται εδώ υποστηρίζεται από εσωτερική πηγή ή δημόσια πολιτική."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }

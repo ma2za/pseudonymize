@@ -228,5 +228,10 @@
   "Security": {
     "title": "Güvenlik talepleri denetlenebilir olmalıdır.",
     "description": "Bu sayfa, pseudonymize.io'nun verileri ve altyapıyı nasıl işlediğini belgeliyor. Burada gösterilen her iddia, dahili bir kaynak veya kamu politikası tarafından desteklenmektedir."
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "cta": "Back to Home"
   }
 }
