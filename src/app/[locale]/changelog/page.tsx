@@ -20,13 +20,28 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       alternates[l] = `${baseUrl}/${l}/changelog`;
   });
 
+  const title = `${t('changelog')} | pseudonymize.io`;
+  const description = 'Changelog and release notes for pseudonymize.io.';
+
   return {
-    title: `${t('changelog')} | pseudonymize.io`,
-    description: 'Changelog and release notes for pseudonymize.io.',
+    title,
+    description,
     alternates: {
       canonical: `${baseUrl}/${locale}/changelog`,
       languages: alternates,
     },
+    openGraph: {
+      title,
+      description,
+      url: `${baseUrl}/${locale}/changelog`,
+      type: 'website',
+      siteName: 'pseudonymize.io',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    }
   };
 }
 
