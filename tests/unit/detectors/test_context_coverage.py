@@ -1,4 +1,3 @@
-
 from pseudonymize.detectors.context import ContextualIdDetector
 
 
