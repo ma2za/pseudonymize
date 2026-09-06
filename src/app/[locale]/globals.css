@@ -97,3 +97,14 @@ body {
     transition-delay: 0s !important;
   }
 }
+
+/* Defensive mobile overflow fixes for markdown pre/code blocks */
+pre {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  word-wrap: normal !important;
+  white-space: pre !important;
+}
+code {
+  word-break: break-all !important;
+}
