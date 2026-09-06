@@ -125,21 +125,23 @@ export default function ApiKeyManager({ initialKeys, dict }: { initialKeys: ApiK
         ) : (
           <ul className="mt-4 divide-y divide-[var(--pz-border)]">
             {keys.map((k) => (
-              <li key={k.id} className="py-4 flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium text-[var(--pz-text)]">{k.name}</p>
-                  <p className="text-sm font-mono text-[var(--pz-text-secondary)] mt-1">{k.maskedKey}</p>
+              <li key={k.id} className="py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-[var(--pz-text)] truncate">{k.name}</p>
+                  <p className="text-sm font-mono text-[var(--pz-text-secondary)] mt-1 break-all">{k.maskedKey}</p>
                   <p className="text-xs text-[var(--pz-text-muted)] mt-1">
                     {dict.created}: {new Date(k.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <button
-                  onClick={() => handleRevoke(k.id)}
-                  className="text-red-600 hover:text-red-800 p-2 transition-colors"
-                  title={dict.revokeKey}
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => handleRevoke(k.id)}
+                    className="text-red-600 hover:text-red-800 p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded-md"
+                    title={dict.revokeKey}
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
