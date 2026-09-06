@@ -174,6 +174,47 @@ Implemented a robust two-pass detection engine: Pass 1 identifies candidate regi
 ### `1.10.0`: The Strict 90% Benchmark Gate (Achieved)
 Realized state-of-the-art confidence calibration (piece-wise linear calibration to translate raw thresholds to the default `0.80` engine floor) and international context trigger expansions (Spanish, Portuguese, French, German, Vietnamese, and Indonesian) to maximize out-of-the-box multilingual PII precision and recall.
 
+### `1.11.0`: Algorithmic Checksum Generators
+**Target: `PAYMENT_CARD`, `NATIONAL_ID`, `TAX_ID`**
+Instead of relying strictly on context labels (which fail on tabular or headerless data), implement broad numerical shape extractors that feed directly into strict mathematical checksum validators (e.g., Mod-10/Luhn for PANs, Mod-11 for NHS/NINO/Tax IDs, Verhoeff for Aadhaar). Valid checksums bypass ML context requirements entirely.
+
+### `1.12.0`: Intra-Document Coreference Propagation
+**Target: `PERSON`, `ORGANIZATION`**
+Implement an isolated coreference graph. If a full entity (e.g., "Jonathan Doe") is detected with >0.95 confidence in a high-context sentence, dynamically extract its constituent tokens ("Jonathan", "Mr. Doe") and boost their detection probabilities globally across the rest of the document, rescuing low-context mentions.
+
+### `1.13.0`: Lexical Organization & Corporate Suffix FSMs
+**Target: `ORGANIZATION`**
+The base ML model severely underperforms on corporate entities (0.00 F1). Implement deterministic Finite State Machines (FSMs) that scan for capitalized N-grams strictly followed by international corporate designators (Inc, LLC, Corp, GmbH, SA, NV, SpA, Pty, Ltd). 
+
+### `1.14.0`: Multilingual Address Topologies
+**Target: `LOCATION`**
+Expand the strict geographic parsing from `1.6.0` (which is highly English-centric with "Street/Ave") to include Romance and Germanic structural topologies (e.g., "Rue de X", "Via Y", "Avenida Z", "W-strasse") to catch international address blocks the ML backend fails to isolate.
+
+### `1.15.0`: Bloom Filter False-Positive Veto
+**Target: Precision Stability**
+As we aggressively boost recall, false positives will rise. Integrate a memory-efficient Bloom filter loaded with the top 50,000 non-proper-noun dictionary words across 5 major languages. Veto any low-confidence ML prediction that exactly matches a common lowercase dictionary word (e.g., preventing the ML from tagging the noun "hope" as a person unless confidence is overwhelmingly high).
+
+### `1.16.0`: High-Density Gazetteer Tries (DAWG)
+**Target: `PERSON`, `LOCATION`**
+Compress a massive, multi-lingual census dataset of global first names, last names, and cities into a highly efficient Directed Acyclic Word Graph (DAWG) or Trie. Use this structure as a secondary deterministic detector to rescue out-of-vocabulary (OOV) capitalized nouns that the ML model misses.
+
+### `1.17.0`: Detector-Aware Conflict Matrix
+**Target: Engine Resolution F1**
+Deprecate the static `_ENTITY_PRIORITY` list. Implement a dynamic confidence-scaling matrix that weighs the *originating detector*. For instance, an algorithmic checksum match carries a 1.0 weight and overrides an ML prediction of a different type, allowing deterministic heuristics to intelligently override ML hallucinations.
+
+### `1.18.0`: Tabular & Delimited Structure Inference
+**Target: Recall in CSVs/Logs**
+If a document contains dense CSV or Markdown table structures, execute a pre-parsing layout pass. If a column header matches a known PII semantic class (e.g., `phone_number`, `ssn`), dynamically lower the detection threshold and bypass context/ML requirements for all cells falling within that column vector.
+
+### `1.19.0`: Next-Generation Quantized Encoder Migration
+**Target: Global F1 Ceiling**
+With algorithmic heuristics maxed out, swap the underlying `distilbert-ml` ONNX model for a modern, heavily quantized (INT8/INT4) multilingual architecture (e.g., DeBERTa-v3-small or a specialized RoBERTa). The new architecture must offer fundamentally superior attention heads for NER without blowing up the strict local CPU budget.
+
+### `1.20.0`: The Strict 80% Benchmark Gate
+**Target: Overall Performance**
+Achieve an overall F1 Score > 0.80 strictly on the validation split. Validate that the engine is now highly resilient to out-of-vocabulary names, tabular data, and international syntactic layouts.
+
+
 ## Post-1.10.0 Target Capabilities
 
 ### `0.14.0`: Adversarial Document Defenses & Exhaustive Metadata (Achieved)
