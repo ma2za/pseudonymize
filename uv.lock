@@ -2567,7 +2567,7 @@ wheels = [
 
 [[package]]
 name = "pseudonymize"
-version = "1.9.0"
+version = "1.10.0"
 source = { editable = "." }
 
 [package.optional-dependencies]

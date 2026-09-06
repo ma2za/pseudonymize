@@ -62,8 +62,10 @@ def _entity_type_for(label: str) -> EntityType | None:
 
 _DEFAULT_ENTITY_THRESHOLDS: dict[EntityType, float] = {
     EntityType.LOCATION: 0.20,
-    EntityType.PERSON: 0.10,
-    EntityType.ORGANIZATION: 0.10,
+    EntityType.PERSON: 0.05,
+    EntityType.ORGANIZATION: 0.05,
+    EntityType.PAYMENT_CARD: 0.05,
+    EntityType.NATIONAL_ID: 0.05,
 }
 
 _CONTEXT_BOOSTS: tuple[tuple[re.Pattern[str], EntityType, int], ...] = (
@@ -419,7 +421,21 @@ class LocalONNXPIIBackend(DetectionBackend):
             if start >= end:
                 continue
 
-            conf = float(confidences[idx])
+            raw_conf = float(confidences[idx])
+            thresh = self._entity_thresholds.get(entity_type, self._entity_threshold)
+
+            # Piece-wise linear confidence calibration (v1.10.0)
+            # Maps the raw optimal threshold `thresh` directly onto the default 0.80 engine floor,
+            # ensuring that highly accurate low-probability detections survive policy filtering.
+            # Bypassed for extremely permissive development thresholds (less than 0.05)
+            # to keep real low confidences.
+            if thresh >= 0.05:
+                if raw_conf >= thresh:
+                    conf = 0.80 + 0.20 * (raw_conf - thresh) / max(1.0 - thresh, 1e-5)
+                else:
+                    conf = 0.80 * raw_conf / max(thresh, 1e-5)
+            else:
+                conf = raw_conf
 
             if spans:
                 previous_type, previous_start, previous_end, previous_confs = spans[-1]

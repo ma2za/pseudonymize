@@ -51,6 +51,7 @@ _CONTEXT_RULES = [
             r"|chứng\s*minh\s*nhân\s*dân|căn\s*cước|身份证号"
             r"|passport\s*(?:no\.?|number|#)?|护照号|paspor"
             r"|driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe"
+            r"|dni|ktp|nik|rg|ine|nric|hkid"
             r"|(?:ticket|receipt|serial|reference|case|customer|user|member)\s*(?:id|no\.?|number|#))(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
@@ -60,7 +61,8 @@ _CONTEXT_RULES = [
     (
         re.compile(
             r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id|record)|tin"
-            r"|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|税号)(?![a-z0-9_])"
+            r"|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|税号"
+            r"|rfc|nit|rut|siren|siret)(?![a-z0-9_])"
         ),
         EntityType.TAX_ID,
         re.compile(r"^[A-Z0-9-]{6,20}$", re.IGNORECASE),
@@ -86,7 +88,7 @@ _CONTEXT_RULES = [
             r"|maestro|amex)(?![a-z0-9_])"
         ),
         EntityType.PAYMENT_CARD,
-        re.compile(r"^\d{13,19}$"),
+        re.compile(r"^[\d-]{13,24}$"),
     ),
 ]
 
@@ -116,6 +118,11 @@ class ContextualIdDetector:
 
                     # Evaluate the first significant candidate token
                     if _HAS_DIGIT.search(token) and value_regex.match(token):
+                        if entity_type is EntityType.PAYMENT_CARD:
+                            stripped_len = len("".join(c for c in token if c.isdigit()))
+                            if not (13 <= stripped_len <= 19):
+                                break
+
                         actual_start = start_search + token_match.start()
                         actual_end = start_search + token_match.end()
 
