@@ -13,7 +13,7 @@ export default function Footer() {
             {t('blog')}
           </Link>
           <Link href="/docs" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
-            Docs
+            {t('docs')}
           </Link>
           <Link href="/privacy" className="text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
             {t('privacy')}

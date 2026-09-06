@@ -1,6 +1,12 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { routing } from '@/i18n/routing';
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import { remark } from 'remark';
+import html from 'remark-html';
+import { notFound } from 'next/navigation';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -23,22 +29,47 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function DocsPage({params}: {params: Promise<{locale: string}>}) {
+async function getDocsContent(locale: string) {
+  const docsDirectory = path.join(process.cwd(), 'content', 'docs');
+  const localeDir = path.join(docsDirectory, locale);
+  let targetDir = localeDir;
+  let fullPath = path.join(targetDir, 'api.md');
+
+  if (!fs.existsSync(fullPath)) {
+    targetDir = path.join(docsDirectory, 'en');
+    fullPath = path.join(targetDir, 'api.md');
+  }
+
+  if (!fs.existsSync(fullPath)) {
+    return null;
+  }
+
+  const fileContents = fs.readFileSync(fullPath, 'utf8');
+  const matterResult = matter(fileContents);
+
+  const processedContent = await remark()
+    .use(html)
+    .process(matterResult.content);
+    
+  return processedContent.toString();
+}
+
+export default async function DocsPage({params}: {params: Promise<{ locale: string }>}) {
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const contentHtml = await getDocsContent(locale);
+  if (!contentHtml) {
+    notFound();
+  }
+
   return (
-    <div className="pz-appbody">
-      <section className="py-24 sm:py-32 text-center">
-        <div className="pz-container">
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[var(--pz-text)] mb-6 max-w-3xl mx-auto leading-tight">
-            Documentation
-          </h1>
-          <p className="text-lg text-[var(--pz-text-secondary)] max-w-2xl mx-auto mb-4">
-            API Documentation coming soon in Release 1.5.
-          </p>
-        </div>
-      </section>
+    <div className="bg-[var(--pz-surface)] min-h-[100dvh] py-16 sm:py-24 border-t border-[var(--pz-border)]">
+      <main className="mx-auto max-w-4xl px-6 lg:px-8">
+        <article className="prose prose-lg dark:prose-invert max-w-none text-[var(--pz-text)] prose-headings:text-[var(--pz-text)] prose-a:text-[var(--pz-cipher)] hover:prose-a:text-[var(--pz-cipher-hover)] prose-code:text-[var(--pz-cipher-strong)] prose-pre:bg-[var(--pz-canvas)] prose-pre:border prose-pre:border-[var(--pz-border-strong)] prose-hr:border-[var(--pz-border)]">
+          <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+        </article>
+      </main>
     </div>
   );
 }

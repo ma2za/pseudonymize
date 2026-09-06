@@ -9,6 +9,7 @@ import { GithubIcon } from './GithubIcon';
 
 export default async function Header() {
   const t = await getTranslations('Global');
+  const tHome = await getTranslations('Home');
   const session = await auth.api.getSession({
     headers: await headers()
   });
@@ -21,21 +22,18 @@ export default async function Header() {
             <Logo surface="light" width={150} />
           </Link>
           <div className="hidden lg:flex gap-x-6 items-center">
-            <Link href="/product" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
-              Product
-            </Link>
-            <Link href="/developers" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
-              Developers
-            </Link>
-            <Link href="/security" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
-              Security
+            <Link href="/docs" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+              {t('docs')}
             </Link>
             <Link href="/pricing" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
               {t('pricing')}
             </Link>
+            <Link href="/security" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+              {t('security')}
+            </Link>
             <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
               <GithubIcon className="w-4 h-4" />
-              <span>Open Source</span>
+              <span>{t('github')}</span>
             </a>
           </div>
         </div>
@@ -60,7 +58,7 @@ export default async function Header() {
                 {t('signIn')}
               </Link>
               <Link href="/signup" style={{ textDecoration: 'none' }} className="hidden sm:block">
-                <BrandButton className="py-1.5 px-3 text-sm">{t('signUp') || 'Start free'}</BrandButton>
+                <BrandButton className="py-1.5 px-3 text-sm">{tHome('getStarted')}</BrandButton>
               </Link>
             </>
           )}

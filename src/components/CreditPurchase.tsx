@@ -46,22 +46,22 @@ export default function CreditPurchase({ dict }: { dict: any }) {
       {packages.map((pkg) => (
         <div 
           key={pkg.id} 
-          className={`relative flex flex-col items-center justify-between rounded-lg border p-4 shadow-sm ${pkg.popular ? 'border-blue-600 ring-1 ring-blue-600' : 'border-gray-300'}`}
+          className={`relative flex flex-col items-center justify-between rounded-lg border p-4 shadow-sm bg-[var(--pz-canvas)] ${pkg.popular ? 'border-[var(--pz-cipher)] ring-1 ring-[var(--pz-cipher)]' : 'border-[var(--pz-border)]'}`}
         >
           {pkg.popular && (
-            <span className="absolute -top-3 bg-blue-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold tracking-wide">
+            <span className="absolute -top-3 bg-[var(--pz-cipher)] text-[var(--pz-ink)] px-2 py-0.5 rounded-full text-xs font-semibold tracking-wide">
               {dict.mostPopular}
             </span>
           )}
           <div className="text-center mt-2">
-            <h4 className="text-lg font-bold text-gray-900">{pkg.name}</h4>
-            <p className="text-sm text-gray-500 mt-1">{pkg.credits.toLocaleString()} {dict.creditsLabel}</p>
-            <p className="text-xl font-bold text-gray-900 mt-3">{pkg.price}</p>
+            <h4 className="text-lg font-bold text-[var(--pz-text)]">{pkg.name}</h4>
+            <p className="text-sm text-[var(--pz-text-secondary)] mt-1">{pkg.credits.toLocaleString()} {dict.creditsLabel}</p>
+            <p className="text-xl font-bold text-[var(--pz-text)] mt-3">{pkg.price}</p>
           </div>
           <button
             onClick={() => handlePurchase(pkg.id, pkg.credits)}
             disabled={loading}
-            className={`mt-6 w-full inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 ${pkg.popular ? 'bg-blue-600 text-white hover:bg-blue-500 focus-visible:outline-blue-600' : 'bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'}`}
+            className={`mt-6 w-full inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 transition-colors ${pkg.popular ? 'bg-[var(--pz-cipher)] text-[var(--pz-ink)] hover:bg-[var(--pz-cipher-hover)] focus-visible:outline-[var(--pz-cipher)]' : 'bg-[var(--pz-surface)] text-[var(--pz-text)] ring-1 ring-inset ring-[var(--pz-border-strong)] hover:bg-[var(--pz-surface-inset)]'}`}
           >
             {loading ? dict.redirecting : dict.buyCredits}
           </button>
