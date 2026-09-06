@@ -61,9 +61,9 @@ def _entity_type_for(label: str) -> EntityType | None:
 
 
 _DEFAULT_ENTITY_THRESHOLDS: dict[EntityType, float] = {
-    EntityType.LOCATION: 0.35,
-    EntityType.PERSON: 0.40,
-    EntityType.ORGANIZATION: 0.35,
+    EntityType.LOCATION: 0.20,
+    EntityType.PERSON: 0.10,
+    EntityType.ORGANIZATION: 0.10,
 }
 
 _CONTEXT_BOOSTS: tuple[tuple[re.Pattern[str], EntityType, int], ...] = (
