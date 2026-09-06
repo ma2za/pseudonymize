@@ -113,3 +113,10 @@ code {
 h1, h2, h3, h4, h5, h6 {
   color: var(--pz-text);
 }
+
+/* Translucent Header with Backdrop Blur */
+header {
+  background: color-mix(in srgb, var(--pz-surface) 80%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
