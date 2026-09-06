@@ -1,11 +1,11 @@
 ---
 title: "Terms of Service"
-lastUpdated: "2026-09-05"
+lastUpdated: "2026-09-06"
 ---
 
 # Terms of Service
 
-**Effective Date:** September 5, 2026
+**Effective Date:** September 6, 2026
 
 Welcome to pseudonymize.io. By using our website and API, you agree to these terms.
 
@@ -15,7 +15,7 @@ pseudonymize.io provides a deterministic pseudonymization API designed to help d
 ## 2. API Usage and Credits
 *   Access to the API requires the purchase of credits via Stripe.
 *   Credits are non-refundable once consumed by API requests.
-*   We reserve the right to suspend or terminate accounts that attempt to abuse, reverse-engineer, or overwhelm our infrastructure.
+*   We reserve the right to suspend or terminate accounts that attempt to abuse the API, circumvent our billing mechanisms, or deliberately overwhelm our infrastructure.
 
 ## 3. Data Processing Agreement
 By transmitting data to our API, you understand that the pseudonymization occurs in memory. We act purely as a pass-through processor. You remain the data controller and are responsible for ensuring that your initial collection and transmission of data complies with applicable laws.

@@ -16,19 +16,50 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
           <h1>{t('title')}</h1>
           <p className="pz-lead">{t('description')}</p>
           <div className="pz-actions">
-            <Link href="/login" style={{ textDecoration: 'none' }}>
+            <Link href="/signup" style={{ textDecoration: 'none' }}>
               <BrandButton>{t('getStarted')}</BrandButton>
             </Link>
-            <Link href="/blog" style={{ textDecoration: 'none' }}>
+            <Link href="/docs" style={{ textDecoration: 'none' }}>
               <BrandButton variant="secondary">{t('viewOpenSource')}</BrandButton>
             </Link>
           </div>
         </div>
         <ProcessorFrame>
-          <p className="pz-sample-line">{t('sampleEmailText1')}<EntityHighlight>{t('sampleEmailAddress')}</EntityHighlight>{t('sampleEmailText2')}</p>
-          <TransformationRow label={t('sampleEmailLabel')} raw={t('sampleEmailAddress')} pseudonym="EMAIL_01" />
-          <p className="pz-sample-line">{t('sampleEmailText1')}<PseudonymToken>EMAIL_01</PseudonymToken>{t('sampleEmailText2')}</p>
+          <div className="text-xs uppercase tracking-widest text-[var(--pz-text-secondary)] mb-4">Your application</div>
+          <p className="pz-sample-line">{t('sampleEmailText1')}<EntityHighlight>{t('sampleName')}</EntityHighlight>{t('sampleEmailText2')}</p>
+          <p className="pz-sample-line mb-6"><EntityHighlight>{t('sampleEmailAddress')}</EntityHighlight>{t('sampleEmailText3')}</p>
+
+          <div className="flex flex-col gap-2 my-6 py-6 border-y border-[var(--pz-border)] relative">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--pz-border-strong)] text-xs uppercase tracking-widest bg-[var(--pz-canvas)] px-2">Pseudonymize</div>
+            <TransformationRow label={t('sampleNameLabel')} raw={t('sampleName')} pseudonym="PERSON_01" />
+            <TransformationRow label={t('sampleEmailLabel')} raw={t('sampleEmailAddress')} pseudonym="EMAIL_01" />
+          </div>
+
+          <p className="pz-sample-line">{t('sampleEmailText1')}<PseudonymToken>PERSON_01</PseudonymToken>{t('sampleEmailText2')}</p>
+          <p className="pz-sample-line mb-6"><PseudonymToken>EMAIL_01</PseudonymToken>{t('sampleEmailText3')}</p>
+          <div className="text-xs uppercase tracking-widest text-[var(--pz-cipher-strong)] mt-4">OpenAI / Anthropic / Gemini / external API</div>
         </ProcessorFrame>
+      </section>
+
+      {/* 1.5. Boundary Section */}
+      <section className="py-24 border-t border-[var(--pz-border)] bg-[var(--pz-surface)] text-center">
+        <div className="pz-container">
+          <h2 className="text-3xl font-bold mb-12">{t('workflowBoundaryTitle')}</h2>
+          <div className="grid md:grid-cols-3 gap-8 text-[var(--pz-text-secondary)] font-mono text-sm">
+            <div className="px-6 py-6 border border-[var(--pz-border-strong)] rounded-lg bg-[var(--pz-canvas)]">
+              <div className="text-[var(--pz-text-primary)] font-bold mb-4 font-sans tracking-wide">AI</div>
+              {t('workflowBoundaryAI')}
+            </div>
+            <div className="px-6 py-6 border border-[var(--pz-border-strong)] rounded-lg bg-[var(--pz-canvas)]">
+              <div className="text-[var(--pz-text-primary)] font-bold mb-4 font-sans tracking-wide">Analytics</div>
+              {t('workflowBoundaryAnalytics')}
+            </div>
+            <div className="px-6 py-6 border border-[var(--pz-border-strong)] rounded-lg bg-[var(--pz-canvas)]">
+              <div className="text-[var(--pz-text-primary)] font-bold mb-4 font-sans tracking-wide">Support</div>
+              {t('workflowBoundarySupport')}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* 2. Inputs Section */}
@@ -91,7 +122,7 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
         <div className="pz-container grid md:grid-cols-2 gap-12 align-middle items-center">
           <div>
             <h2 className="text-3xl font-bold mb-6 text-[var(--pz-canvas)]">{t('developersTitle')}</h2>
-            <Link href="/blog" style={{ textDecoration: 'none' }}>
+            <Link href="/docs" style={{ textDecoration: 'none' }}>
               <BrandButton>{t('developersCta')}</BrandButton>
             </Link>
           </div>
@@ -123,10 +154,10 @@ export default async function HomePage({params}: {params: Promise<{locale: strin
         <div className="pz-container">
           <h2 className="text-4xl sm:text-5xl font-bold mb-10 max-w-2xl mx-auto leading-tight">{t('finalTitle')}</h2>
           <div className="pz-actions justify-center">
-            <Link href="/login" style={{ textDecoration: 'none' }}>
+            <Link href="/signup" style={{ textDecoration: 'none' }}>
               <BrandButton>{t('finalPrimary')}</BrandButton>
             </Link>
-            <Link href="/blog" style={{ textDecoration: 'none' }}>
+            <Link href="/docs" style={{ textDecoration: 'none' }}>
               <BrandButton variant="secondary">{t('finalSecondary')}</BrandButton>
             </Link>
           </div>

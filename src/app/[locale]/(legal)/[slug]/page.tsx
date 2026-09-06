@@ -54,21 +54,21 @@ export default async function LegalPage({ params }: Props) {
   }
 
   return (
-    <div className="bg-white min-h-[100dvh] py-16 sm:py-24">
+    <div className="bg-[var(--pz-surface)] min-h-[100dvh] py-16 sm:py-24 border-t border-[var(--pz-border)]">
       <main className="mx-auto max-w-3xl px-6 lg:px-8">
-        <Link href="/" className="text-sm font-semibold leading-6 text-blue-600 hover:text-blue-500 mb-8 inline-block">
+        <Link href="/" className="text-sm font-semibold leading-6 text-[var(--pz-cipher-strong)] hover:text-[var(--pz-cipher)] transition-colors mb-8 inline-block">
           {t('backToHome') || '← Back to Home'}
         </Link>
         <article>
-          <header className="mb-10 border-b border-gray-200 pb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{doc.title}</h1>
-            <div className="mt-2 text-sm text-gray-500">
+          <header className="mb-10 border-b border-[var(--pz-border)] pb-6">
+            <h1 className="text-3xl font-bold tracking-tight text-[var(--pz-text)] sm:text-4xl">{doc.title}</h1>
+            <div className="mt-2 text-sm text-[var(--pz-text-secondary)]">
               Last Updated: <time dateTime={doc.lastUpdated}>{new Date(doc.lastUpdated).toLocaleDateString()}</time>
             </div>
           </header>
           
           <div 
-            className="prose prose-lg prose-blue max-w-none text-gray-700"
+            className="prose prose-lg dark:prose-invert max-w-none text-[var(--pz-text)] prose-headings:text-[var(--pz-text)] prose-a:text-[var(--pz-cipher)] hover:prose-a:text-[var(--pz-cipher-hover)] prose-strong:text-[var(--pz-text)] prose-ul:text-[var(--pz-text)] prose-li:text-[var(--pz-text)]"
             dangerouslySetInnerHTML={{ __html: doc.content }} 
           />
         </article>

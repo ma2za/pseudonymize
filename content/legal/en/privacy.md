@@ -1,11 +1,11 @@
 ---
 title: "Privacy Policy"
-lastUpdated: "2026-09-05"
+lastUpdated: "2026-09-06"
 ---
 
 # Privacy Policy
 
-**Effective Date:** September 5, 2026
+**Effective Date:** September 6, 2026
 
 At pseudonymize.io, we are committed to providing a secure, minimal, and transparent service. We believe in strict data minimization.
 
@@ -20,12 +20,12 @@ We collect the minimum amount of data required to operate our service:
 
 ## 3. Third-Party Integrations
 We use the following secure third parties to run our infrastructure:
-*   **Hetzner/Coolify:** For self-hosted, sovereign European server infrastructure.
+*   **Hetzner:** For hosting (Location: Germany / EU).
 *   **Stripe:** For billing and subscription processing.
 *   **Resend:** For transactional emails (password resets and verification).
 *   **Google:** For optional Single Sign-On (SSO).
 
 ## 4. Your Rights
-Under GDPR and CCPA, you have the right to request the deletion of your account and all associated data. You will find a 1-click account deletion tool inside your dashboard settings (coming in Release 1.4).
+Under GDPR and CCPA, you have the right to request the deletion of your account and all associated data. You can delete your account directly from your dashboard settings, or request deletion by contacting support.
 
 If you have any questions, please check our open-source repository on GitHub.

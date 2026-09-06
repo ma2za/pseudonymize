@@ -32,7 +32,7 @@ export default async function SettingsPage({params}: {params: Promise<{locale: s
   };
 
   return (
-    <div className="bg-[var(--pz-canvas)] flex flex-col">
+    <div className="bg-[var(--pz-canvas)] flex flex-col min-h-[100dvh]">
       <main className="flex-1 max-w-3xl w-full mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         
         <div className="mb-4">

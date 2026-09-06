@@ -48,9 +48,9 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
   };
 
   return (
-    <div className="bg-gray-50 flex flex-col">
+    <div className="bg-[var(--pz-canvas)] flex flex-col min-h-[100dvh]">
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-        <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+        <div className="bg-[var(--pz-surface)] overflow-hidden shadow rounded-lg border border-[var(--pz-border)]">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
               {t('apiKeysTitle')}
@@ -70,12 +70,12 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
           </div>
         </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+        <div className="bg-[var(--pz-surface)] overflow-hidden shadow rounded-lg border border-[var(--pz-border)]">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
               {t('billingTitle')}
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
+            <div className="mt-2 max-w-xl text-sm text-[var(--pz-text-secondary)]">
               <p>{t('creditsRemaining', { credits })}</p>
             </div>
             

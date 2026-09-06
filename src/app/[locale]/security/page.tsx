@@ -1,7 +1,12 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { TrustFacts } from '@/brand/components';
 import type { Metadata } from 'next';
 import { routing } from '@/i18n/routing';
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import { remark } from 'remark';
+import html from 'remark-html';
+import { notFound } from 'next/navigation';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -25,38 +30,47 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
+async function getSecurityContent(locale: string) {
+  const secDirectory = path.join(process.cwd(), 'content', 'security');
+  const localeDir = path.join(secDirectory, locale);
+  let targetDir = localeDir;
+  let fullPath = path.join(targetDir, 'index.md');
+
+  if (!fs.existsSync(fullPath)) {
+    targetDir = path.join(secDirectory, 'en');
+    fullPath = path.join(targetDir, 'index.md');
+  }
+
+  if (!fs.existsSync(fullPath)) {
+    return null;
+  }
+
+  const fileContents = fs.readFileSync(fullPath, 'utf8');
+  const matterResult = matter(fileContents);
+
+  const processedContent = await remark()
+    .use(html)
+    .process(matterResult.content);
+    
+  return processedContent.toString();
+}
+
 export default async function SecurityPage({params}: {params: Promise<{locale: string}>}) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations('Security');
+
+  const contentHtml = await getSecurityContent(locale);
+  if (!contentHtml) {
+    notFound();
+  }
 
   return (
-    <div className="pz-appbody">
-      <section className="py-24 sm:py-32">
-        <div className="pz-container max-w-3xl text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-[var(--pz-text)] mb-8 leading-tight">
-            {t('title')}
-          </h1>
-          <p className="text-lg text-[var(--pz-text-secondary)] leading-relaxed">
-            {t('description')}
-          </p>
-        </div>
-      </section>
-
-      <section className="py-24 border-t border-[var(--pz-border)] bg-[var(--pz-surface)]">
-        <div className="pz-container max-w-4xl">
-          <div className="grid md:grid-cols-2 gap-16">
-            <TrustFacts facts={[
-              { label: 'Data processing', value: 'In-memory stream processing only. No payloads touch disk.' },
-              { label: 'Retention', value: '0 bytes of original or pseudonymized payload retained post-request.' },
-              { label: 'Encryption', value: 'TLS 1.3 in transit. AES-256 for all stored mapping tables.' },
-              { label: 'Infrastructure / region', value: 'Hetzner Cloud (EU-Central, Falkenstein)' },
-              { label: 'Access controls', value: 'Strict internal RBAC. No operator access to live payloads.' },
-              { label: 'Subprocessors', value: 'Hetzner (Compute), Stripe (Billing), Resend (Email)' }
-            ]} />
-          </div>
-        </div>
-      </section>
+    <div className="bg-[var(--pz-surface)] min-h-[100dvh] py-16 sm:py-24 border-t border-[var(--pz-border)]">
+      <main className="mx-auto max-w-4xl px-6 lg:px-8">
+        <article className="prose prose-lg dark:prose-invert max-w-none text-[var(--pz-text)] prose-headings:text-[var(--pz-text)] prose-a:text-[var(--pz-cipher)] hover:prose-a:text-[var(--pz-cipher-hover)] prose-code:text-[var(--pz-cipher-strong)] prose-pre:bg-[var(--pz-canvas)] prose-pre:border prose-pre:border-[var(--pz-border-strong)] prose-hr:border-[var(--pz-border)]">
+          <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+        </article>
+      </main>
     </div>
   );
 }

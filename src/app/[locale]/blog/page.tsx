@@ -40,33 +40,33 @@ export default async function BlogIndexPage({params}: {params: Promise<{locale: 
   const posts = getBlogPosts(locale);
 
   return (
-    <div className="bg-gray-50 min-h-screen py-24 sm:py-32">
+    <div className="bg-[var(--pz-canvas)] min-h-[100dvh] py-24 sm:py-32 border-t border-[var(--pz-border)]">
       <main className="mx-auto max-w-7xl px-6 lg:px-8">
         <header className="mx-auto max-w-2xl lg:mx-0">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{t('blogTitle')}</h1>
-          <p className="mt-2 text-lg leading-8 text-gray-600">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--pz-text)] sm:text-4xl">{t('blogTitle')}</h1>
+          <p className="mt-2 text-lg leading-8 text-[var(--pz-text-secondary)]">
             {t('blogDescription')}
           </p>
         </header>
-        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-[var(--pz-border)] pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
           {posts.map((post) => (
             <article key={post.slug} className="flex max-w-xl flex-col items-start justify-between">
               <div className="flex items-center gap-x-4 text-xs">
-                <time dateTime={post.date} className="text-gray-500">
+                <time dateTime={post.date} className="text-[var(--pz-text-muted)]">
                   {new Date(post.date).toLocaleDateString()}
                 </time>
               </div>
               <div className="group relative">
-                <h3 className="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600">
+                <h3 className="mt-3 text-lg font-semibold leading-6 text-[var(--pz-text)] group-hover:text-[var(--pz-cipher)] transition-colors">
                   <Link href={`/blog/${post.slug}`}>
                     <span className="absolute inset-0" />
                     {post.title}
                   </Link>
                 </h3>
-                <p className="mt-5 line-clamp-3 text-sm leading-6 text-gray-600">{post.excerpt}</p>
+                <p className="mt-5 line-clamp-3 text-sm leading-6 text-[var(--pz-text-secondary)]">{post.excerpt}</p>
               </div>
               <div className="mt-4">
-                 <Link href={`/blog/${post.slug}`} className="text-sm font-semibold leading-6 text-blue-600 hover:text-blue-500">
+                 <Link href={`/blog/${post.slug}`} className="text-sm font-semibold leading-6 text-[var(--pz-cipher-strong)] hover:text-[var(--pz-cipher)] transition-colors">
                     {t('readMore')} <span aria-hidden="true">→</span>
                  </Link>
               </div>
