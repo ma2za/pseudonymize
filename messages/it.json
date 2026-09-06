@@ -70,8 +70,8 @@
     "github": "GitHub",
     "benchmarks": "Benchmark",
     "changelog": "Registro delle modifiche",
-    "signIn": "Registrazione",
-    "signUp": "Iscrizione",
+    "signIn": "Accedi",
+    "signUp": "Registrati",
     "dashboard": "Pannello di controllo",
     "signOut": "disconnessione",
     "openSource": "Open Source",
@@ -109,10 +109,10 @@
     "nameLabel": "Nome e cognome",
     "emailLabel": "Indirizzo e-mail",
     "passwordLabel": "Password",
-    "signUpButton": "Iscrizione",
+    "signUpButton": "Registrati",
     "orContinueWith": "Oppure continua con",
     "googleButton": "Google",
-    "alreadyHaveAccount": "Hai già un account? Registrazione"
+    "alreadyHaveAccount": "Hai già un account? Accedi"
   },
   "ForgotPassword": {
     "title": "Reimposta la tua password",
@@ -132,11 +132,11 @@
     "title": "Accedi al tuo account",
     "emailLabel": "Indirizzo e-mail",
     "passwordLabel": "Password",
-    "signInButton": "Registrazione",
+    "signInButton": "Accedi",
     "orContinueWith": "Oppure continua con",
     "googleButton": "Google",
     "backToHome": "← Ritorno a casa",
-    "dontHaveAccount": "Non hai un account? Iscrizione",
+    "dontHaveAccount": "Non hai un account? Registrati",
     "forgotPassword": "Ha dimenticato la password?"
   },
   "Blog": {
