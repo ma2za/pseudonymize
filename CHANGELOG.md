@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.2.0] - 2026-09-06
+
+### Added
+
+- **NLP-Driven Context Detectors:** Replaced rigid regex context lookaheads with a lightweight, pure-Python dependency parser for `NATIONAL_ID`, `TAX_ID`, and `PAYMENT_CARD` entities. By defining a token window and skipping grammatical dependency links and stop words (e.g., "is", "of", "the", "number"), the contextual identifier detector safely resolves targets regardless of arbitrary intervening text. This dramatically improves recall and precision on realistic phrasing (e.g., "Tax ID of the applicant is...").
+
 ## [1.1.0] - 2026-09-06
 
 ### Fixed
