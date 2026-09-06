@@ -58,11 +58,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates[l] = `${baseUrl}/${l}/docs/${slugPath}`;
   });
 
+  const description = `Read about ${doc.title} in the pseudonymize.io developer documentation.`;
   return {
     title: doc.title,
+    description,
     alternates: {
       canonical: `${baseUrl}/${locale}/docs/${slugPath}`,
       languages: alternates,
+    },
+    openGraph: {
+      title: doc.title,
+      description,
+      url: `${baseUrl}/${locale}/docs/${slugPath}`,
+      type: 'article',
+      siteName: 'pseudonymize.io',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: doc.title,
+      description,
     }
   };
 }
