@@ -35,7 +35,32 @@
     "trust2": "पेलोड डेटा के लिए कोई उप-प्रोसेसर नहीं।",
     "finalTitle": "संदर्भ रखें. पहचानकर्ताओं को बदलें.",
     "finalPrimary": "डेटा का छद्म नामकरण करें",
-    "finalSecondary": "दस्तावेज़ देखें"
+    "finalSecondary": "दस्तावेज़ देखें",
+    "predictableTitle": "Predictable transformations, not black-box masking.",
+    "predictableSubtitle": "Control how identifiers are detected, replaced and kept consistent across your data.",
+    "featIdentityTitle": "Preserve identity relationships",
+    "featIdentityDesc": "The same identifier can map to the same pseudonym within a defined scope, so downstream systems keep useful relationships without receiving the original value.",
+    "featStructureTitle": "Keep structured payloads usable",
+    "featStructureDesc": "Transform values without flattening JSON, message arrays or application-specific structures.",
+    "featPolicyTitle": "Choose what gets transformed",
+    "featPolicyDesc": "Configure entity types and transformation behavior instead of applying one irreversible redaction rule to everything.",
+    "featDeployTitle": "Hosted API or open-source engine",
+    "featDeployDesc": "Integrate the managed API for zero overhead, or run the engine locally when data must remain inside your environment.",
+    "redactionTitle": "Redaction removes context. Pseudonymization preserves relationships.",
+    "redactionOriginal": "Alice emailed Bob.",
+    "redactionMasked": "[PERSON] emailed [PERSON].",
+    "redactionPseudonymized": "PERSON_01 emailed PERSON_02.",
+    "yourApplication": "Your application",
+    "externalApi": "OpenAI / Anthropic / Gemini / external API",
+    "exploreApiDocs": "Explore API Docs",
+    "viewGithub": "View GitHub",
+    "original": "Original",
+    "redaction": "Redaction",
+    "pseudonymization": "Pseudonymization",
+    "trust3": "Hetzner EU (Falkenstein)",
+    "trust1Label": "Latency",
+    "trust2Label": "Telemetry",
+    "trust3Label": "Region"
   },
   "Global": {
     "blog": "ब्लॉग",
@@ -51,7 +76,9 @@
     "copyright": "©2026 छद्म नाम.आईओ. सर्वाधिकार सुरक्षित।",
     "privacy": "गोपनीयता नीति",
     "terms": "सेवा की शर्तें",
-    "backToHome": "← घर वापस"
+    "backToHome": "← घर वापस",
+    "benchmarks": "Benchmarks",
+    "changelog": "Changelog"
   },
   "Pricing": {
     "title": "वास्तविक उपयोग के अनुसार मूल्य निर्धारण।",
@@ -73,7 +100,9 @@
     "faq2Q": "क्या क्रेडिट समाप्त हो जाते हैं?",
     "faq2A": "नहीं, आपके खरीदे गए क्रेडिट आपके खाते में अनिश्चित काल तक रहते हैं जब तक कि वे आपके एपीआई अनुरोधों द्वारा उपभोग नहीं किए जाते।",
     "faq3Q": "मैं और अधिक क्रेडिट कैसे जोड़ूँ?",
-    "faq3A": "आप किसी भी समय क्रेडिट कार्ड का उपयोग करके अपने डैशबोर्ड से अपना बैलेंस टॉप अप कर सकते हैं।"
+    "faq3A": "आप किसी भी समय क्रेडिट कार्ड का उपयोग करके अपने डैशबोर्ड से अपना बैलेंस टॉप अप कर सकते हैं।",
+    "noExpiration": "No expiration",
+    "prioritySupport": "Priority Support"
   },
   "Signup": {
     "title": "अपना खाता बनाएं",
@@ -166,7 +195,11 @@
     "authHeading": "प्रमाणीकरण",
     "inputsHeading": "समर्थित इनपुट",
     "errorsHeading": "प्रसंस्करण स्थिति को स्पष्ट रूप से संभालें।",
-    "sdksHeading": "एसडीके"
+    "sdksHeading": "एसडीके",
+    "authDesc": "Bearer token authentication via HTTP headers.",
+    "inputsDesc": "Raw text strings, JSON payloads, and supported file buffers.",
+    "errorsDesc": "Standard HTTP 4xx/5xx status codes with detailed JSON error messages.",
+    "sdksDesc": "Native clients available for Node.js, Python, and Go."
   },
   "Product": {
     "title": "पाठ, संरचित डेटा और फ़ाइलों के लिए एक छद्मनामकरण परत।",
@@ -180,7 +213,17 @@
     "filesHeading": "फ़ाइलें",
     "filesCopy": "समर्थित फ़ाइलों को पहले उनकी संवेदनशील सामग्री को मैन्युअल रूप से निकाले बिना संसाधित करें।",
     "modelHeading": "प्रसंग बना रहता है. पहचानकर्ता बदल जाते हैं.",
-    "devHeading": "डेटा जहां स्थानांतरित होता है, उसे एकीकृत करें."
+    "devHeading": "डेटा जहां स्थानांतरित होता है, उसे एकीकृत करें.",
+    "extractDataFrom": "Extract data from ",
+    "fileLabel": "File",
+    "original": "Original",
+    "pseudonymizedOutput": "Pseudonymized Output",
+    "patientOriginal1": "Patient ",
+    "patientOriginal2": " was admitted to ",
+    "patientOriginal3": " on ",
+    "patientPseudonymized1": "Patient ",
+    "patientPseudonymized2": " was admitted to ",
+    "patientPseudonymized3": " on "
   },
   "Security": {
     "title": "सुरक्षा दावों का निरीक्षण किया जाना चाहिए.",

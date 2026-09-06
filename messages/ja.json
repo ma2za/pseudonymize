@@ -35,7 +35,32 @@
     "trust2": "ペイロード データ用のサブプロセッサはありません。",
     "finalTitle": "コンテキストを保持します。 識別子を置き換えます。",
     "finalPrimary": "データの仮名化",
-    "finalSecondary": "ドキュメントを見る"
+    "finalSecondary": "ドキュメントを見る",
+    "predictableTitle": "Predictable transformations, not black-box masking.",
+    "predictableSubtitle": "Control how identifiers are detected, replaced and kept consistent across your data.",
+    "featIdentityTitle": "Preserve identity relationships",
+    "featIdentityDesc": "The same identifier can map to the same pseudonym within a defined scope, so downstream systems keep useful relationships without receiving the original value.",
+    "featStructureTitle": "Keep structured payloads usable",
+    "featStructureDesc": "Transform values without flattening JSON, message arrays or application-specific structures.",
+    "featPolicyTitle": "Choose what gets transformed",
+    "featPolicyDesc": "Configure entity types and transformation behavior instead of applying one irreversible redaction rule to everything.",
+    "featDeployTitle": "Hosted API or open-source engine",
+    "featDeployDesc": "Integrate the managed API for zero overhead, or run the engine locally when data must remain inside your environment.",
+    "redactionTitle": "Redaction removes context. Pseudonymization preserves relationships.",
+    "redactionOriginal": "Alice emailed Bob.",
+    "redactionMasked": "[PERSON] emailed [PERSON].",
+    "redactionPseudonymized": "PERSON_01 emailed PERSON_02.",
+    "yourApplication": "Your application",
+    "externalApi": "OpenAI / Anthropic / Gemini / external API",
+    "exploreApiDocs": "Explore API Docs",
+    "viewGithub": "View GitHub",
+    "original": "Original",
+    "redaction": "Redaction",
+    "pseudonymization": "Pseudonymization",
+    "trust3": "Hetzner EU (Falkenstein)",
+    "trust1Label": "Latency",
+    "trust2Label": "Telemetry",
+    "trust3Label": "Region"
   },
   "Global": {
     "blog": "ブログ",
@@ -51,7 +76,9 @@
     "copyright": "© 2026 pseudonymize.io. 無断転載を禁じます。",
     "privacy": "プライバシーポリシー",
     "terms": "利用規約",
-    "backToHome": "← ホームへ戻る"
+    "backToHome": "← ホームへ戻る",
+    "benchmarks": "Benchmarks",
+    "changelog": "Changelog"
   },
   "Pricing": {
     "title": "実際の使用状況に応じた価格設定。",
@@ -73,7 +100,9 @@
     "faq2Q": "クレジットには有効期限がありますか?",
     "faq2A": "いいえ、購入したクレジットは、API リクエストによって消費されるまで無期限にアカウントに残ります。",
     "faq3Q": "クレジットをさらに追加するにはどうすればよいですか?",
-    "faq3A": "クレジット カードを使用して、ダッシュボードからいつでも残高を補充できます。"
+    "faq3A": "クレジット カードを使用して、ダッシュボードからいつでも残高を補充できます。",
+    "noExpiration": "No expiration",
+    "prioritySupport": "Priority Support"
   },
   "Signup": {
     "title": "アカウントを作成する",
@@ -166,7 +195,11 @@
     "authHeading": "認証",
     "inputsHeading": "サポートされている入力",
     "errorsHeading": "処理状態を明示的に処理します。",
-    "sdksHeading": "SDK"
+    "sdksHeading": "SDK",
+    "authDesc": "Bearer token authentication via HTTP headers.",
+    "inputsDesc": "Raw text strings, JSON payloads, and supported file buffers.",
+    "errorsDesc": "Standard HTTP 4xx/5xx status codes with detailed JSON error messages.",
+    "sdksDesc": "Native clients available for Node.js, Python, and Go."
   },
   "Product": {
     "title": "テキスト、構造化データ、ファイル用の 1 つの仮名化レイヤー。",
@@ -180,7 +213,17 @@
     "filesHeading": "ファイル",
     "filesCopy": "最初に機密コンテンツを手動で抽出せずに、サポートされているファイルを処理します。",
     "modelHeading": "コンテキストは残ります。 識別子が変更されます。",
-    "devHeading": "データが移動する場所を統合します。"
+    "devHeading": "データが移動する場所を統合します。",
+    "extractDataFrom": "Extract data from ",
+    "fileLabel": "File",
+    "original": "Original",
+    "pseudonymizedOutput": "Pseudonymized Output",
+    "patientOriginal1": "Patient ",
+    "patientOriginal2": " was admitted to ",
+    "patientOriginal3": " on ",
+    "patientPseudonymized1": "Patient ",
+    "patientPseudonymized2": " was admitted to ",
+    "patientPseudonymized3": " on "
   },
   "Security": {
     "title": "セキュリティに関する主張は検査可能である必要があります。",

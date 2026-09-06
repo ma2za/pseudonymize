@@ -35,7 +35,32 @@
     "trust2": "没有有效负载数据的子处理器。",
     "finalTitle": "保留上下文。 替换标识符。",
     "finalPrimary": "数据假名化",
-    "finalSecondary": "查看文档"
+    "finalSecondary": "查看文档",
+    "predictableTitle": "Predictable transformations, not black-box masking.",
+    "predictableSubtitle": "Control how identifiers are detected, replaced and kept consistent across your data.",
+    "featIdentityTitle": "Preserve identity relationships",
+    "featIdentityDesc": "The same identifier can map to the same pseudonym within a defined scope, so downstream systems keep useful relationships without receiving the original value.",
+    "featStructureTitle": "Keep structured payloads usable",
+    "featStructureDesc": "Transform values without flattening JSON, message arrays or application-specific structures.",
+    "featPolicyTitle": "Choose what gets transformed",
+    "featPolicyDesc": "Configure entity types and transformation behavior instead of applying one irreversible redaction rule to everything.",
+    "featDeployTitle": "Hosted API or open-source engine",
+    "featDeployDesc": "Integrate the managed API for zero overhead, or run the engine locally when data must remain inside your environment.",
+    "redactionTitle": "Redaction removes context. Pseudonymization preserves relationships.",
+    "redactionOriginal": "Alice emailed Bob.",
+    "redactionMasked": "[PERSON] emailed [PERSON].",
+    "redactionPseudonymized": "PERSON_01 emailed PERSON_02.",
+    "yourApplication": "Your application",
+    "externalApi": "OpenAI / Anthropic / Gemini / external API",
+    "exploreApiDocs": "Explore API Docs",
+    "viewGithub": "View GitHub",
+    "original": "Original",
+    "redaction": "Redaction",
+    "pseudonymization": "Pseudonymization",
+    "trust3": "Hetzner EU (Falkenstein)",
+    "trust1Label": "Latency",
+    "trust2Label": "Telemetry",
+    "trust3Label": "Region"
   },
   "Global": {
     "blog": "博客",
@@ -51,7 +76,9 @@
     "copyright": "© 2026 假名.io。 版权所有。",
     "privacy": "隐私政策",
     "terms": "服务条款",
-    "backToHome": "← 返回首页"
+    "backToHome": "← 返回首页",
+    "benchmarks": "Benchmarks",
+    "changelog": "Changelog"
   },
   "Pricing": {
     "title": "根据实际使用情况定价。",
@@ -73,7 +100,9 @@
     "faq2Q": "积分会过期吗？",
     "faq2A": "不会，您购买的积分将无限期地保留在您的帐户中，直到它们被您的 API 请求消耗为止。",
     "faq3Q": "如何添加更多学分？",
-    "faq3A": "您可以随时使用信用卡从仪表板充值余额。"
+    "faq3A": "您可以随时使用信用卡从仪表板充值余额。",
+    "noExpiration": "No expiration",
+    "prioritySupport": "Priority Support"
   },
   "Signup": {
     "title": "创建您的帐户",
@@ -166,7 +195,11 @@
     "authHeading": "验证",
     "inputsHeading": "支持的输入",
     "errorsHeading": "明确处理处理状态。",
-    "sdksHeading": "软件开发工具包"
+    "sdksHeading": "软件开发工具包",
+    "authDesc": "Bearer token authentication via HTTP headers.",
+    "inputsDesc": "Raw text strings, JSON payloads, and supported file buffers.",
+    "errorsDesc": "Standard HTTP 4xx/5xx status codes with detailed JSON error messages.",
+    "sdksDesc": "Native clients available for Node.js, Python, and Go."
   },
   "Product": {
     "title": "用于文本、结构化数据和文件的一个假名层。",
@@ -180,7 +213,17 @@
     "filesHeading": "文件",
     "filesCopy": "处理支持的文件，无需先手动提取其敏感内容。",
     "modelHeading": "上下文保留。 标识符发生变化。",
-    "devHeading": "在数据移动的地方进行集成。"
+    "devHeading": "在数据移动的地方进行集成。",
+    "extractDataFrom": "Extract data from ",
+    "fileLabel": "File",
+    "original": "Original",
+    "pseudonymizedOutput": "Pseudonymized Output",
+    "patientOriginal1": "Patient ",
+    "patientOriginal2": " was admitted to ",
+    "patientOriginal3": " on ",
+    "patientPseudonymized1": "Patient ",
+    "patientPseudonymized2": " was admitted to ",
+    "patientPseudonymized3": " on "
   },
   "Security": {
     "title": "安全声明应该是可检查的。",

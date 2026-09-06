@@ -41,7 +41,7 @@ export default async function PricingPage({params}: {params: Promise<{locale: st
     <div className="pz-appbody">
       {/* Hero Section */}
       <section className="py-24 sm:py-32 text-center">
-        <div className="pz-container">
+        <div className="pz-container px-4 sm:px-6">
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[var(--pz-text)] mb-6 max-w-3xl mx-auto leading-tight">
             {t('title')}
           </h1>
@@ -56,7 +56,7 @@ export default async function PricingPage({params}: {params: Promise<{locale: st
 
       {/* Pricing Cards */}
       <section className="pb-32">
-        <div className="pz-container max-w-5xl">
+        <div className="pz-container px-4 sm:px-6 max-w-5xl">
           <div className="grid md:grid-cols-2 gap-8">
             
             {/* Starter Plan */}
@@ -73,7 +73,7 @@ export default async function PricingPage({params}: {params: Promise<{locale: st
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
-                  No expiration
+                  {t('noExpiration')}
                 </li>
               </ul>
               <Link href="/login" style={{ textDecoration: 'none', width: '100%' }}>
@@ -98,11 +98,11 @@ export default async function PricingPage({params}: {params: Promise<{locale: st
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
-                  No expiration
+                  {t('noExpiration')}
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="w-2 h-2 rounded-full bg-[var(--pz-cipher)]"></span>
-                  Priority Support
+                  {t('prioritySupport')}
                 </li>
               </ul>
               <Link href="/login" style={{ textDecoration: 'none', width: '100%' }}>
@@ -116,7 +116,7 @@ export default async function PricingPage({params}: {params: Promise<{locale: st
 
       {/* FAQ */}
       <section className="py-24 bg-[var(--pz-surface-inset)] border-t border-[var(--pz-border)]">
-        <div className="pz-container max-w-3xl">
+        <div className="pz-container px-4 sm:px-6 max-w-3xl">
           <h2 className="text-3xl font-bold mb-12 text-center text-[var(--pz-text)]">{t('faqTitle')}</h2>
           <div className="space-y-8">
             <div>

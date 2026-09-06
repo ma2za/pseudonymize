@@ -35,7 +35,32 @@
     "trust2": "Ingen underbehandlere for nyttelastdata.",
     "finalTitle": "Hold konteksten. Bytt ut identifikatorene.",
     "finalPrimary": "Pseudonymiser data",
-    "finalSecondary": "Se dokumentasjon"
+    "finalSecondary": "Se dokumentasjon",
+    "predictableTitle": "Predictable transformations, not black-box masking.",
+    "predictableSubtitle": "Control how identifiers are detected, replaced and kept consistent across your data.",
+    "featIdentityTitle": "Preserve identity relationships",
+    "featIdentityDesc": "The same identifier can map to the same pseudonym within a defined scope, so downstream systems keep useful relationships without receiving the original value.",
+    "featStructureTitle": "Keep structured payloads usable",
+    "featStructureDesc": "Transform values without flattening JSON, message arrays or application-specific structures.",
+    "featPolicyTitle": "Choose what gets transformed",
+    "featPolicyDesc": "Configure entity types and transformation behavior instead of applying one irreversible redaction rule to everything.",
+    "featDeployTitle": "Hosted API or open-source engine",
+    "featDeployDesc": "Integrate the managed API for zero overhead, or run the engine locally when data must remain inside your environment.",
+    "redactionTitle": "Redaction removes context. Pseudonymization preserves relationships.",
+    "redactionOriginal": "Alice emailed Bob.",
+    "redactionMasked": "[PERSON] emailed [PERSON].",
+    "redactionPseudonymized": "PERSON_01 emailed PERSON_02.",
+    "yourApplication": "Your application",
+    "externalApi": "OpenAI / Anthropic / Gemini / external API",
+    "exploreApiDocs": "Explore API Docs",
+    "viewGithub": "View GitHub",
+    "original": "Original",
+    "redaction": "Redaction",
+    "pseudonymization": "Pseudonymization",
+    "trust3": "Hetzner EU (Falkenstein)",
+    "trust1Label": "Latency",
+    "trust2Label": "Telemetry",
+    "trust3Label": "Region"
   },
   "Global": {
     "blog": "Blogg",
@@ -51,7 +76,9 @@
     "copyright": "© 2026 pseudonymize.io. Alle rettigheter forbeholdt.",
     "privacy": "Personvernerklæring",
     "terms": "Vilkår for bruk",
-    "backToHome": "← Tilbake til Hjem"
+    "backToHome": "← Tilbake til Hjem",
+    "benchmarks": "Benchmarks",
+    "changelog": "Changelog"
   },
   "Pricing": {
     "title": "Priser som følger faktisk bruk.",
@@ -73,7 +100,9 @@
     "faq2Q": "Utløper kreditter?",
     "faq2A": "Nei, de kjøpte kredittene dine forblir på kontoen din på ubestemt tid til de er oppbrukt av API-forespørslene dine.",
     "faq3Q": "Hvordan legger jeg til flere studiepoeng?",
-    "faq3A": "Du kan fylle på saldoen når som helst fra dashbordet ditt med et kredittkort."
+    "faq3A": "Du kan fylle på saldoen når som helst fra dashbordet ditt med et kredittkort.",
+    "noExpiration": "No expiration",
+    "prioritySupport": "Priority Support"
   },
   "Signup": {
     "title": "Opprett kontoen din",
@@ -166,7 +195,11 @@
     "authHeading": "Autentisering",
     "inputsHeading": "Støttede innganger",
     "errorsHeading": "Håndter behandlingstilstander eksplisitt.",
-    "sdksHeading": "SDK-er"
+    "sdksHeading": "SDK-er",
+    "authDesc": "Bearer token authentication via HTTP headers.",
+    "inputsDesc": "Raw text strings, JSON payloads, and supported file buffers.",
+    "errorsDesc": "Standard HTTP 4xx/5xx status codes with detailed JSON error messages.",
+    "sdksDesc": "Native clients available for Node.js, Python, and Go."
   },
   "Product": {
     "title": "Ett pseudonymiseringslag for tekst, strukturerte data og filer.",
@@ -180,7 +213,17 @@
     "filesHeading": "Filer",
     "filesCopy": "Behandle støttede filer uten å manuelt trekke ut det sensitive innholdet først.",
     "modelHeading": "Konteksten forblir. Identifikatorene endres.",
-    "devHeading": "Integrer der dataene beveger seg."
+    "devHeading": "Integrer der dataene beveger seg.",
+    "extractDataFrom": "Extract data from ",
+    "fileLabel": "File",
+    "original": "Original",
+    "pseudonymizedOutput": "Pseudonymized Output",
+    "patientOriginal1": "Patient ",
+    "patientOriginal2": " was admitted to ",
+    "patientOriginal3": " on ",
+    "patientPseudonymized1": "Patient ",
+    "patientPseudonymized2": " was admitted to ",
+    "patientPseudonymized3": " on "
   },
   "Security": {
     "title": "Sikkerhetskrav bør være inspiserbare.",

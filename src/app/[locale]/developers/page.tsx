@@ -35,7 +35,7 @@ export default async function DevelopersPage({params}: {params: Promise<{locale:
     <div className="pz-appbody">
       {/* Hero Section */}
       <section className="py-24 sm:py-32">
-        <div className="pz-container max-w-4xl">
+        <div className="pz-container px-4 sm:px-6 max-w-4xl">
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-[var(--pz-text)] mb-6 leading-tight">
             {t('title')}
           </h1>
@@ -55,7 +55,7 @@ export default async function DevelopersPage({params}: {params: Promise<{locale:
 
       {/* Terminal Block */}
       <section className="py-20 border-t border-[var(--pz-border)] bg-[var(--pz-surface)]">
-        <div className="pz-container grid md:grid-cols-2 gap-16 items-center">
+        <div className="pz-container px-4 sm:px-6 grid md:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="pz-section-title mb-4">{t('requestHeading')}</h2>
             <p className="pz-subtitle">{t('description')}</p>
@@ -79,27 +79,27 @@ export default async function DevelopersPage({params}: {params: Promise<{locale:
 
       {/* Features Grid */}
       <section className="py-24 border-t border-[var(--pz-border)]">
-        <div className="pz-container">
+        <div className="pz-container px-4 sm:px-6">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
             <div>
               <div className="text-[var(--pz-cipher)] font-mono text-xs font-semibold mb-4">01</div>
               <h3 className="text-lg font-semibold text-[var(--pz-text)] mb-2">{t('authHeading')}</h3>
-              <p className="text-sm text-[var(--pz-text-secondary)]">Bearer token authentication via HTTP headers.</p>
+              <p className="text-sm text-[var(--pz-text-secondary)]">{t('authDesc')}</p>
             </div>
             <div>
               <div className="text-[var(--pz-cipher)] font-mono text-xs font-semibold mb-4">02</div>
               <h3 className="text-lg font-semibold text-[var(--pz-text)] mb-2">{t('inputsHeading')}</h3>
-              <p className="text-sm text-[var(--pz-text-secondary)]">Raw text strings, JSON payloads, and supported file buffers.</p>
+              <p className="text-sm text-[var(--pz-text-secondary)]">{t('inputsDesc')}</p>
             </div>
             <div>
               <div className="text-[var(--pz-cipher)] font-mono text-xs font-semibold mb-4">03</div>
               <h3 className="text-lg font-semibold text-[var(--pz-text)] mb-2">{t('errorsHeading')}</h3>
-              <p className="text-sm text-[var(--pz-text-secondary)]">Standard HTTP 4xx/5xx status codes with detailed JSON error messages.</p>
+              <p className="text-sm text-[var(--pz-text-secondary)]">{t('errorsDesc')}</p>
             </div>
             <div>
               <div className="text-[var(--pz-cipher)] font-mono text-xs font-semibold mb-4">04</div>
               <h3 className="text-lg font-semibold text-[var(--pz-text)] mb-2">{t('sdksHeading')}</h3>
-              <p className="text-sm text-[var(--pz-text-secondary)]">Native clients available for Node.js, Python, and Go.</p>
+              <p className="text-sm text-[var(--pz-text-secondary)]">{t('sdksDesc')}</p>
             </div>
           </div>
         </div>

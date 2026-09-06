@@ -35,7 +35,32 @@
     "trust2": "Ei alikäsittelijöitä hyötykuormatiedoille.",
     "finalTitle": "Pidä konteksti. Vaihda tunnisteet.",
     "finalPrimary": "Pseudonymisoi tiedot",
-    "finalSecondary": "Katso dokumentaatio"
+    "finalSecondary": "Katso dokumentaatio",
+    "predictableTitle": "Predictable transformations, not black-box masking.",
+    "predictableSubtitle": "Control how identifiers are detected, replaced and kept consistent across your data.",
+    "featIdentityTitle": "Preserve identity relationships",
+    "featIdentityDesc": "The same identifier can map to the same pseudonym within a defined scope, so downstream systems keep useful relationships without receiving the original value.",
+    "featStructureTitle": "Keep structured payloads usable",
+    "featStructureDesc": "Transform values without flattening JSON, message arrays or application-specific structures.",
+    "featPolicyTitle": "Choose what gets transformed",
+    "featPolicyDesc": "Configure entity types and transformation behavior instead of applying one irreversible redaction rule to everything.",
+    "featDeployTitle": "Hosted API or open-source engine",
+    "featDeployDesc": "Integrate the managed API for zero overhead, or run the engine locally when data must remain inside your environment.",
+    "redactionTitle": "Redaction removes context. Pseudonymization preserves relationships.",
+    "redactionOriginal": "Alice emailed Bob.",
+    "redactionMasked": "[PERSON] emailed [PERSON].",
+    "redactionPseudonymized": "PERSON_01 emailed PERSON_02.",
+    "yourApplication": "Your application",
+    "externalApi": "OpenAI / Anthropic / Gemini / external API",
+    "exploreApiDocs": "Explore API Docs",
+    "viewGithub": "View GitHub",
+    "original": "Original",
+    "redaction": "Redaction",
+    "pseudonymization": "Pseudonymization",
+    "trust3": "Hetzner EU (Falkenstein)",
+    "trust1Label": "Latency",
+    "trust2Label": "Telemetry",
+    "trust3Label": "Region"
   },
   "Global": {
     "blog": "Blogi",
@@ -51,7 +76,9 @@
     "copyright": "© 2026 pseudonymize.io. Kaikki oikeudet pidätetään.",
     "privacy": "Tietosuojakäytäntö",
     "terms": "Palveluehdot",
-    "backToHome": "← Takaisin etusivulle"
+    "backToHome": "← Takaisin etusivulle",
+    "benchmarks": "Benchmarks",
+    "changelog": "Changelog"
   },
   "Pricing": {
     "title": "Todellista käyttöä seuraava hinta.",
@@ -73,7 +100,9 @@
     "faq2Q": "Vanhenevatko krediitit?",
     "faq2A": "Ei, ostamasi krediitit pysyvät tililläsi rajoituksetta, kunnes API-pyyntösi kuluvat ne.",
     "faq3Q": "Miten lisään krediittejä?",
-    "faq3A": "Voit milloin tahansa täydentää saldosi kojelaudalta luottokortilla."
+    "faq3A": "Voit milloin tahansa täydentää saldosi kojelaudalta luottokortilla.",
+    "noExpiration": "No expiration",
+    "prioritySupport": "Priority Support"
   },
   "Signup": {
     "title": "Luo tilisi",
@@ -166,7 +195,11 @@
     "authHeading": "Todennus",
     "inputsHeading": "Tuetut tulot",
     "errorsHeading": "Käsittele käsittelytilat nimenomaisesti.",
-    "sdksHeading": "SDK:t"
+    "sdksHeading": "SDK:t",
+    "authDesc": "Bearer token authentication via HTTP headers.",
+    "inputsDesc": "Raw text strings, JSON payloads, and supported file buffers.",
+    "errorsDesc": "Standard HTTP 4xx/5xx status codes with detailed JSON error messages.",
+    "sdksDesc": "Native clients available for Node.js, Python, and Go."
   },
   "Product": {
     "title": "Yksi pseudonymisointikerros tekstille, strukturoidulle tiedolle ja tiedostoille.",
@@ -180,7 +213,17 @@
     "filesHeading": "Tiedostot",
     "filesCopy": "Käsittele tuettuja tiedostoja purkamatta ensin niiden arkaluontoista sisältöä manuaalisesti.",
     "modelHeading": "Konteksti pysyy. Tunnisteet vaihtuvat.",
-    "devHeading": "Integroi missä tiedot liikkuvat."
+    "devHeading": "Integroi missä tiedot liikkuvat.",
+    "extractDataFrom": "Extract data from ",
+    "fileLabel": "File",
+    "original": "Original",
+    "pseudonymizedOutput": "Pseudonymized Output",
+    "patientOriginal1": "Patient ",
+    "patientOriginal2": " was admitted to ",
+    "patientOriginal3": " on ",
+    "patientPseudonymized1": "Patient ",
+    "patientPseudonymized2": " was admitted to ",
+    "patientPseudonymized3": " on "
   },
   "Security": {
     "title": "Turvallisuusvaatimusten tulee olla tarkastettavissa.",

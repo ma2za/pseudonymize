@@ -35,7 +35,32 @@
     "trust2": "Yük verileri için alt işlemci yok.",
     "finalTitle": "Bağlamı koruyun. Tanımlayıcıları değiştirin.",
     "finalPrimary": "Verileri takma adla kullanma",
-    "finalSecondary": "Belgeleri görüntüle"
+    "finalSecondary": "Belgeleri görüntüle",
+    "predictableTitle": "Predictable transformations, not black-box masking.",
+    "predictableSubtitle": "Control how identifiers are detected, replaced and kept consistent across your data.",
+    "featIdentityTitle": "Preserve identity relationships",
+    "featIdentityDesc": "The same identifier can map to the same pseudonym within a defined scope, so downstream systems keep useful relationships without receiving the original value.",
+    "featStructureTitle": "Keep structured payloads usable",
+    "featStructureDesc": "Transform values without flattening JSON, message arrays or application-specific structures.",
+    "featPolicyTitle": "Choose what gets transformed",
+    "featPolicyDesc": "Configure entity types and transformation behavior instead of applying one irreversible redaction rule to everything.",
+    "featDeployTitle": "Hosted API or open-source engine",
+    "featDeployDesc": "Integrate the managed API for zero overhead, or run the engine locally when data must remain inside your environment.",
+    "redactionTitle": "Redaction removes context. Pseudonymization preserves relationships.",
+    "redactionOriginal": "Alice emailed Bob.",
+    "redactionMasked": "[PERSON] emailed [PERSON].",
+    "redactionPseudonymized": "PERSON_01 emailed PERSON_02.",
+    "yourApplication": "Your application",
+    "externalApi": "OpenAI / Anthropic / Gemini / external API",
+    "exploreApiDocs": "Explore API Docs",
+    "viewGithub": "View GitHub",
+    "original": "Original",
+    "redaction": "Redaction",
+    "pseudonymization": "Pseudonymization",
+    "trust3": "Hetzner EU (Falkenstein)",
+    "trust1Label": "Latency",
+    "trust2Label": "Telemetry",
+    "trust3Label": "Region"
   },
   "Global": {
     "blog": "Blog",
@@ -51,7 +76,9 @@
     "copyright": "© 2026 pseudonymize.io. Her hakkı saklıdır.",
     "privacy": "Gizlilik Politikası",
     "terms": "Hizmet Şartları",
-    "backToHome": "← Ana Sayfa'ya geri dön"
+    "backToHome": "← Ana Sayfa'ya geri dön",
+    "benchmarks": "Benchmarks",
+    "changelog": "Changelog"
   },
   "Pricing": {
     "title": "Gerçek kullanıma uygun fiyatlandırma.",
@@ -73,7 +100,9 @@
     "faq2Q": "Kredilerin süresi doluyor mu?",
     "faq2A": "Hayır, satın aldığınız krediler, API istekleriniz tarafından tüketilene kadar süresiz olarak hesabınızda kalır.",
     "faq3Q": "Nasıl daha fazla kredi eklerim?",
-    "faq3A": "Bakiyenize istediğiniz zaman kredi kartınızı kullanarak kontrol panelinizden yükleme yapabilirsiniz."
+    "faq3A": "Bakiyenize istediğiniz zaman kredi kartınızı kullanarak kontrol panelinizden yükleme yapabilirsiniz.",
+    "noExpiration": "No expiration",
+    "prioritySupport": "Priority Support"
   },
   "Signup": {
     "title": "Hesabınızı oluşturun",
@@ -166,7 +195,11 @@
     "authHeading": "Kimlik doğrulama",
     "inputsHeading": "Desteklenen girişler",
     "errorsHeading": "İşleme durumlarını açıkça ele alın.",
-    "sdksHeading": "SDK'lar"
+    "sdksHeading": "SDK'lar",
+    "authDesc": "Bearer token authentication via HTTP headers.",
+    "inputsDesc": "Raw text strings, JSON payloads, and supported file buffers.",
+    "errorsDesc": "Standard HTTP 4xx/5xx status codes with detailed JSON error messages.",
+    "sdksDesc": "Native clients available for Node.js, Python, and Go."
   },
   "Product": {
     "title": "Metin, yapılandırılmış veriler ve dosyalar için tek bir takma ad katmanı.",
@@ -180,7 +213,17 @@
     "filesHeading": "Dosyalar",
     "filesCopy": "Desteklenen dosyaları, önce hassas içeriklerini manuel olarak ayıklamadan işleyin.",
     "modelHeading": "Bağlam kalır. Tanımlayıcılar değişir.",
-    "devHeading": "Verilerin taşındığı yere entegre edin."
+    "devHeading": "Verilerin taşındığı yere entegre edin.",
+    "extractDataFrom": "Extract data from ",
+    "fileLabel": "File",
+    "original": "Original",
+    "pseudonymizedOutput": "Pseudonymized Output",
+    "patientOriginal1": "Patient ",
+    "patientOriginal2": " was admitted to ",
+    "patientOriginal3": " on ",
+    "patientPseudonymized1": "Patient ",
+    "patientPseudonymized2": " was admitted to ",
+    "patientPseudonymized3": " on "
   },
   "Security": {
     "title": "Güvenlik talepleri denetlenebilir olmalıdır.",
