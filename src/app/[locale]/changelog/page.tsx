@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       alternates[l] = `${baseUrl}/${l}/changelog`;
   });
 
-  const title = `${t('changelog')} | pseudonymize.io`;
+  const title = t('changelog');
   const description = 'Changelog and release notes for pseudonymize.io.';
 
   return {

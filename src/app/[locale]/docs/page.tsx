@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 
   return {
-    title: 'Documentation | pseudonymize.io',
+    title: 'Documentation',
     description: 'Documentation for integrating the pseudonymize.io API.',
     alternates: {
       canonical: `${baseUrl}/${locale}/docs`,
