@@ -23,8 +23,10 @@ export default function ApiKeyManager({ initialKeys, dict }: { initialKeys: ApiK
   const [autoCreated, setAutoCreated] = useState(false);
 
   useEffect(() => {
-    if (initialKeys.length === 0 && !loading && !newKey && !autoCreated) {
+    const hasAutocreated = localStorage.getItem('pz_key_autocreated');
+    if (initialKeys.length === 0 && !loading && !newKey && !autoCreated && !hasAutocreated) {
       setAutoCreated(true);
+      localStorage.setItem('pz_key_autocreated', 'true');
       handleCreate();
     }
   }, [initialKeys, loading, newKey, autoCreated]);
