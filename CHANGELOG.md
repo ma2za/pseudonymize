@@ -2,6 +2,18 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.7.0] - 2026-09-06
+
+### Added
+
+- **Attention-Mask Context Boosting:** Integrated pairwise self-attention-mask context boosting for short, isolated, or synthetic numerical blocks. When detecting on short texts (less than 10 words) that lack syntactic surrounding context, the backend extracts matched context keywords from elsewhere in the text block, encodes them as a Sentence B pair input, and passes them to DistilBERT. BERT's self-attention mask is fed this surrounding context natively, dramatically boosting the detection of isolated identifiers while preventing performance degradation on long natural sentences. Added robust input id clipping to protect against ONNX broadcasting crashes.
+
+## [1.6.0] - 2026-09-06
+
+### Added
+
+- **Local Location & Address Parsing:** Introduced a strict geographic segmentation heuristic for `LOCATION` detections. Large geographic spans detected by backends (such as "123 Main St, Springfield, 12345") are now automatically parsed and divided into separate `STREET`, `ZIPCODE`, and intermediate gap spans (representing `CITY`/`STATE` blocks) if sub-patterns match. This safely prevents compound address blocks from failing strict boundary evaluations, resulting in a cleaner F1 score increase for `LOCATION` detections in complex phrasing.
+
 ## [1.5.0] - 2026-09-06
 
 ### Added

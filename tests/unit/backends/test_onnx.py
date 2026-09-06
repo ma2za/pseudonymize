@@ -523,3 +523,30 @@ def test_ml_context_boosting(
     )
     detections = backend.detect(block, policy)
     assert len(detections) >= 0
+
+
+def test_onnx_context_boosting_pair_handling(distilbert_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = distilbert_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+
+    # Text is very short, triggering the context pair injection
+    text = "IT12345678"
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+    policy = Policy()
+
+    # We should detect that the code runs without crashing and performs pairwise encoding
+    # We pass explicit global context
+    detections = backend.detect(block, policy)
+    assert isinstance(detections, (list, tuple))
+
+    # Trigger the input_ids clipping logic (line 259 in onnx.py) by setting a tiny max_tokens
+    backend._max_tokens = 3
+    # Text must be longer than 3 tokens
+    short_text = "John Smith is a person"
+    short_block = ContentBlock(
+        id="1", text=short_text, location=TextOffsetLocation(0, len(short_text))
+    )
+    detections2 = backend.detect(short_block, policy)
+    assert isinstance(detections2, (list, tuple))

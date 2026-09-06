@@ -10,6 +10,7 @@ from pseudonymize.detectors.italian import (
     _valid_fiscal_code,
     _valid_vat,
 )
+from pseudonymize.detectors.location import LocationDetector
 from pseudonymize.detectors.payment_card import PaymentCardDetector, _valid_luhn
 from pseudonymize.detectors.phone import PhoneDetector
 from pseudonymize.detectors.secret import SecretDetector
@@ -70,6 +71,18 @@ from pseudonymize.detectors.url import UrlDetector
             "See https://example.com/?token=secret123",
             EntityType.URL_CREDENTIAL,
             "secret123",
+        ),
+        (
+            LocationDetector(),
+            "Address is 123 Main St in the city",
+            EntityType.LOCATION,
+            "123 Main St",
+        ),
+        (
+            LocationDetector(),
+            "Zipcode is 10001.",
+            EntityType.LOCATION,
+            "10001",
         ),
     ],
 )
