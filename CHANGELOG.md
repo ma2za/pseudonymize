@@ -2,7 +2,13 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
-## [1.2.0] - 2026-09-06
+## [1.5.0] - 2026-09-06
+
+### Added
+
+- **Advanced Punctuation Boundary Rules:** Implemented language-aware boundary trimming in the core engine. Spans produced by ML backends often incorrectly include trailing structural punctuation (e.g., `,`, `.`, `)`, `]`) due to tokenization artifacts. The engine now safely strips structural punctuation from the boundaries of `PERSON`, `LOCATION`, and `ORGANIZATION` detections using robust Unicode category checks (`P`, `S`, `Z`, `C`), preventing the unintended deletion of adjacent document syntax without corrupting internal punctuation (like in `Jean-Paul`).
+
+## [1.3.0] - 2026-09-06
 
 ### Added
 
