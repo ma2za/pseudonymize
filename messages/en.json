@@ -75,7 +75,7 @@
     "dashboard": "Dashboard",
     "signOut": "Sign out",
     "openSource": "Open Source",
-    "copyright": "© 2026 pseudonymize.io. All rights reserved.",
+    "copyright": "© {year} pseudonymize.io. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "backToHome": "← Back to Home"

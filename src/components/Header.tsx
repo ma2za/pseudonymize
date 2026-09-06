@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link, usePathname } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
 import LanguageSwitcher from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -15,6 +15,9 @@ export default function Header() {
   const tHome = useTranslations('Home');
   const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
   // Close mobile menu on route change implicitly via click handler
   const closeMenu = () => setMobileMenuOpen(false);
@@ -36,16 +39,16 @@ export default function Header() {
             <Logo surface="light" width={150} />
           </Link>
           <div className="hidden lg:flex gap-x-6 items-center">
-            <Link href="/docs" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            <Link href="/docs" className={`text-sm font-medium leading-6 transition-colors ${isActive('/docs') ? 'text-[var(--pz-text)] font-semibold' : 'text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)]'}`}>
               {t('docs')}
             </Link>
-            <Link href="/pricing" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            <Link href="/pricing" className={`text-sm font-medium leading-6 transition-colors ${isActive('/pricing') ? 'text-[var(--pz-text)] font-semibold' : 'text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)]'}`}>
               {t('pricing')}
             </Link>
-            <Link href="/security" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            <Link href="/security" className={`text-sm font-medium leading-6 transition-colors ${isActive('/security') ? 'text-[var(--pz-text)] font-semibold' : 'text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)]'}`}>
               {t('security')}
             </Link>
-            <Link href="/benchmarks" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
+            <Link href="/benchmarks" className={`text-sm font-medium leading-6 transition-colors ${isActive('/benchmarks') ? 'text-[var(--pz-text)] font-semibold' : 'text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)]'}`}>
               {t('benchmarks')}
             </Link>
             <a href="https://github.com/ma2za/pseudonymize" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">

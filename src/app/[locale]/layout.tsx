@@ -91,10 +91,13 @@ export default async function RootLayout({
         <PostHogProvider>
           <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
             <NextIntlClientProvider messages={messages}>
+              <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--pz-cipher)] focus:text-[var(--pz-ink)] focus:rounded-md focus:font-semibold">
+                Skip to content
+              </a>
               <Header />
-              <div className="flex-1">
+              <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
                 {children}
-              </div>
+              </main>
               <Footer />
             </NextIntlClientProvider>
           </ThemeProvider>
