@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.15.0] - 2026-09-07
+
+### Added
+
+- **Bloom Filter False-Positive Veto:** Integrated a memory-efficient Bloom filter designed to hold the top 50,000 non-proper-noun dictionary words across major languages. The engine will now automatically veto low-confidence ML predictions (<0.95) that exactly match common lowercase dictionary words (e.g., preventing the noun "hope" from being falsely tagged as a PERSON).
+
 ## [1.14.0] - 2026-09-07
 
 ### Added

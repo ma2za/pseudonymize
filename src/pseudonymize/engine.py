@@ -48,6 +48,7 @@ from pseudonymize.formats import (
     FileFormat,
     select_file_format,
 )
+from pseudonymize.memory.bloom import BloomFilter
 from pseudonymize.policy import Policy
 from pseudonymize.processing import (
     DetectionReport,
@@ -152,6 +153,7 @@ class Pseudonymizer:
         assigner: AliasAssigner | None = None,
         transformer: Transformer | None = None,
         typed_redaction: bool = False,
+        bloom_filter: BloomFilter | None = None,
     ) -> None:
         if detectors is not None and backends is not None:
             raise ValueError("configure detectors or backends, not both")
@@ -161,6 +163,7 @@ class Pseudonymizer:
         if typed_redaction and self.mode is not TransformationMode.REDACTED:
             raise ValueError("typed_redaction is valid only in redacted mode")
         self.policy = policy or Policy.default()
+        self.bloom_filter = bloom_filter
         configured_detectors = DEFAULT_DETECTORS if detectors is None else detectors
         self.backends = (
             tuple(backends) if backends is not None else (RulesBackend(configured_detectors),)
@@ -228,6 +231,13 @@ class Pseudonymizer:
                     continue
                 if detection.confidence < self.policy.minimum_confidence:
                     continue
+
+                # Bloom Filter False-Positive Veto (v1.15.0)
+                if self.bloom_filter is not None and detection.confidence < 0.95:
+                    token = text[detection.start : detection.end].lower()
+                    if token in self.bloom_filter:
+                        continue
+
                 if any(
                     detection.start < token_end and token_start < detection.end
                     for token_start, token_end in protected
