@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.11.0] - 2026-09-07
+
+### Added
+
+- **Algorithmic Checksum Generators:** Implemented broad numerical shape extractors that feed directly into strict mathematical checksum validators for `PAYMENT_CARD`, `NATIONAL_ID`, and `TAX_ID`. Valid checksums (e.g., Mod-10/Luhn for PANs, Mod-11 for Tax IDs, Verhoeff for Aadhaar) bypass ML context requirements entirely, massively improving recall on tabular and headerless data.
+
 ## [1.10.0] - 2026-09-06
 
 ### Added
