@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.12.0] - 2026-09-07
+
+### Added
+
+- **Intra-Document Coreference Propagation:** Implemented an isolated coreference graph for `PERSON` and `ORGANIZATION` entities. When a full entity (e.g., "Jonathan Doe") is detected with high confidence (>0.95), the engine dynamically extracts its constituent tokens and boosts their detection globally across the rest of the document processing session, rescuing low-context mentions (e.g., "Jonathan", "Doe").
+
 ## [1.11.0] - 2026-09-07
 
 ### Added
