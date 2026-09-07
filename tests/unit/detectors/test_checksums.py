@@ -1,11 +1,10 @@
-import pytest
 from pseudonymize.detectors.checksums import (
     AlgorithmicChecksumDetector,
+    _valid_french_nir,
+    _valid_gb11643,
     _valid_luhn,
     _valid_mod11,
     _valid_verhoeff,
-    _valid_gb11643,
-    _valid_french_nir,
 )
 
 
@@ -56,7 +55,8 @@ def test_french_nir():
 def test_detector():
     detector = AlgorithmicChecksumDetector()
     res = detector.detect(
-        "Testing some texts: 79927398713, 11010519491231002X, 123456789010, 199999999999995, and 123-456-789"
+        "Testing some texts: 79927398713, 11010519491231002X, "
+        "123456789010, 199999999999995, and 123-456-789"
     )
     assert len(res) >= 0
 
@@ -68,9 +68,9 @@ def test_detector():
     assert len(res) >= 0
     res = detector.detect("123-456-789")
     assert len(res) >= 0
-    res = detector.detect("100000008") # 9 digit mod11
+    res = detector.detect("100000008")  # 9 digit mod11
     assert len(res) == 1
-    res = detector.detect("100000009") # 9 digit luhn
+    res = detector.detect("100000009")  # 9 digit luhn
     assert len(res) == 1
     res = detector.detect("01234567890")
     assert len(res) >= 0
