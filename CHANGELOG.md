@@ -2,6 +2,18 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.14.0] - 2026-09-07
+
+### Added
+
+- **Multilingual Address Topologies:** Expanded the strict geographic parsing to include Romance and Germanic structural topologies (e.g., "Rue de X", "Via Y", "Avenida Z", "W-strasse") to improve `LOCATION` detection across international addresses.
+
+## [1.13.0] - 2026-09-07
+
+### Added
+
+- **Lexical Organization & Corporate Suffix FSMs:** Implemented deterministic Finite State Machines (FSMs) that scan for capitalized N-grams strictly followed by international corporate designators (Inc, LLC, Corp, GmbH, SA, NV, SpA, Pty, Ltd) to significantly improve `ORGANIZATION` recall.
+
 ## [1.12.0] - 2026-09-07
 
 ### Added
