@@ -33,6 +33,7 @@ from pseudonymize.document import (
     JSONPathLocation,
     TextOffsetLocation,
 )
+from pseudonymize.coreference import CoreferenceGraph
 from pseudonymize.exceptions import (
     AdapterContractError,
     AdapterExecutionError,
@@ -174,7 +175,11 @@ class Pseudonymizer:
         return self._detect_block(block, _OperationStatistics(), remote=False)
 
     def _detect_block(
-        self, block: ContentBlock, statistics: "_OperationStatistics", remote: bool = False
+        self,
+        block: ContentBlock,
+        statistics: "_OperationStatistics",
+        remote: bool = False,
+        coreferences: CoreferenceGraph | None = None,
     ) -> tuple[Detection, ...]:
         if not remote:
             statistics.blocks_processed += 1
@@ -200,6 +205,19 @@ class Pseudonymizer:
                     candidates.append(replace(det, start=mapped_start, end=mapped_end))
 
             statistics.record_backend(capabilities)
+
+        if coreferences is not None:
+            coref_raw = coreferences.detect(stripped_block.text)
+            if stripped_to_orig is None:
+                candidates.extend(coref_raw)
+            else:
+                for det in coref_raw:
+                    mapped_start = stripped_to_orig[det.start]
+                    mapped_end = stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
+                    candidates.append(replace(det, start=mapped_start, end=mapped_end))
+
+            # Register new high-confidence detections for future text in the same scope
+            coreferences.add_detections(candidates, block.text)
 
         text = block.text
         protected = tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
@@ -389,7 +407,11 @@ class Pseudonymizer:
         self, texts: Sequence[str], *, include_mapping: bool = False
     ) -> tuple[Result, ...]:
         context = AliasContext()
-        return tuple(self._process(text, context, include_mapping) for text in texts)
+        coreferences = CoreferenceGraph()
+        return tuple(
+            self._process(text, context, include_mapping, coreferences=coreferences)
+            for text in texts
+        )
 
     def process_data(self, data: Data | object, *, serializer: Serializer | None = None) -> Data:
         return self._process_data(
@@ -408,10 +430,13 @@ class Pseudonymizer:
         statistics = _OperationStatistics()
         reports: list[DetectionReport] = []
         context = AliasContext()
+        coreferences = CoreferenceGraph()
         blocks: list[ContentBlock] = []
         for block in document.blocks:
             if self._allows_block(block):
-                result = self._process_block(block, context, False, statistics, reports)
+                result = self._process_block(
+                    block, context, False, statistics, reports, coreferences=coreferences
+                )
                 blocks.append(replace(block, text=result.text))
             else:
                 statistics.blocks_processed += 1
@@ -512,9 +537,22 @@ class Pseudonymizer:
         if processed := processor.flush():
             yield processed
 
-    def _process(self, text: str, context: AliasContext, include_mapping: bool) -> Result:
+    def _process(
+        self,
+        text: str,
+        context: AliasContext,
+        include_mapping: bool,
+        coreferences: CoreferenceGraph | None = None,
+    ) -> Result:
         block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
-        return self._process_block(block, context, include_mapping, _OperationStatistics(), [])
+        return self._process_block(
+            block,
+            context,
+            include_mapping,
+            _OperationStatistics(),
+            [],
+            coreferences=coreferences,
+        )
 
     def _process_block(
         self,
@@ -523,6 +561,7 @@ class Pseudonymizer:
         include_mapping: bool,
         statistics: "_OperationStatistics",
         reports: list[DetectionReport],
+        coreferences: CoreferenceGraph | None = None,
     ) -> Result:
         if include_mapping and self.mode not in {
             TransformationMode.NUMBERED,
@@ -532,7 +571,9 @@ class Pseudonymizer:
 
         # 1. Local detection
         text = block.text
-        local_detections = self._detect_block(block, statistics, remote=False)
+        local_detections = self._detect_block(
+            block, statistics, remote=False, coreferences=coreferences
+        )
         local_entities = self.resolver.resolve(text, local_detections)
         local_aliases = tuple(self.assigner.assign(entity, context) for entity in local_entities)
         local_tokens = tuple(
@@ -573,7 +614,9 @@ class Pseudonymizer:
 
         # 3. Remote detection on sanitized text
         sanitized_block = replace(block, text=sanitized_text)
-        remote_detections_raw = self._detect_block(sanitized_block, statistics, remote=True)
+        remote_detections_raw = self._detect_block(
+            sanitized_block, statistics, remote=True, coreferences=coreferences
+        )
 
         remote_detections_mapped = []
         for det in remote_detections_raw:
@@ -632,6 +675,7 @@ class Pseudonymizer:
         statistics: "_OperationStatistics",
         reports: list[DetectionReport],
         block_counter: list[int],
+        coreferences: CoreferenceGraph | None = None,
     ) -> Data:
         if isinstance(data, str):
             block_id = f"block-{block_counter[0]:06d}"
@@ -640,7 +684,9 @@ class Pseudonymizer:
                 statistics.blocks_processed += 1
                 return data
             block = ContentBlock(block_id, data, JSONPathLocation(path))
-            return self._process_block(block, context, False, statistics, reports).text
+            return self._process_block(
+                block, context, False, statistics, reports, coreferences=coreferences
+            ).text
         if data is None or isinstance(data, (bool, int, float)):
             return data
         if isinstance(data, Mapping):
@@ -655,6 +701,7 @@ class Pseudonymizer:
                     statistics,
                     reports,
                     block_counter,
+                    coreferences=coreferences,
                 )
                 for key, value in data.items()
             }
@@ -668,6 +715,7 @@ class Pseudonymizer:
                     statistics,
                     reports,
                     block_counter,
+                    coreferences=coreferences,
                 )
                 for index, value in enumerate(data)
             ]
@@ -681,6 +729,7 @@ class Pseudonymizer:
                     statistics,
                     reports,
                     block_counter,
+                    coreferences=coreferences,
                 )
                 for index, value in enumerate(data)
             )
@@ -701,9 +750,12 @@ class ProcessingScope:
     def __init__(self, engine: Pseudonymizer) -> None:
         self._engine = engine
         self._context = AliasContext()
+        self._coreferences = CoreferenceGraph()
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
-        return self._engine._process(text, self._context, include_mapping)
+        return self._engine._process(
+            text, self._context, include_mapping, coreferences=self._coreferences
+        )
 
     def stream(self) -> DetectionStream:
         return DetectionStream(TextStreamProcessor(self.process))
