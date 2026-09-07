@@ -1,7 +1,6 @@
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.policy import Policy
 from pseudonymize.result import EntityType
-from pseudonymize.coreference import CoreferenceGraph
 
 
 def test_intra_document_coreference() -> None:
@@ -12,12 +11,12 @@ def test_intra_document_coreference() -> None:
         name = "mock"
 
         def detect(self, text: str) -> list[Detection]:
-            results = []
             import re
 
-            for m in re.finditer(r"Jonathan Doe", text):
-                results.append(Detection(EntityType.PERSON, m.start(), m.end(), 0.99, self.name))
-            return results
+            return [
+                Detection(EntityType.PERSON, m.start(), m.end(), 0.99, self.name)
+                for m in re.finditer(r"Jonathan Doe", text)
+            ]
 
     engine = Pseudonymizer(policy=Policy.default(), detectors=[MockDetector()])
 

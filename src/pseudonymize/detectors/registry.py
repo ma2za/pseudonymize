@@ -6,6 +6,7 @@ from pseudonymize.detectors.iban import IbanDetector
 from pseudonymize.detectors.ip_address import IpAddressDetector
 from pseudonymize.detectors.italian import ItalianFiscalCodeDetector, ItalianVATDetector
 from pseudonymize.detectors.location import LocationDetector
+from pseudonymize.detectors.organization import OrganizationDetector
 from pseudonymize.detectors.payment_card import PaymentCardDetector
 from pseudonymize.detectors.phone import PhoneDetector
 from pseudonymize.detectors.secret import SecretDetector
@@ -24,4 +25,5 @@ DEFAULT_DETECTORS: tuple[Detector, ...] = (
     UrlDetector(),
     SecretDetector(),
     LocationDetector(),
+    OrganizationDetector(),
 )
