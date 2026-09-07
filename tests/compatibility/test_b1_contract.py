@@ -48,6 +48,7 @@ def test_frozen_constructor_and_method_shapes() -> None:
         ("assigner", "KEYWORD_ONLY"),
         ("transformer", "KEYWORD_ONLY"),
         ("typed_redaction", "KEYWORD_ONLY"),
+        ("bloom_filter", "KEYWORD_ONLY"),
     )
     expected = {
         "detect": ("self", "text"),

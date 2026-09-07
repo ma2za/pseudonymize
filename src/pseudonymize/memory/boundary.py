@@ -1,6 +1,7 @@
-from typing import Any, Protocol, cast, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
 
-from pseudonymize.engine import Pseudonymizer
+if TYPE_CHECKING:
+    from pseudonymize.engine import Pseudonymizer
 
 
 @runtime_checkable
@@ -13,9 +14,14 @@ class MemoryStore(Protocol):
 class MemoryBoundary:
     """A privacy boundary sitting between an agent and its persistent memory store."""
 
-    def __init__(self, store: MemoryStore, engine: Pseudonymizer | None = None) -> None:
+    def __init__(self, store: MemoryStore, engine: "Pseudonymizer | None" = None) -> None:
         self._store = store
-        self._engine = engine or Pseudonymizer()
+        if engine is None:
+            from pseudonymize.engine import Pseudonymizer
+
+            self._engine = Pseudonymizer()
+        else:
+            self._engine = engine
 
     def write(self, key: str, value: dict[str, Any] | str, namespace: str) -> None:
         """Pseudonymize a record before writing it to the underlying store."""
