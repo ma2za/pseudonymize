@@ -6,6 +6,7 @@ from pseudonymize.detectors import DEFAULT_DETECTORS, Detector
 from pseudonymize.document import ContentBlock
 from pseudonymize.policy import Policy
 from pseudonymize.result import Detection, EntityType
+
 _RULE_ENTITY_TYPES = frozenset(
     {
         EntityType.EMAIL,
