@@ -8,14 +8,14 @@ from pseudonymize.detectors.checksums import (
 )
 
 
-def test_luhn():
+def test_luhn() -> None:
     assert _valid_luhn("79927398713")
     assert not _valid_luhn("79927398714")
     assert not _valid_luhn("111111111")
     assert not _valid_luhn("11111111")
 
 
-def test_mod11():
+def test_mod11() -> None:
     assert not _valid_mod11("111111111")
     assert not _valid_mod11("1")
     assert not _valid_mod11("00")
@@ -26,12 +26,12 @@ def test_mod11():
     assert _valid_mod11("100000008")
 
 
-def test_verhoeff():
+def test_verhoeff() -> None:
     assert not _valid_verhoeff("111111111111")
     assert _valid_verhoeff("123456789010")
 
 
-def test_gb11643():
+def test_gb11643() -> None:
     assert not _valid_gb11643("11111111111111111")
     assert not _valid_gb11643("111111111111111111")
     assert _valid_gb11643("11010519491231002X")
@@ -39,7 +39,7 @@ def test_gb11643():
     assert not _valid_gb11643("110105194912310A2X")
 
 
-def test_french_nir():
+def test_french_nir() -> None:
     assert not _valid_french_nir("111111111111")
     assert not _valid_french_nir("111111111111111")
     assert not _valid_french_nir("2A1111111111111")
@@ -52,7 +52,7 @@ def test_french_nir():
     assert not _valid_french_nir("199999999999A95")
 
 
-def test_detector():
+def test_detector() -> None:
     detector = AlgorithmicChecksumDetector()
     res = detector.detect(
         "Testing some texts: 79927398713, 11010519491231002X, "
