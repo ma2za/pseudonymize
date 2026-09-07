@@ -26,6 +26,7 @@ from pseudonymize.backends import (
     leaf_backends,
 )
 from pseudonymize.backends.base import invoke_backend
+from pseudonymize.coreference import CoreferenceGraph
 from pseudonymize.detectors import DEFAULT_DETECTORS, Detector
 from pseudonymize.document import (
     ContentBlock,
@@ -33,7 +34,6 @@ from pseudonymize.document import (
     JSONPathLocation,
     TextOffsetLocation,
 )
-from pseudonymize.coreference import CoreferenceGraph
 from pseudonymize.exceptions import (
     AdapterContractError,
     AdapterExecutionError,
