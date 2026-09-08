@@ -6,7 +6,7 @@ from pseudonymize.spans import resolve_overlaps
 
 def test_overlap_prefers_validated_entity_then_stable_order() -> None:
     phone = Detection(EntityType.PHONE, 0, 19, 0.99, "phone")
-    card = Detection(EntityType.PAYMENT_CARD, 0, 19, 1.0, "card")
+    card = Detection(EntityType.PAYMENT_CARD, 0, 19, 1.0, "payment_card")
     email = Detection(EntityType.EMAIL, 30, 40, 0.9, "email")
     assert resolve_overlaps([phone, email, card]) == (card, email)
 
@@ -41,12 +41,12 @@ def test_dense_overlaps_yield_disjoint_and_maximal_selection() -> None:
 
 def test_rules_outrank_ml_unless_ml_highly_confident() -> None:
     # Rule match and ML match with normal confidence -> Rule wins
-    rule_normal = Detection(EntityType.PERSON, 0, 10, 1.0, "context", "local_rules")
+    rule_normal = Detection(EntityType.PERSON, 0, 10, 1.0, "context_id", "local_rules")
     ml_normal = Detection(EntityType.PERSON, 0, 10, 0.85, "onnx", "local_onnx_pii")
     assert resolve_overlaps([ml_normal, rule_normal]) == (rule_normal,)
 
     # Rule match and ML match with > 0.95 confidence -> ML wins
-    rule_overridden = Detection(EntityType.PERSON, 0, 10, 1.0, "context", "local_rules")
+    rule_overridden = Detection(EntityType.PERSON, 0, 10, 1.0, "context_id", "local_rules")
     ml_high = Detection(EntityType.PERSON, 0, 10, 0.96, "onnx", "local_onnx_pii")
     assert resolve_overlaps([ml_high, rule_overridden]) == (ml_high,)
 
