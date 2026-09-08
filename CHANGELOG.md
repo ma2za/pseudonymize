@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.16.0] - 2026-09-07
+
+### Added
+
+- **High-Density Gazetteer Tries (DAWG):** Built a highly efficient Directed Acyclic Word Graph (DAWG/Trie) memory structure. This powers the new GazetteerDetector, enabling ultra-fast, deterministic lookups against massive census lists of proper nouns (PERSON, LOCATION), serving as a secondary safety net for terms the ML model misses.
+
 ## [1.15.0] - 2026-09-07
 
 ### Added
