@@ -4,6 +4,9 @@ from collections.abc import Iterable
 from pseudonymize.result import Detection
 
 _DETECTOR_WEIGHT = {
+    # Tabular Layout / Column Headers (Absolute Highest)
+    "tabular": 1.0,
+    
     # Checksums / Deterministic structures - Highest priority (1.0)
     "payment_card": 1.0,
     "iban": 1.0,
