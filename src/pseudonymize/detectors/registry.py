@@ -2,6 +2,7 @@ from pseudonymize.detectors.base import Detector
 from pseudonymize.detectors.checksums import AlgorithmicChecksumDetector
 from pseudonymize.detectors.context import ContextualIdDetector
 from pseudonymize.detectors.email import EmailDetector
+from pseudonymize.detectors.gazetteer import GazetteerDetector
 from pseudonymize.detectors.iban import IbanDetector
 from pseudonymize.detectors.ip_address import IpAddressDetector
 from pseudonymize.detectors.italian import ItalianFiscalCodeDetector, ItalianVATDetector
@@ -26,4 +27,5 @@ DEFAULT_DETECTORS: tuple[Detector, ...] = (
     SecretDetector(),
     LocationDetector(),
     OrganizationDetector(),
+    GazetteerDetector(),
 )
