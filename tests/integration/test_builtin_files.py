@@ -104,7 +104,7 @@ def test_jsonl_uses_one_alias_scope_and_record_locations(tmp_path: Path) -> None
 def test_csv_preserves_matrix_and_reports_cell_locations(tmp_path: Path) -> None:
     source = tmp_path / "payload.csv"
     source.write_text(
-        "email,note,formula\n"
+        "contact,note,formula\n"
         'maria@example.com,"line one\nline two","=A2"\n'
         "192.0.2.10,,tail,extra\n",
         encoding="utf-8",
@@ -120,7 +120,7 @@ def test_csv_preserves_matrix_and_reports_cell_locations(tmp_path: Path) -> None
     )
 
     assert rows == (
-        ["email", "note", "formula"],
+        ["contact", "note", "formula"],
         ["<EMAIL_1>", "line one\nline two", "=A2"],
         ["<IP_ADDRESS_1>", "", "tail", "extra"],
     )
