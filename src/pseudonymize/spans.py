@@ -1,24 +1,27 @@
 import bisect
 from collections.abc import Iterable
 
-from pseudonymize.result import Detection, EntityType
+from pseudonymize.result import Detection
 
-_ENTITY_PRIORITY = {
-    EntityType.PAYMENT_CARD: 70,
-    EntityType.IBAN: 70,
-    EntityType.NATIONAL_ID: 70,
-    EntityType.TAX_ID: 70,
-    # URL credentials outrank emails: a password such as "s3cret" followed by
-    # "@host" also matches the email pattern, and letting the email span win
-    # would leave the "user:" part of the userinfo unmasked.
-    EntityType.URL_CREDENTIAL: 65,
-    EntityType.EMAIL: 60,
-    EntityType.IP_ADDRESS: 60,
-    EntityType.SECRET: 50,
-    EntityType.PHONE: 40,
-    EntityType.PERSON: 30,
-    EntityType.ORGANIZATION: 30,
-    EntityType.LOCATION: 30,
+_DETECTOR_WEIGHT = {
+    # Checksums / Deterministic structures - Highest priority (1.0)
+    "payment_card": 1.0,
+    "iban": 1.0,
+    "italian_fiscal_code": 1.0,
+    "italian_vat": 1.0,
+    "checksum": 1.0,
+    # URL credentials outrank emails (password vs email)
+    "url": 0.95,
+    "email": 0.90,
+    "ip_address": 0.90,
+    "secret": 0.80,
+    "phone": 0.70,
+    # Local heuristics & gazetteers
+    "context_id": 0.60,
+    "gazetteer": 0.55,
+    "location": 0.50,
+    "organization": 0.50,
+    "ensemble": 0.40,
 }
 
 
@@ -28,21 +31,20 @@ def resolve_overlaps(
     configured = {
         name: len(detector_priority) - index for index, name in enumerate(detector_priority)
     }
-    # Priority:
-    # 3 if ML >= 0.95
-    # 2 if local_rules
-    # 1 otherwise
+
+    def resolution_score(detection: Detection) -> float:
+        base_weight = _DETECTOR_WEIGHT.get(detection.detector, 0.3)
+        if detection.backend == "local_onnx_pii" and detection.confidence >= 0.95:
+            # Overwhelmingly confident ML overrides generic heuristics,
+            # but stays below valid deterministic checksums.
+            return max(base_weight * detection.confidence, 0.85)
+        return base_weight * detection.confidence
 
     ranked = sorted(
         detections,
         key=lambda detection: (
-            -_ENTITY_PRIORITY[detection.entity_type],
+            -resolution_score(detection),
             -configured.get(detection.detector, 0),
-            -3
-            if (detection.backend == "local_onnx_pii" and detection.confidence >= 0.95)
-            else -2
-            if detection.backend == "local_rules"
-            else -1,
             -(detection.end - detection.start),
             -detection.confidence,
             detection.start,

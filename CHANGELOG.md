@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.17.0] - 2026-09-08
+
+### Added
+
+- **Detector-Aware Conflict Matrix:** Deprecated the static, entity-based priority list in favor of a dynamic confidence-scaling matrix. The engine now assigns weights based on the *originating detector*, allowing deterministic algorithmic heuristics (like PAN checksums) to intelligently override lower-confidence ML predictions, resolving conflicts dynamically based on actual certainty.
+
 ## [1.16.0] - 2026-09-07
 
 ### Added
