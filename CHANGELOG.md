@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.18.0] - 2026-09-08
+
+### Added
+
+- **Tabular & Delimited Structure Inference:** Implemented a pre-parsing layout pass for dense tabular structures (like CSVs). If a column header exactly matches a known PII semantic class (e.g., `phone_number`, `ssn`), the engine dynamically injects high-confidence detections for all cells within that column, completely bypassing ML context requirements and dramatically improving recall on raw data dumps.
+
 ## [1.17.0] - 2026-09-08
 
 ### Added

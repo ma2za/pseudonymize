@@ -48,6 +48,7 @@ from pseudonymize.formats import (
     FileFormat,
     select_file_format,
 )
+from pseudonymize.inference import TabularInferenceLayout
 from pseudonymize.memory.bloom import BloomFilter
 from pseudonymize.policy import Policy
 from pseudonymize.processing import (
@@ -183,6 +184,7 @@ class Pseudonymizer:
         statistics: "_OperationStatistics",
         remote: bool = False,
         coreferences: CoreferenceGraph | None = None,
+        tabular_layout: TabularInferenceLayout | None = None,
     ) -> tuple[Detection, ...]:
         if not remote:
             statistics.blocks_processed += 1
@@ -191,6 +193,12 @@ class Pseudonymizer:
         stripped_block = block if stripped_to_orig is None else replace(block, text=stripped_text)
 
         candidates: list[Detection] = []
+
+        if not remote and tabular_layout is not None:
+            # We don't map tabular detections through stripped text because they
+            # generally just span the whole original text content of the cell.
+            candidates.extend(tabular_layout.extract_csv_detections(block))
+
         for backend in self.backends:
             capabilities = backend_capabilities(backend)
             if capabilities.remote != remote:
@@ -441,11 +449,18 @@ class Pseudonymizer:
         reports: list[DetectionReport] = []
         context = AliasContext()
         coreferences = CoreferenceGraph()
+        tabular_layout = TabularInferenceLayout(document)
         blocks: list[ContentBlock] = []
         for block in document.blocks:
             if self._allows_block(block):
                 result = self._process_block(
-                    block, context, False, statistics, reports, coreferences=coreferences
+                    block,
+                    context,
+                    False,
+                    statistics,
+                    reports,
+                    coreferences=coreferences,
+                    tabular_layout=tabular_layout,
                 )
                 blocks.append(replace(block, text=result.text))
             else:
@@ -457,9 +472,12 @@ class Pseudonymizer:
     def inspect_document(self, document: Document) -> ProcessingResult[None]:
         statistics = _OperationStatistics()
         reports: list[DetectionReport] = []
+        tabular_layout = TabularInferenceLayout(document)
         for block in document.blocks:
             if self._allows_block(block):
-                detections = self._detect_block(block, statistics, remote=False)
+                detections = self._detect_block(
+                    block, statistics, remote=False, tabular_layout=tabular_layout
+                )
                 reports.extend(_detection_reports(block, detections))
             else:
                 statistics.blocks_processed += 1
@@ -572,6 +590,7 @@ class Pseudonymizer:
         statistics: "_OperationStatistics",
         reports: list[DetectionReport],
         coreferences: CoreferenceGraph | None = None,
+        tabular_layout: TabularInferenceLayout | None = None,
     ) -> Result:
         if include_mapping and self.mode not in {
             TransformationMode.NUMBERED,
@@ -582,7 +601,11 @@ class Pseudonymizer:
         # 1. Local detection
         text = block.text
         local_detections = self._detect_block(
-            block, statistics, remote=False, coreferences=coreferences
+            block,
+            statistics,
+            remote=False,
+            coreferences=coreferences,
+            tabular_layout=tabular_layout,
         )
         local_entities = self.resolver.resolve(text, local_detections)
         local_aliases = tuple(self.assigner.assign(entity, context) for entity in local_entities)
@@ -625,7 +648,11 @@ class Pseudonymizer:
         # 3. Remote detection on sanitized text
         sanitized_block = replace(block, text=sanitized_text)
         remote_detections_raw = self._detect_block(
-            sanitized_block, statistics, remote=True, coreferences=coreferences
+            sanitized_block,
+            statistics,
+            remote=True,
+            coreferences=coreferences,
+            tabular_layout=tabular_layout,
         )
 
         remote_detections_mapped = []
