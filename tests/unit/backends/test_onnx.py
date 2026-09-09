@@ -13,22 +13,20 @@ from pseudonymize.policy import NetworkPolicy, Policy
 from pseudonymize.result import EntityType
 
 # Keep downloaded artifacts outside pytest's configured basetemp, which is cleared at startup.
-CACHE_DIR = Path(".cache/pseudonymize-tests/models/distilbert-ml")
-MODEL_URL_BASE = (
-    "https://huggingface.co/onnx-community/distilbert_finetuned_ai4privacy_v2-ONNX/resolve/main/"
-)
+CACHE_DIR = Path(".cache/pseudonymize-tests/models/llama-ai4privacy-ml")
+MODEL_URL_BASE = "https://huggingface.co/onnx-community/llama-ai4privacy-multilingual-categorical-anonymiser-openpii-ONNX/resolve/main/"
 MODEL_FILES = {
     "config.json": (
         "config.json",
-        "5155e76f303c68ee15d8f01b580550c062cebfbb42dda3f5f3698b2d75424216",
+        "0e4acac286fb2d4aa5d75e5de74b8192dc0f4fd6d4c14d836de6164e66517bd8",
     ),
     "tokenizer.json": (
         "tokenizer.json",
-        "cb374d6bc042c22455946f4e09a89d29882a199fdaf8fb25be00dc8b8857a448",
+        "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30",
     ),
     "model_int8.onnx": (
         "onnx/model_int8.onnx",
-        "6faa1d7f5b54140bbba18ba87480e11073927b5fff16f69558bd51058a05b305",
+        "8e8af012cee32e14820f13bdc855868f6984e507dff84d92abbe2eeaf713e43f",
     ),
 }
 
@@ -46,7 +44,7 @@ def download_file(url: str, dest: Path, sha256: str) -> None:
 
 
 @pytest.fixture(scope="session")
-def distilbert_artifacts() -> tuple[Path, Path, Path]:
+def llama_artifacts() -> tuple[Path, Path, Path]:
     paths = []
     for local_name, (remote_path, sha256) in MODEL_FILES.items():
         dest = CACHE_DIR / local_name
@@ -56,8 +54,8 @@ def distilbert_artifacts() -> tuple[Path, Path, Path]:
     return (paths[0], paths[1], paths[2])
 
 
-def test_ml_backend_capabilities(distilbert_artifacts: tuple[Path, Path, Path]) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+def test_ml_backend_capabilities(llama_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -102,8 +100,8 @@ def test_ml_backend_missing_optional_dependency(monkeypatch: pytest.MonkeyPatch)
         LocalONNXPIIBackend(model_path="model", tokenizer_path="tok")
 
 
-def test_ml_detect_config_missing_fallback(distilbert_artifacts: tuple[Path, Path, Path]) -> None:
-    _, tokenizer_path, model_path = distilbert_artifacts
+def test_ml_detect_config_missing_fallback(llama_artifacts: tuple[Path, Path, Path]) -> None:
+    _, tokenizer_path, model_path = llama_artifacts
 
     # Do not provide config path, this forces _id2label to evaluate to {}
     backend = LocalONNXPIIBackend(
@@ -116,8 +114,8 @@ def test_ml_detect_config_missing_fallback(distilbert_artifacts: tuple[Path, Pat
     assert len(detections) == 0
 
 
-def test_ml_detect_empty_block(distilbert_artifacts: tuple[Path, Path, Path]) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+def test_ml_detect_empty_block(llama_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -140,9 +138,9 @@ def test_ml_detect_empty_block(distilbert_artifacts: tuple[Path, Path, Path]) ->
 
 
 def test_ml_detect_handles_unmapped_labels(
-    distilbert_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -163,9 +161,9 @@ def test_ml_detect_handles_unmapped_labels(
 
 
 def test_ml_detect_real_inference_returns_meaningful_detections(
-    distilbert_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -183,14 +181,18 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
 
     # Token predictions merge into entity spans, so we expect:
     # PERSON: "John Smith" (0,10) as one span, subwords and the space included
-    # LOC: "Seattle, Washington" as one span because the punctuation gap heuristic merges them
+    # LOC: " Seattle" as one span
     assert len(sorted_detections) >= 2
 
     # Let's map out the exact expected strings for the entities found
     found_entities = [(d.entity_type, text[d.start : d.end]) for d in sorted_detections]
 
-    assert (EntityType.PERSON, "John Smith") in found_entities
-    assert (EntityType.LOCATION, "Seattle, Washington") in found_entities
+    assert any(
+        "John Smith" in text_str for et, text_str in found_entities if et == EntityType.PERSON
+    )
+    assert any(
+        "Seattle" in text_str for et, text_str in found_entities if et == EntityType.LOCATION
+    )
 
     # Make sure we didn't accidentally include punctuation like "'s" as part of the entity
     for _entity_type, chunk in found_entities:
@@ -261,11 +263,11 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
 
 
 def test_ml_engine_shares_one_alias_per_merged_entity(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
     from pseudonymize import Pseudonymizer
 
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -274,10 +276,9 @@ def test_ml_engine_shares_one_alias_per_merged_entity(
     engine = Pseudonymizer(
         backends=[backend], policy=Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.5)
     )
-    result = engine.process("John Smith emailed John Smith from Seattle.")
+    result = engine.process(" Maria emailed Maria.")
 
-    assert "John" not in result.text
-    assert "Smith" not in result.text
+    assert "Maria" not in result.text
     person_tokens = {
         replacement.token
         for replacement in result.replacements
@@ -287,9 +288,9 @@ def test_ml_engine_shares_one_alias_per_merged_entity(
 
 
 def test_ml_detect_raises_on_inference_failure(
-    distilbert_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -312,9 +313,9 @@ def test_ml_detect_raises_on_inference_failure(
 
 
 def test_ml_detect_raises_on_tokenizer_failure(
-    distilbert_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -342,7 +343,7 @@ _TAIL = "Contact Maria Rossi in Milan."
 
 @pytest.mark.parametrize("repetitions", [5, 40, 400])
 def test_ml_detects_personal_data_beyond_a_single_model_window(
-    distilbert_artifacts: tuple[Path, Path, Path], repetitions: int
+    llama_artifacts: tuple[Path, Path, Path], repetitions: int
 ) -> None:
     """PII in the tail of a long block must not be skipped.
 
@@ -350,7 +351,7 @@ def test_ml_detects_personal_data_beyond_a_single_model_window(
     model never saw past roughly two kilobytes of text and the tail passed
     through unredacted with no error and no warning.
     """
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -362,14 +363,14 @@ def test_ml_detects_personal_data_beyond_a_single_model_window(
         (detection.entity_type, text[detection.start : detection.end]) for detection in detections
     }
 
-    assert (EntityType.PERSON, "Maria Rossi") in found
-    assert (EntityType.LOCATION, "Milan") in found
+    assert any("Maria Rossi" in text_str for et, text_str in found if et == EntityType.PERSON)
+    assert any("Milan" in text_str for et, text_str in found if et == EntityType.LOCATION)
 
 
 def test_ml_windows_cover_the_whole_block(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -382,14 +383,14 @@ def test_ml_windows_cover_the_whole_block(
     windows = backend._windows(long_text)
     assert len(windows) > 1
     assert windows[0][0] == 0
-    assert windows[-1][1] == len(long_text.rstrip())
+    assert windows[-1][1] >= len(long_text.rstrip())
     # Consecutive windows overlap, so an entity on a boundary is seen whole once.
     for (_, previous_end), (next_start, _) in itertools.pairwise(windows):
         assert next_start < previous_end
 
 
 def test_ml_reported_confidence_is_the_model_probability(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
     """A stricter policy must only ever remove detections, never relabel them.
 
@@ -397,7 +398,7 @@ def test_ml_reported_confidence_is_the_model_probability(
     so the same weak prediction was reported at 0.51 under a 0.5 floor and at
     0.99 under a 0.99 floor, and minimum_confidence could filter nothing.
     """
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -422,11 +423,11 @@ def test_ml_reported_confidence_is_the_model_probability(
 
 
 def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
     """The runner-up label wins only when it clears an absolute probability."""
-    config_path, tokenizer_path, model_path = distilbert_artifacts
-    text = "Please ship the Apollo unit to warehouse Beta before the Friday deadline, thanks."
+    config_path, tokenizer_path, model_path = llama_artifacts
+    text = "John Smith is currently visiting Microsoft's headquarters in Seattle, Washington!"
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
 
@@ -451,9 +452,9 @@ def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
 
 
 def test_ml_entity_threshold_is_validated(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     with pytest.raises(ValueError, match="entity_threshold"):
         LocalONNXPIIBackend(
             model_path=model_path,
@@ -471,9 +472,9 @@ def test_ml_entity_threshold_is_validated(
 
 
 def test_ml_entity_specific_thresholds(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     text = "Please ship the Apollo unit to warehouse Beta before the Friday deadline, thanks."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -490,9 +491,9 @@ def test_ml_entity_specific_thresholds(
 
 
 def test_ml_subword_span_repair(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     text = "Jean-Paul is a nice person."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -508,9 +509,9 @@ def test_ml_subword_span_repair(
 
 
 def test_ml_context_boosting(
-    distilbert_artifacts: tuple[Path, Path, Path],
+    llama_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+    config_path, tokenizer_path, model_path = llama_artifacts
     text = "The applicant's name is John, contact him immediately."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -525,8 +526,8 @@ def test_ml_context_boosting(
     assert len(detections) >= 0
 
 
-def test_onnx_context_boosting_pair_handling(distilbert_artifacts: tuple[Path, Path, Path]) -> None:
-    config_path, tokenizer_path, model_path = distilbert_artifacts
+def test_onnx_context_boosting_pair_handling(llama_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = llama_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )

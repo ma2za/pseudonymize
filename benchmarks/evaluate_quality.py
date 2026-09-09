@@ -170,10 +170,10 @@ def evaluate(
 
     engine = Pseudonymizer()
     if use_ml:
-        # We need the model downloaded. The test suite uses the distilbert model.
+        # We need the model downloaded. The test suite uses the llama-ai4privacy model.
         # Let's assume it's already cached or we can fetch it.
         # To keep it simple, we'll try to initialize it. If it fails, we fall back or error.
-        CACHE_DIR = Path(".cache/pseudonymize-tests/models/distilbert-ml")
+        CACHE_DIR = Path(".cache/pseudonymize-tests/models/llama-ai4privacy-ml")
         onnx_model_path = CACHE_DIR / "model_int8.onnx"
         tokenizer_path = CACHE_DIR / "tokenizer.json"
         config_path = CACHE_DIR / "config.json"
