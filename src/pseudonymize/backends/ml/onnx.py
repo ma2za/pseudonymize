@@ -28,18 +28,29 @@ else:
 
 _LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
     # Standard CoNLL-03 suffixes plus Ai4Privacy fine-grained labels.
-    (("PER", "FIRSTNAME", "LASTNAME", "MIDDLENAME"), EntityType.PERSON),
+    (("PER", "FIRSTNAME", "LASTNAME", "MIDDLENAME", "GIVENNAME", "SURNAME"), EntityType.PERSON),
     (("ORG", "COMPANYNAME"), EntityType.ORGANIZATION),
     (
-        ("LOC", "CITY", "STATE", "COUNTY", "STREET", "ZIPCODE", "SECONDARYADDRESS", "BUILDINGNUM"),
+        (
+            "LOC",
+            "CITY",
+            "STATE",
+            "COUNTY",
+            "STREET",
+            "ZIPCODE",
+            "SECONDARYADDRESS",
+            "BUILDINGNUM",
+            "BUILDINGNUMBER",
+        ),
         EntityType.LOCATION,
     ),
     (("EMAIL",), EntityType.EMAIL),
-    (("PHONENUMBER", "PHONEIMEI"), EntityType.PHONE),
+    (("PHONENUMBER", "PHONEIMEI", "TELEPHONENUM"), EntityType.PHONE),
     (("IP", "IPV4", "IPV6"), EntityType.IP_ADDRESS),
     (("IBAN",), EntityType.IBAN),
     (("CREDITCARDNUMBER", "CREDITCARDCVV", "CREDITCARDISSUER"), EntityType.PAYMENT_CARD),
-    (("SSN",), EntityType.NATIONAL_ID),
+    (("SSN", "SOCIALNUM", "IDCARDNUM", "PASSPORTNUM", "DRIVERLICENSENUM"), EntityType.NATIONAL_ID),
+    (("TAXNUM",), EntityType.TAX_ID),
     (("URL",), EntityType.URL_CREDENTIAL),
 )
 
@@ -397,7 +408,7 @@ class LocalONNXPIIBackend(DetectionBackend):
                     _prev_start, prev_end = encoding.offsets[idx - 1]
                     curr_start, curr_end = encoding.offsets[idx]
 
-                    if curr_start == prev_end:
+                    if curr_start == prev_end and not text[curr_start].isspace():
                         # Only coerce if the token contains alphanumeric content,
                         # preventing trailing punctuation (.,!?) from being dragged in.
                         token_text = text[curr_start:curr_end]
