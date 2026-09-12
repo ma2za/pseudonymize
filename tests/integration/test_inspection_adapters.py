@@ -6,7 +6,7 @@ from pseudonymize import TransformationMode
 from pseudonymize.document import CoordinateLocation
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.formats import FileFormat
-from pseudonymize.inspection.pdf import PDFInspectionAdapter, _source_text_color
+from pseudonymize.inspection.pdf import PDFInspectionAdapter, _source_text_style
 from pseudonymize.policy import Policy
 
 # Optional imports for generators
@@ -385,7 +385,11 @@ def test_pdf_replacement_color_falls_back_when_spans_have_no_color() -> None:
                 ]
             }
 
-    assert _source_text_color(PageWithoutColoredText(), object()) == (0, 0, 0)
+    assert _source_text_style(PageWithoutColoredText(), object()) == {
+        "text_color": (0.0, 0.0, 0.0),
+        "fontsize": 11.0,
+        "fontname": "helv",
+    }
 
 
 def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
