@@ -30,8 +30,20 @@ class PaymentCardDetector:
         # During synthetic evaluations where generators produce random 16-digit numbers,
         # we bypass the algorithmic checksum to properly measure boundary matching recall.
         bypass_luhn = os.environ.get("SYNTHETIC_BENCHMARK") == "1"
-        return [
-            Detection(EntityType.PAYMENT_CARD, match.start(), match.end(), 1.0, self.name)
-            for match in _CARD.finditer(text)
-            if bypass_luhn or _valid_luhn(match.group())
-        ]
+        detections = []
+        for match in _CARD.finditer(text):
+            val = match.group()
+            # Disambiguation: International phone numbers (often 12-16 digits with spaces/dashes)
+            # frequently start with '00'. A valid PAN never starts with '00'.
+            if val.startswith("00"):
+                continue
+
+            # If there's a '+' right before the match, it's definitely a phone number
+            if match.start() > 0 and text[match.start() - 1] == "+":
+                continue
+
+            if bypass_luhn or _valid_luhn(val):
+                detections.append(
+                    Detection(EntityType.PAYMENT_CARD, match.start(), match.end(), 1.0, self.name)
+                )
+        return detections
