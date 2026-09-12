@@ -19,8 +19,11 @@ test.describe('Mobile Viewport Responsiveness', () => {
     const openSourceLink = page.getByRole('navigation', { name: 'Global' }).getByRole('link', { name: /Open Source/i, exact: true });
     await expect(openSourceLink).toBeHidden();
 
-    // The "Sign In" button and "Blog" should still be visible (or in a hamburger menu, if implemented)
-    const signInBtn = page.getByRole('link', { name: /Sign In/i });
+    // Click the hamburger menu to open mobile navigation
+    await page.getByRole('button', { name: /Open main menu/i }).click();
+
+    // The "Sign In" button should be visible in the mobile menu
+    const signInBtn = page.getByRole('link', { name: /Sign In/i }).last();
     await expect(signInBtn).toBeVisible();
 
     // Check for horizontal scrollbars by executing client-side JS

@@ -73,13 +73,13 @@ test.describe("5 Advanced & Previously Untested E2E Scenarios", () => {
   test('3. UX: Navigating highlights active navigation link in header', async ({ page }) => {
     await page.goto('/en/pricing');
     
-    // Pricing link should have 'font-semibold' or 'text-[var(--pz-text)]' active state class
-    const activePricingLink = page.locator('header nav a[href="/pricing"]').first();
+    // Pricing link should have 'font-semibold' or 'text-[var(--pz-text)]' active state class        
+    const activePricingLink = page.locator('header nav a[href*="/pricing"]').first();
     await expect(activePricingLink).toHaveClass(/text-\[var\(--pz-text\)\]/);
-    
+
     // Docs link should NOT be active
-    const inactiveDocsLink = page.locator('header nav a[href="/docs"]').first();
-    await expect(inactiveDocsLink).not.toHaveClass(/text-\[var\(--pz-text\)\]/);
+    const inactiveDocsLink = page.locator('header nav a[href*="/docs"]').first();
+    await expect(inactiveDocsLink).toHaveClass(/text-\[var\(--pz-text-secondary\)\]/);
   });
 
   // -------------------------------------------------------------
