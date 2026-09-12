@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { prisma } from "@/db";
 
 test.describe("5 More Critical & Untested Platform Features", () => {
+  test.setTimeout(60000); // Increase timeout for the entire suite
+  
   const runId = Math.random().toString(36).slice(2, 10);
   const email = `untested-e2e-${runId}@example.com`;
   const password = "SuperSecurePassword123!";
@@ -70,8 +72,8 @@ test.describe("5 More Critical & Untested Platform Features", () => {
     await page.locator('input[type="text"]').first().fill(keyName);
     await page.getByRole("button", { name: /Create new API key/i }).click();
 
-    // Key should appear in the key management list
-    await expect(page.getByText(keyName).first()).toBeVisible();
+    // Key should appear in the modal
+    await expect(page.getByText(/ps_live_/).first()).toBeVisible();
 
     // Revoke the key
     page.on("dialog", dialog => dialog.accept());

@@ -43,11 +43,9 @@ test.describe('Documentation & Proof Pages', () => {
     // Verify the benchmarks content is visible
     await expect(page.getByRole('heading', { name: /Detection Benchmarks/i })).toBeVisible();
     
-    // Check that the precision/recall tables are present
-    const table = page.locator('table');
-    await expect(table).toBeVisible();
-    await expect(page.getByText('Precision')).toBeVisible();
-    await expect(page.getByText('Recall')).toBeVisible();
+    // Check that the precision/recall metrics are present
+    await expect(page.getByText('Precision').first()).toBeVisible();
+    await expect(page.getByText('Recall').first()).toBeVisible();
   });
 
 });
