@@ -168,7 +168,17 @@ def evaluate(
         ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split=split, streaming=True)
         ds = ds.shuffle(seed=42)
 
-    engine = Pseudonymizer()
+    from pseudonymize.memory.bloom import BloomFilter
+
+    bloom_path = Path("data/gazetteer/common_words.txt")
+    bloom_filter = None
+    if bloom_path.exists():
+        with open(bloom_path, encoding="utf-8") as f:
+            bloom_filter = BloomFilter.from_words(
+                [line.strip().lower() for line in f if line.strip()]
+            )
+
+    engine = Pseudonymizer(bloom_filter=bloom_filter)
     if use_ml:
         # We need the model downloaded. The test suite uses the llama-ai4privacy model.
         # Let's assume it's already cached or we can fetch it.
@@ -188,7 +198,7 @@ def evaluate(
             tokenizer_path=tokenizer_path,
             config_path=config_path,
         )
-        engine = Pseudonymizer(backends=[*engine.backends, backend])
+        engine = Pseudonymizer(backends=[*engine.backends, backend], bloom_filter=bloom_filter)
 
     true_positives = 0
     false_positives = 0
