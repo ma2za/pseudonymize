@@ -41,7 +41,7 @@ export default function ApiKeyManager({ initialKeys, dict }: { initialKeys: ApiK
         setNewKey(res.key);
         // Optimistically update list (we'll fetch actual later or rely on revalidatePath)
         setKeys([{
-          id: 'temp',
+          id: res.key,
           name: keyName || dict.defaultKeyName,
           key: res.key,
           maskedKey: `${res.key.substring(0, 12)}${'*'.repeat(16)}`,
