@@ -9,7 +9,7 @@ try:
     app = FastAPI(
         title="Pseudonymize DLP API",
         description="Local-first PII pseudonymization microservice.",
-        version="0.27.0",
+        version="1.20.0",
     )
 
     class PseudonymizeRequest(BaseModel):

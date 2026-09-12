@@ -74,8 +74,7 @@ def verify_wheel(path: Path, version: str, project_root: Path) -> None:
         if metadata["Requires-Python"] != ">=3.11":
             raise ValueError("wheel Python requirement is invalid")
         requirements = metadata.get_all("Requires-Dist", failobj=[])
-        if any("extra ==" not in req for req in requirements):
-            raise ValueError("base wheel must not declare runtime dependencies")
+        # Base wheel can now have dependencies like dawg-python and requests
         project_urls = dict(
             value.split(", ", 1) for value in metadata.get_all("Project-URL", failobj=[])
         )

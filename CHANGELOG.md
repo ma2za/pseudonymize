@@ -2,9 +2,10 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
-## [Unreleased]
+## [1.20.0] - 2026-09-12
 
 ### Added
+- **Universal Boundary Trimming:** Expanded trailing and leading punctuation/space boundary trimming to apply universally across all entity types, correctly isolating entities like `NATIONAL_ID` from surrounding whitespace and symbols.
 - **Legitimate Census Gazetteer:** Upgraded the `GazetteerDetector` to dynamically download and build DAWG tries from open-source real-world census data (1990 US Census Names, Geonames Cities), acting as a highly robust offline safety net for `PERSON` and `LOCATION` entities without overfitting to benchmark datasets.
 - **Bloom Filter False-Positive Veto:** Added a memory-efficient `BloomFilter` loaded with the top 10,000 common English words to explicitly veto low-confidence Gazetteer and ML predictions, significantly boosting `PERSON` precision by rejecting common nouns like "Hope" or "Will".
 - **Contextual ID Expansion:** Broadened the `ContextualIdDetector` to recognize 8-20 character synthetic alphanumeric sequences when immediately preceded by explicit reference triggers (e.g. `ref:`, `id:`, `identifier`), vastly improving recall on non-standard IDs.

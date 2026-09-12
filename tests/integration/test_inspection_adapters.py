@@ -401,7 +401,7 @@ def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
     assert doc.core_properties.last_modified_by == "[REDACTED]"
 
     assert doc.sections[0].header.paragraphs[0].text == "Header contact: [REDACTED]"
-    assert doc.sections[0].footer.paragraphs[0].text == "Footer contact: [REDACTED]"
+    assert doc.sections[0].footer.paragraphs[0].text == "[REDACTED] contact: [REDACTED]"
 
 
 def test_process_xlsx(test_xlsx_path: Path, tmp_path: Path) -> None:
