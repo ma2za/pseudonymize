@@ -11,8 +11,9 @@
 - **Email:** Use **Resend** for all outgoing emails (verification, password resets, notifications). This must be hooked into Better Auth.
 - **Backend:** PostgreSQL + Drizzle ORM.
 - **Auth:** Better Auth.
-- **Deployment (STRICT):** NO MANUAL TERMINAL COMMANDS IN PRODUCTION. All database migrations (`drizzle-kit push`) must execute automatically during the build/deployment pipeline (e.g., via Docker `CMD` or Coolify Post-deployment hooks).
-
+## Deployment (STRICT)
+- **NO MANUAL TERMINAL COMMANDS IN PRODUCTION:** All database migrations (`drizzle-kit push` or `prisma db push`) must execute automatically during the build/deployment pipeline (e.g., via Docker `CMD` or Coolify Post-deployment hooks).
+- **Strict Multi-Project Isolation:** When deploying or running locally, never interfere with other active projects, containers, or dev servers in the same workspace. If there are port conflicts (e.g., port 3000 or 5432 is occupied), select an alternative dynamic port (such as 3001, 3002 or 5434) and adjust the `.env` settings accordingly. Never shut down, stop, or delete sibling repositories' Docker containers or processes.
 ## Bot & LLM Automation (STRICT)
 - **Frictionless Access:** The application MUST be entirely accessible to automated browsers, bots, and LLMs. Do NOT implement CAPTCHAs (e.g., Turnstile, reCAPTCHA) or arbitrary rate limits that prevent automated agent registration or credit purchasing.
 
