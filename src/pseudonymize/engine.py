@@ -240,18 +240,6 @@ class Pseudonymizer:
                 if detection.confidence < self.policy.minimum_confidence:
                     continue
 
-                # Bloom Filter False-Positive Veto (v1.15.0)
-                if self.bloom_filter is not None and detection.confidence < 0.95:
-                    token = text[detection.start : detection.end].lower()
-                    if token in self.bloom_filter:
-                        continue
-
-                if any(
-                    detection.start < token_end and token_start < detection.end
-                    for token_start, token_end in protected
-                ):
-                    continue
-
                 if detection.entity_type in {
                     EntityType.PERSON,
                     EntityType.LOCATION,
@@ -312,26 +300,45 @@ class Pseudonymizer:
                         else:
                             break
 
-                    # Trim leading punctuation / symbols / whitespace
-                    while start < end:
-                        cat = unicodedata.category(text[start])
-                        if cat.startswith(("P", "S", "Z", "C")):
-                            start += 1
-                        else:
-                            break
-
-                    # Trim trailing punctuation / symbols / whitespace
-                    while end > start:
-                        cat = unicodedata.category(text[end - 1])
-                        if cat.startswith(("P", "S", "Z", "C")):
-                            end -= 1
-                        else:
-                            break
-
                     if start >= end:
                         continue
                     if start != detection.start or end != detection.end:
                         detection = replace(detection, start=start, end=end)
+
+                # Universally trim leading/trailing punctuation, symbols, whitespace, etc.
+                start = detection.start
+                end = detection.end
+
+                while start < end:
+                    cat = unicodedata.category(text[start])
+                    if cat.startswith(("P", "S", "Z", "C")):
+                        start += 1
+                    else:
+                        break
+
+                while end > start:
+                    cat = unicodedata.category(text[end - 1])
+                    if cat.startswith(("P", "S", "Z", "C")):
+                        end -= 1
+                    else:
+                        break
+
+                if start >= end:
+                    continue
+                if start != detection.start or end != detection.end:
+                    detection = replace(detection, start=start, end=end)
+
+                # Bloom Filter False-Positive Veto (v1.15.0)
+                if self.bloom_filter is not None and detection.confidence < 0.95:
+                    token = text[detection.start : detection.end].lower()
+                    if token in self.bloom_filter:
+                        continue
+
+                if any(
+                    detection.start < token_end and token_start < detection.end
+                    for token_start, token_end in protected
+                ):
+                    continue
 
                 # Strict Geographic Parsing & Address Segmentation Heuristic (v1.6.0)
                 # If a LOCATION span captures multiple nested sub-spans like STREET and ZIP,

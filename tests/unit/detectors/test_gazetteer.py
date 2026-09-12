@@ -7,7 +7,7 @@ def test_gazetteer_detector_matches() -> None:
     person_dawg = DAWG.from_words(["Jonathan", "Doe", "Alice", "Bob"])
     location_dawg = DAWG.from_words(["London", "Paris", "Berlin", "Rome"])
 
-    detector = GazetteerDetector(person_dawg=person_dawg, location_dawg=location_dawg)
+    detector = GazetteerDetector(person_dawg=person_dawg, location_dawg=location_dawg, veto_filter=None)
 
     text = "Alice and Bob traveled to Paris and Berlin to meet Jonathan Doe."
 

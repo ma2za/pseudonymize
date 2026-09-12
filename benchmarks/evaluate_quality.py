@@ -349,7 +349,25 @@ if __name__ == "__main__":
         action="store_true",
         help="Score any overlap as a hit, ignoring whether the entity type matches.",
     )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="validation",
+        help="Dataset split to evaluate (e.g., train, validation).",
+    )
+    parser.add_argument(
+        "--explain",
+        action="store_true",
+        help="Print false positive and false negative explanations.",
+    )
     args = parser.parse_args()
 
     file_path = Path(args.file) if args.file is not None else None
-    evaluate(args.samples, args.ml, strict_labels=not args.span_only, file_path=file_path)
+    evaluate(
+        args.samples,
+        args.ml,
+        strict_labels=not args.span_only,
+        split=args.split,
+        explain=args.explain,
+        file_path=file_path,
+    )
