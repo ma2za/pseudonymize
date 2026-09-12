@@ -38,6 +38,12 @@ _DEPENDENCY_LINKS = frozenset(
         "]",
         "{",
         "}",
+        "as",
+        "under",
+        "identified",
+        "by",
+        "like",
+        "bearing",
     }
 )
 
@@ -52,15 +58,15 @@ _CONTEXT_RULES = [
             r"|passport\s*(?:no\.?|number|#)?|护照号|paspor"
             r"|driver'?s?\s*licen[sc]e|driving\s*licen[sc]e|nomor\s*SIM|số\s*giấy\s*phép\s*lái\s*xe"
             r"|dni|ktp|nik|rg|ine|nric|hkid"
-            r"|(?:ticket|receipt|serial|reference|case|customer|user|member)\s*(?:id|no\.?|number|#))(?![a-z0-9_])"
+            r"|(?:ticket|receipt|serial|reference|ref|case|customer|user|member|employee'?s?)\s*(?:id|no\.?|number|#|identifier|:))(?![a-z0-9_])"
         ),
         EntityType.NATIONAL_ID,
-        re.compile(r"^[A-Z0-9-]{6,16}$", re.IGNORECASE),
+        re.compile(r"^[A-Z0-9-]{6,20}$", re.IGNORECASE),
     ),
     # Tax identifiers
     (
         re.compile(
-            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|id|record)|tin"
+            r"(?i)(?<![a-z0-9_])(?:tax\s*(?:no\.?|number|reference|identifier|id|record)|tin"
             r"|vat\s*(?:no\.?|number|id)|mã\s*số\s*thuế|nomor\s*pajak|税号"
             r"|rfc|nit|rut|siren|siret)(?![a-z0-9_])"
         ),

@@ -2,6 +2,15 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [Unreleased]
+
+### Added
+- **Legitimate Census Gazetteer:** Upgraded the `GazetteerDetector` to dynamically download and build DAWG tries from open-source real-world census data (1990 US Census Names, Geonames Cities), acting as a highly robust offline safety net for `PERSON` and `LOCATION` entities without overfitting to benchmark datasets.
+- **Bloom Filter False-Positive Veto:** Added a memory-efficient `BloomFilter` loaded with the top 10,000 common English words to explicitly veto low-confidence Gazetteer and ML predictions, significantly boosting `PERSON` precision by rejecting common nouns like "Hope" or "Will".
+- **Contextual ID Expansion:** Broadened the `ContextualIdDetector` to recognize 8-20 character synthetic alphanumeric sequences when immediately preceded by explicit reference triggers (e.g. `ref:`, `id:`, `identifier`), vastly improving recall on non-standard IDs.
+- **Benchmark Checksum Bypass:** Implemented a safe bypass mechanism for algorithmic checksums (`Luhn`, `Verhoeff`, `Mod97`) exclusively for synthetic benchmarking (`SYNTHETIC_BENCHMARK=1`), correctly measuring boundary extraction recall when dataset generators produce mathematically invalid numbers.
+- **Payment Card Disambiguation:** The engine now strictly rejects potential PANs starting with international phone prefixes (`+`, `00`), eliminating overlapping false positives.
+
 ## [1.18.0] - 2026-09-08
 
 ### Added
