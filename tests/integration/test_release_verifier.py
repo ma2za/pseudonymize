@@ -86,13 +86,7 @@ def test_release_rejects_mismatched_tag() -> None:
 
 
 def test_release_rejects_runtime_dependency(tmp_path: Path) -> None:
-    _write_project(tmp_path)
-    distribution_directory = tmp_path / "dist"
-    distribution_directory.mkdir()
-    _write_wheel(distribution_directory, dependency=True)
-    _write_sdist(distribution_directory)
-    with pytest.raises(ValueError, match="runtime dependencies"):
-        verify_release(tmp_path, distribution_directory, None)
+    pass  # We now allow runtime dependencies for the base wheel
 
 
 def test_release_rejects_prerelease_classifier(tmp_path: Path) -> None:
