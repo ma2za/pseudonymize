@@ -36,6 +36,6 @@ def test_gazetteer_detector_ignores_lowercase() -> None:
 
 
 def test_gazetteer_detector_handles_empty() -> None:
-    detector = GazetteerDetector()
+    detector = GazetteerDetector(person_dawg=None, location_dawg=None)
     detections = detector.detect("Hello World")
     assert len(detections) == 0

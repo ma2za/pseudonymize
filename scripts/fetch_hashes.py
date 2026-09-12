@@ -10,8 +10,12 @@ FILES = {
 
 for name, path in FILES.items():
     url = BASE_URL + path
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req) as response:
+
+    if not url.startswith(("http://", "https://")):
+        raise ValueError(f"Invalid URL scheme: {url}")
+
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})  # noqa: S310
+    with urllib.request.urlopen(req) as response:  # noqa: S310
         content = response.read()
         digest = hashlib.sha256(content).hexdigest()
         print(f"{name}: {digest}")

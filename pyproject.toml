@@ -24,7 +24,10 @@ classifiers = [
   "Typing :: Typed",
   "Topic :: Security",
 ]
-dependencies = []
+dependencies = [
+    "dawg-python>=0.7.2",
+    "requests>=2.34.2",
+]
 
 [project.urls]
 Homepage = "https://github.com/ma2za/pseudonymize"

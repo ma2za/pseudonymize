@@ -678,6 +678,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dawg-python"
+version = "0.7.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/33/fd52c8ec329641a7730fad662ba3f29f98c45e4bea552cceee569b00c915/DAWG-Python-0.7.2.tar.gz", hash = "sha256:4a5e3286e6261cca02f205cfd5516a7ab10190fa30c51c28d345808f595e3421", size = 9007, upload-time = "2015-04-18T16:59:55.184Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6a/84/ff1ce2071d4c650ec85745766c0047ccc3b5036f1d03559fd46bb38b5eeb/DAWG_Python-0.7.2-py2.py3-none-any.whl", hash = "sha256:4941d5df081b8d6fcb4597e073a9f60d5c1ccc9d17cd733e8744d7ecfec94ef3", size = 11711, upload-time = "2015-04-18T17:00:08.938Z" },
+]
+
+[[package]]
 name = "defusedxml"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2569,6 +2578,10 @@ wheels = [
 name = "pseudonymize"
 version = "1.19.0"
 source = { editable = "." }
+dependencies = [
+    { name = "dawg-python" },
+    { name = "requests" },
+]
 
 [package.optional-dependencies]
 api = [
@@ -2635,6 +2648,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", marker = "extra == 'html'", specifier = ">=4.12.0" },
+    { name = "dawg-python", specifier = ">=0.7.2" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.100.0" },
     { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.28.1" },
     { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=1.28.0" },
@@ -2648,6 +2662,7 @@ requires-dist = [
     { name = "pytesseract", marker = "extra == 'ocr'", specifier = ">=0.3.13" },
     { name = "python-docx", marker = "extra == 'office'", specifier = ">=1.1.0" },
     { name = "python-pptx", marker = "extra == 'office'", specifier = ">=1.0.0" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "tokenizers", marker = "extra == 'ml'", specifier = ">=0.23.1" },
     { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.20.0" },
 ]
