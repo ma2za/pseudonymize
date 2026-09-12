@@ -15,8 +15,8 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       // TypeScript complains because `forgetPassword` was recently added/changed in better-auth typings
-      // or we are missing the client plugin in createAuthClient. We cast to any to allow compilation.
-      const auth: any = authClient;
+      // or we are missing the client plugin in createAuthClient. We cast to a specific type to allow compilation.
+      const auth: { forgetPassword: (args: { email: string; redirectTo: string }) => Promise<void> } = authClient as unknown as { forgetPassword: (args: { email: string; redirectTo: string }) => Promise<void> };
       await auth.forgetPassword({
         email,
         redirectTo: "/reset-password"

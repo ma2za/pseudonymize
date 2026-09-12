@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const fs = require('fs');
 const path = require('path');
 
@@ -46,3 +47,4 @@ for (const loc of locales) {
     console.log(`Synced ${loc}.json`);
   }
 }
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */

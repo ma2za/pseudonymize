@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
@@ -36,4 +37,4 @@ async function translate() {
   }
 }
 
-translate();
+translate();/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */

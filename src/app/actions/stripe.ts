@@ -61,8 +61,8 @@ export async function createCheckoutSession(packageId: 'starter' | 'pro', locale
     });
 
     return { sessionId: checkoutSession.id, url: checkoutSession.url };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating checkout session:', error);
-    throw new Error(error.message);
+    throw new Error(error instanceof Error ? error.message : 'Unknown error');
   }
 }

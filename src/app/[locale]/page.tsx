@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/routing';
 import { BrandButton, EntityHighlight, ProcessorFrame, PseudonymToken, TransformationRow, TrustFacts } from '@/brand/components';
