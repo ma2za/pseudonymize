@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 require('dotenv').config({ path: '.env.local' });
 const { drizzle } = require('drizzle-orm/node-postgres');
 const { migrate } = require('drizzle-orm/node-postgres/migrator');
@@ -27,4 +28,4 @@ async function run() {
 run().catch((err) => {
   console.error('Migration failed!', err);
   process.exit(1);
-});
+});/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */

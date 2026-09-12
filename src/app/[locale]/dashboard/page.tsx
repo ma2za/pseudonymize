@@ -24,7 +24,7 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
   const initialKeys = await getApiKeys();
 
   // Assuming credit balance is stored in the DB
-  const credits = (session.user as any).credits || 0;
+  const credits = (session.user as { credits?: number }).credits || 0;
 
   const keyDict = {
     keyNamePlaceholder: t('keyNamePlaceholder'),

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const fs = require('fs');
 const translate = require('google-translate-api-x');
 
@@ -54,4 +55,4 @@ async function run() {
   }
 }
 
-run();
+run();/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */

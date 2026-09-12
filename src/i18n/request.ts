@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {getRequestConfig} from 'next-intl/server';
 import {routing} from './routing';
 

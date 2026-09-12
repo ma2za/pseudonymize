@@ -29,9 +29,9 @@ export async function updateProfile(formData: FormData) {
       
     revalidatePath('/[locale]/dashboard/settings', 'page');
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update profile:', error);
-    return { error: error.message || 'Failed to update profile' };
+    return { error: error instanceof Error ? error.message : 'Failed to update profile' };
   }
 }
 
@@ -57,7 +57,7 @@ export async function deleteAccount() {
     ]);
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to delete account:', error);
     return { error: 'An error occurred while deleting your account.' };
   }
