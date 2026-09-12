@@ -83,7 +83,9 @@ def invoke_backend(
         if not isinstance(detection, Detection):
             raise BackendContractError("backend returned a value that is not a Detection")
         if detection.entity_type not in capabilities.entity_types:
-            raise BackendContractError("backend returned an undeclared entity type")
+            raise BackendContractError(
+                f"backend {backend.name} returned an undeclared entity type {detection.entity_type}"
+            )
         if detection.end > len(block.text):
             raise InvalidDetectionError("backend returned offsets outside the content block")
         detections.append(detection if detection.backend else replace(detection, backend=name))

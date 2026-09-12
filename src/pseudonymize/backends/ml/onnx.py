@@ -154,6 +154,7 @@ class LocalONNXPIIBackend(DetectionBackend):
                     EntityType.IBAN,
                     EntityType.PAYMENT_CARD,
                     EntityType.NATIONAL_ID,
+                    EntityType.TAX_ID,
                     EntityType.URL_CREDENTIAL,
                 }
             ),
