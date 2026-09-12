@@ -19,8 +19,21 @@ model User {
   sessions      Session[]
   accounts      Account[]
   apiKeys       ApiKey[]
+  apiUsages     ApiUsage[]
 
   @@map("user")
+}
+
+model ApiUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   // e.g., "/v1/text", "/v1/data"
+  credits   Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("api_usage")
 }
 
 model Session {
