@@ -31,6 +31,7 @@
     "prisma": "^7.10.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "recharts": "^3.10.1",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
     "resend": "^6.26.0",

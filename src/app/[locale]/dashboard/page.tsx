@@ -4,7 +4,9 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import CreditPurchase from '@/components/CreditPurchase';
+import UsageChart from '@/components/UsageChart';
 import { getApiKeys } from '@/app/actions/api-keys';
+import { getMonthlyUsage } from '@/app/actions/usage';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 
@@ -22,6 +24,7 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
   }
 
   const initialKeys = await getApiKeys();
+  const { data: usageData, totalCredits: totalMonthlyUsage } = await getMonthlyUsage();
 
   // Assuming credit balance is stored in the DB
   const credits = (session.user as { credits?: number }).credits || 0;
@@ -47,9 +50,29 @@ export default async function DashboardPage({params}: {params: Promise<{locale: 
     redirecting: t('redirecting')
   };
 
+  const chartDict = {
+    noUsageData: t.has('noUsageData') ? t('noUsageData') : "No API usage recorded in the last 30 days.",
+    creditsUsed: t.has('creditsUsed') ? t('creditsUsed') : "Credits Used"
+  };
+
   return (
     <div className="bg-[var(--pz-canvas)] flex flex-col min-h-[100dvh]">
       <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+        
+        {/* Usage Analytics Block */}
+        <div className="bg-[var(--pz-surface)] overflow-hidden rounded-lg border border-[var(--pz-border)] shadow-sm hover:shadow-md hover:border-[var(--pz-border-strong)] transition-all duration-300">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
+              {t.has('usageAnalyticsTitle') ? t('usageAnalyticsTitle') : 'API Usage Analytics'}
+            </h3>
+            <div className="mt-2 max-w-xl text-sm text-[var(--pz-text-secondary)]">
+              <p>{t.has('usageAnalyticsDesc') ? t('usageAnalyticsDesc') : `You have consumed ${totalMonthlyUsage} credits over the last 30 days.`}</p>
+            </div>
+            
+            <UsageChart data={usageData} dict={chartDict} />
+          </div>
+        </div>
+
         <div className="bg-[var(--pz-surface)] overflow-hidden rounded-lg border border-[var(--pz-border)] shadow-sm hover:shadow-md hover:border-[var(--pz-border-strong)] transition-all duration-300">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg leading-6 font-medium text-[var(--pz-text)]">
