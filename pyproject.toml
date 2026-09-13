@@ -134,8 +134,8 @@ module = [
     "httpx.*",
     "respx.*",
     "datasets.*",
-    
-]
+      "llama_cpp.*",
+  ]
 ignore_missing_imports = true
 follow_imports = "skip"
 
