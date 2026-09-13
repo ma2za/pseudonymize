@@ -77,7 +77,7 @@ Data: TypeAlias = (
     str | int | float | bool | dict[str, "Data"] | list["Data"] | tuple["Data", ...] | None
 )
 Serializer: TypeAlias = Callable[[object], Data]
-_ENTITY_NAMES = "|".join(re.escape(entity_type.value) for entity_type in EntityType)
+_ENTITY_NAMES = "|".join(re.escape(entity_type.short_code) for entity_type in EntityType)
 _PLACEHOLDER = re.compile(
     rf"<(?:{_ENTITY_NAMES})(?:_(?:\d+|[A-Z2-7]{{6,}}))?>|"
     rf"<PZ1:(?:{_ENTITY_NAMES}):[A-Z2-7]{{16}}>|"
@@ -109,12 +109,12 @@ class Session:
         reverse_map = {}
         for (entity_type, original_value), alias in self._scope._context.aliases.items():
             if alias.identifier is not None:
-                placeholder = f"<{entity_type.value}_{alias.identifier}>"
+                placeholder = f"<{entity_type.short_code}_{alias.identifier}>"
                 reverse_map[placeholder] = original_value
-                pz_placeholder = f"<PZ1:{entity_type.value}:{alias.identifier}>"
+                pz_placeholder = f"<PZ1:{entity_type.short_code}:{alias.identifier}>"
                 reverse_map[pz_placeholder] = original_value
             else:
-                placeholder = f"<{entity_type.value}>"
+                placeholder = f"<{entity_type.short_code}>"
                 reverse_map[placeholder] = original_value
 
         def repl(match: Any) -> str:

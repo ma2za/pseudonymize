@@ -169,16 +169,16 @@ def test_frozen_enums_and_data_models() -> None:
 
 def test_frozen_defaults_and_deterministic_vectors() -> None:
     assert Policy.default() == Policy()
-    assert pseudonymize("maria@example.com") == "<EMAIL_1>"
+    assert pseudonymize("maria@example.com") == "<EML_1>"
     assert redact("maria@example.com") == "[REDACTED]"
     assert (
         pseudonymize("maria@example.com", mode="deterministic", key=KEY, namespace="compat")
-        == "<EMAIL_6IHXRTFNJ2JY>"
+        == "<EML_6IHXRTFNJ2JY>"
     )
     assert (
         pseudonymize("192.0.2.10", mode="deterministic", key=KEY, namespace="compat")
-        == "<IP_ADDRESS_DXX4QY54GKHT>"
+        == "<IP_DXX4QY54GKHT>"
     )
     result = Pseudonymizer().process("maria@example.com", include_mapping=True)
-    assert result.restore("Reply to <EMAIL_1>") == "Reply to maria@example.com"
+    assert result.restore("Reply to <EML_1>") == "Reply to maria@example.com"
     assert set(package.__all__)

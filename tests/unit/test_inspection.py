@@ -128,8 +128,8 @@ def test_pdf_changed_spans_merge_token_internal_matches() -> None:
             for span in _changed_spans(source, output)
         )
 
-    assert offsets("Tax IT 12345678903", "Tax <TAX_ID_1>") == ((4, 18, 4, 14),)
+    assert offsets("Tax IT 12345678903", "Tax <TID_1>") == ((4, 18, 4, 11),)
     assert offsets(
         "Email alice@example.com and bob@example.com",
-        "Email <EMAIL_1> and <EMAIL_2>",
-    ) == ((6, 23, 6, 15), (28, 43, 20, 29))
+        "Email <EML_1> and <EML_2>",
+    ) == ((6, 23, 6, 13), (28, 43, 18, 25))

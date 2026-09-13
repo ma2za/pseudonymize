@@ -43,7 +43,7 @@ def test_generic_file_processing_uses_explicit_adapters_and_safe_destination(
     )
 
     assert result.output == tmp_path / "entrée.safe.custom"
-    assert result.output.read_text(encoding="utf-8") == "Contact <EMAIL_1>."
+    assert result.output.read_text(encoding="utf-8") == "Contact <EML_1>."
     assert source.read_text(encoding="utf-8") == "Contact maria@example.com."
     assert result.detections[0].block_id == "body"
     assert result.statistics.replacements_applied == 1
@@ -74,7 +74,7 @@ def test_destination_collision_requires_explicit_overwrite(tmp_path: Path) -> No
         output_adapter=CustomOutputAdapter(),
     )
     assert result.output == destination
-    assert destination.read_text(encoding="utf-8") == "<EMAIL_1>"
+    assert destination.read_text(encoding="utf-8") == "<EML_1>"
     assert not tuple(tmp_path.glob(".*.tmp"))
 
 

@@ -24,10 +24,10 @@ def test_pseudonymize_endpoint(client: Any) -> None:
     response = client.post("/pseudonymize", json={"text": "Contact paolo@example.com."})
     assert response.status_code == 200
     data = response.json()
-    assert "<EMAIL_1>" in data["text"]
+    assert "<EML_1>" in data["text"]
     assert len(data["replacements"]) == 1
     assert data["replacements"][0]["entity_type"] == "EMAIL"
-    assert data["replacements"][0]["token"] == "<EMAIL_1>"
+    assert data["replacements"][0]["token"] == "<EML_1>"
 
 
 def test_pseudonymize_endpoint_invalid(client: Any) -> None:

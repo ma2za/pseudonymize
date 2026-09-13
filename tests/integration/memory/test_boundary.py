@@ -28,14 +28,14 @@ def test_memory_boundary_write() -> None:
 
     saved = store.read("session_1")
     assert isinstance(saved, dict)
-    assert saved["memory"] == "The user is Paolo, and his email is <EMAIL_1>."
+    assert saved["memory"] == "The user is Paolo, and his email is <EML_1>."
 
     # Check that another user namespace would generate the same numbered alias sequence locally
     # but theoretically would map to a different context.
     boundary.write("session_2", payload, namespace="user_B")
     saved2 = store.read("session_2")
     assert isinstance(saved2, dict)
-    assert saved2["memory"] == "The user is Paolo, and his email is <EMAIL_1>."
+    assert saved2["memory"] == "The user is Paolo, and his email is <EML_1>."
 
 
 def test_memory_boundary_delete() -> None:

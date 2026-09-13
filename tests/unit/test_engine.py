@@ -34,7 +34,7 @@ def test_sentence_terminated_ip_wins_over_phone_candidate() -> None:
     text = "Server 192.0.2.10."
     detections = engine.detect(text)
     assert [item.entity_type.value for item in detections] == ["IP_ADDRESS"]
-    assert engine.process(text).text == "Server <IP_ADDRESS_1>."
+    assert engine.process(text).text == "Server <IP_1>."
 
 
 def test_nested_data_preserves_structure_and_primitives() -> None:
@@ -102,15 +102,15 @@ def test_engine_remote_offset_mapping() -> None:
         def detect(self, block: ContentBlock, policy: Policy) -> list[Detection]:
             # The input block.text here must be the local-sanitized text!
             # Original: "Call maria@example.com to reach Maria."
-            # Sanitized: "Call <EMAIL_1> to reach Maria." (length of <EMAIL_1> is 9)
+            # Sanitized: "Call <EML_1> to reach Maria." (length of <EML_1> is 7)
             text = block.text
-            assert text == "Call <EMAIL_1> to reach Maria."
+            assert text == "Call <EML_1> to reach Maria."
             # "Maria" starts at index 24, ends at 29 in the sanitized text
             return [
                 Detection(
                     entity_type=EntityType.PERSON,
-                    start=24,
-                    end=29,
+                    start=22,
+                    end=27,
                     confidence=1.0,
                     detector="mock_remote",
                 )
@@ -130,7 +130,7 @@ def test_engine_remote_offset_mapping() -> None:
     # Standard translation should redact BOTH the email and Maria
     assert "maria@example.com" not in result.text
     assert "Maria" not in result.text
-    assert result.text == "Call <EMAIL_1> to reach <PERSON_1>."
+    assert result.text == "Call <EML_1> to reach <PER_1>."
 
 
 @pytest.mark.parametrize(

@@ -24,7 +24,7 @@ def test_keygen_and_detectors(capsys: object) -> None:
 
 def test_text_cli(monkeypatch: object, capsys: object) -> None:
     assert main(["text", "maria@example.com"]) == 0
-    assert capsys.readouterr().out == "<EMAIL_1>\n"  # type: ignore[attr-defined]
+    assert capsys.readouterr().out == "<EML_1>\n"  # type: ignore[attr-defined]
     monkeypatch.setattr(sys, "stdin", io.StringIO("maria@example.com"))  # type: ignore[attr-defined]
     assert main(["text", "--redact", "-"]) == 0
     assert capsys.readouterr().out == "[REDACTED]\n"  # type: ignore[attr-defined]

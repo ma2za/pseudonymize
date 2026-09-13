@@ -41,7 +41,7 @@ def test_explicit_format_overrides_unknown_suffix(tmp_path: Path) -> None:
 
     result = Pseudonymizer().process_file(source, format="json")
 
-    assert json.loads(result.output.read_text(encoding="utf-8")) == {"value": "<EMAIL_1>"}
+    assert json.loads(result.output.read_text(encoding="utf-8")) == {"value": "<EML_1>"}
 
 
 def test_unknown_format_is_rejected_without_creating_output(tmp_path: Path) -> None:
@@ -71,8 +71,8 @@ def test_json_semantic_round_trip_preserves_keys_and_non_strings(
 
     assert output == {
         "maria@example.com": "key is unchanged",
-        "message": "<EMAIL_1>",
-        "values": [1, True, None, "<IP_ADDRESS_1>"],
+        "message": "<EML_1>",
+        "values": [1, True, None, "<IP_1>"],
     }
     assert tuple(report.location for report in result.detections) == (
         JSONPathLocation(("message",)),
@@ -91,8 +91,8 @@ def test_jsonl_uses_one_alias_scope_and_record_locations(tmp_path: Path) -> None
     records = [json.loads(line) for line in result.output.read_text(encoding="utf-8").splitlines()]
 
     assert records == [
-        {"message": "<EMAIL_1>"},
-        {"again": "<EMAIL_1>", "ip": "<IP_ADDRESS_1>"},
+        {"message": "<EML_1>"},
+        {"again": "<EML_1>", "ip": "<IP_1>"},
     ]
     assert tuple(report.location for report in result.detections) == (
         JSONPathLocation((0, "message")),
@@ -121,8 +121,8 @@ def test_csv_preserves_matrix_and_reports_cell_locations(tmp_path: Path) -> None
 
     assert rows == (
         ["contact", "note", "formula"],
-        ["<EMAIL_1>", "line one\nline two", "=A2"],
-        ["<IP_ADDRESS_1>", "", "tail", "extra"],
+        ["<EML_1>", "line one\nline two", "=A2"],
+        ["<IP_1>", "", "tail", "extra"],
     )
     assert tuple(report.location for report in result.detections) == (
         CSVCellLocation(1, 0),
@@ -140,7 +140,7 @@ def test_encoding_is_strict_explicit_and_bom_preserving(tmp_path: Path) -> None:
     encoded_source = tmp_path / "encoded.txt"
     encoded_source.write_bytes("café maria@example.com".encode("cp1252"))
     encoded_result = Pseudonymizer().process_file(encoded_source, encoding="cp1252")
-    assert encoded_result.output.read_bytes().decode("cp1252") == "café <EMAIL_1>"
+    assert encoded_result.output.read_bytes().decode("cp1252") == "café <EML_1>"
 
 
 def test_invalid_encoding_and_malformed_inputs_are_sanitized(tmp_path: Path) -> None:
