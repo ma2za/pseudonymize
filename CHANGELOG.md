@@ -2,6 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.20.2] - 2026-09-13
+
+### Fixed
+- Resolved flaky CI assertions caused by differences in cross-platform downloaded DAWG gazetteers.
+- Removed lingering debug scripts and fully eradicated the `llama-cpp-python` dependency from the repository.
+
 ## [1.20.1] - 2026-09-13
 
 ### Changed
