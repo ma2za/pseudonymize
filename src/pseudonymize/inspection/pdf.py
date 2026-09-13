@@ -225,7 +225,9 @@ class PDFInspectionAdapter:
                         if replacements:
                             for replacement_rect, replacement_text in replacements:
                                 style = _source_text_style(page, replacement_rect)
-                                page.add_redact_annot(replacement_rect, text="", fill=None, cross_out=False)
+                                page.add_redact_annot(
+                                    replacement_rect, text="", fill=None, cross_out=False
+                                )
                                 insertions.append((replacement_rect.bl, replacement_text, style))
                         else:
                             # Fail closed if an exact changed span cannot be located.
@@ -243,9 +245,15 @@ class PDFInspectionAdapter:
                         graphics=0,
                         text=0,
                     )
-                    
+
                     for pt, text, style in insertions:
-                        page.insert_text(pt, text, fontsize=style["fontsize"], color=style["text_color"], fontname=style["fontname"])
+                        page.insert_text(
+                            pt,
+                            text,
+                            fontsize=style["fontsize"],
+                            color=style["text_color"],
+                            fontname=style["fontname"],
+                        )
 
             # Apply metadata updates and clear missing fields to prevent leaks
             new_metadata = {
