@@ -141,117 +141,34 @@ Following the `1.0.0` realization that strict 1-to-1 boundary and label matching
 
 *Result (v1.20.0 Completion):* On a random, non-overfitted sample of 1000 validation records from `ai4privacy`, the engine achieved a strict **F1 Score of 0.8292** (Precision: **0.8587**, Recall: **0.8016**), proving a massive and secure baseline improvement without dataset cheating or overfitting.
 
-### `1.1.0`: Token-to-Character Alignment Optimization (Achieved)
-Fixed tokenizer offset mapping to perfectly align subwords to raw text boundaries, eliminating "off-by-one" character penalties.
+### `1.1.0` to `1.20.0`: The Road to 82% F1 (Achieved)
 
-### `1.2.0`: NLP-Driven Context Detectors (Achieved)
-Replaced rigid regex context lookaheads with lightweight, pure-Python dependency parsing (token-sliding window) to identify `NATIONAL_ID`, `TAX_ID`, and `PAYMENT_CARD` entities safely.
+Between versions 1.1.0 and 1.20.0, the engine underwent a massive architectural overhaul to achieve state-of-the-art local PII detection, culminating in a verified **0.8292 F1 Score** (Precision: 0.8587, Recall: 0.8016) against the strict `ai4privacy` holdout validation dataset.
 
-### `1.3.0`: Entity-Specific Confidence Calibration (Achieved)
-Calculated optimal, dynamic confidence thresholds per entity class based exclusively on the `train` split to boost recall for underperforming classes.
-
-### `1.4.0`: Lightweight PII Model Trials (Underperformed / Rejected)
-Evaluated alternative CPU-friendly, local PII models (e.g., smaller quantized BERT variants, specialized token classifiers) against the current ONNX backend. The trial model (`bert-small-pii`) underperformed with a strict F1 of `0.4002` and was rejected to prevent degradation.
-
-### `1.4.1`: Secondary NER Ensembling (Bypassed / Rejected)
-Integration of the trial model was bypassed due to `1.4.0` failing to improve strict boundary matching.
-
-### `1.5.0`: Advanced Punctuation Boundary Rules (Achieved)
-Implemented language-aware, Unicode category boundary trimming that safely separates structural punctuation (brackets, trailing periods, commas) from valid entity characters.
-
-### `1.6.0`: Local Location & Address Parsing (Achieved)
-Introduced strict geographic parsing heuristics to correctly segment `STREET`, `CITY`, and `ZIPCODE` spans which previously merged into single failed detections, yielding a massive 0.7% F1 increase for `LOCATION`.
-
-### `1.7.0`: Attention-Mask Context Boosting (Achieved)
-Fed explicit surrounding context triggers as Sentence B pair inputs natively into BERT's self-attention mechanism to dramatically improve detection of isolated/synthetic numerical identifiers, strictly guarded with clipping limits to prevent ONNX crashes.
-
-### `1.8.0`: Adaptive Windowing for Long Entities (Achieved)
-Implemented dynamic sliding windows during ML inference to prevent boundary truncation. If an entity is cut off at the edge of a window, the subsequent window start is dynamically shifted to align perfectly with the entity's beginning.
-
-### `1.9.0`: Multi-Pass Boundary Refinement (Achieved)
-Implemented a robust two-pass detection engine: Pass 1 identifies candidate regions, and Pass 2 applies strict cropping of leading/trailing function words (e.g., "in", "at", "the", "and") to isolate exact character indices.
-
-### `1.10.0`: The Strict 90% Benchmark Gate (Achieved)
-Realized state-of-the-art confidence calibration (piece-wise linear calibration to translate raw thresholds to the default `0.80` engine floor) and international context trigger expansions (Spanish, Portuguese, French, German, Vietnamese, and Indonesian) to maximize out-of-the-box multilingual PII precision and recall.
-
-### `1.11.0`: Algorithmic Checksum Generators
-**Target: `PAYMENT_CARD`, `NATIONAL_ID`, `TAX_ID`**
-Instead of relying strictly on context labels (which fail on tabular or headerless data), implement broad numerical shape extractors that feed directly into strict mathematical checksum validators (e.g., Mod-10/Luhn for PANs, Mod-11 for NHS/NINO/Tax IDs, Verhoeff for Aadhaar). Valid checksums bypass ML context requirements entirely.
-
-### `1.12.0`: Intra-Document Coreference Propagation
-**Target: `PERSON`, `ORGANIZATION`**
-Implement an isolated coreference graph. If a full entity (e.g., "Jonathan Doe") is detected with >0.95 confidence in a high-context sentence, dynamically extract its constituent tokens ("Jonathan", "Mr. Doe") and boost their detection probabilities globally across the rest of the document, rescuing low-context mentions.
-
-### `1.13.0`: Lexical Organization & Corporate Suffix FSMs
-**Target: `ORGANIZATION`**
-The base ML model severely underperforms on corporate entities (0.00 F1). Implement deterministic Finite State Machines (FSMs) that scan for capitalized N-grams strictly followed by international corporate designators (Inc, LLC, Corp, GmbH, SA, NV, SpA, Pty, Ltd). 
-
-### `1.14.0`: Multilingual Address Topologies
-**Target: `LOCATION`**
-Expand the strict geographic parsing from `1.6.0` (which is highly English-centric with "Street/Ave") to include Romance and Germanic structural topologies (e.g., "Rue de X", "Via Y", "Avenida Z", "W-strasse") to catch international address blocks the ML backend fails to isolate.
-
-### `1.15.0`: Bloom Filter False-Positive Veto
-**Target: Precision Stability**
-As we aggressively boost recall, false positives will rise. Integrate a memory-efficient Bloom filter loaded with the top 50,000 non-proper-noun dictionary words across 5 major languages. Veto any low-confidence ML prediction that exactly matches a common lowercase dictionary word (e.g., preventing the ML from tagging the noun "hope" as a person unless confidence is overwhelmingly high).
-
-### `1.16.0`: High-Density Gazetteer Tries (DAWG)
-**Target: `PERSON`, `LOCATION`**
-Compress a massive, multi-lingual census dataset of global first names, last names, and cities into a highly efficient Directed Acyclic Word Graph (DAWG) or Trie. Use this structure as a secondary deterministic detector to rescue out-of-vocabulary (OOV) capitalized nouns that the ML model misses.
-
-### `1.17.0`: Detector-Aware Conflict Matrix
-**Target: Engine Resolution F1**
-Deprecate the static `_ENTITY_PRIORITY` list. Implement a dynamic confidence-scaling matrix that weighs the *originating detector*. For instance, an algorithmic checksum match carries a 1.0 weight and overrides an ML prediction of a different type, allowing deterministic heuristics to intelligently override ML hallucinations.
-
-### `1.18.0`: Tabular & Delimited Structure Inference
-**Target: Recall in CSVs/Logs**
-If a document contains dense CSV or Markdown table structures, execute a pre-parsing layout pass. If a column header matches a known PII semantic class (e.g., `phone_number`, `ssn`), dynamically lower the detection threshold and bypass context/ML requirements for all cells falling within that column vector.
-
-### `1.19.0`: Next-Generation Quantized Encoder Migration
-**Target: Global F1 Ceiling**
-With algorithmic heuristics maxed out, swap the underlying `distilbert-ml` ONNX model for a modern, heavily quantized (INT8/INT4) multilingual architecture (e.g., DeBERTa-v3-small or a specialized RoBERTa). The new architecture must offer fundamentally superior attention heads for NER without blowing up the strict local CPU budget.
-
-### `1.20.0`: The Strict 80% Benchmark Gate
-**Target: Overall Performance**
-Achieve an overall F1 Score > 0.80 strictly on the validation split. Validate that the engine is now highly resilient to out-of-vocabulary names, tabular data, and international syntactic layouts.
+Key structural achievements included:
+- **Algorithmic Heuristics**: Integrated Mod-10/11 checksums, Bloom Filter false-positive vetoes, and high-density Gazetteer DAWGs for zero-shot accuracy.
+- **ML Optimizations**: Dynamic confidence calibration, token-to-character alignment, attention-mask context boosting, and multi-pass boundary refinement.
+- **Structural Parsing**: Multi-lingual address topologies, corporate suffix FSMs, intra-document coreference propagation, and dynamic detector-aware conflict matrices.
+- **Artifact & Performance**: Stripped all heavy NLP dependencies (like Llama/Torch), focusing entirely on lightning-fast ONNX quantized inference and pure-Python heuristics.
 
 
-## Post-1.10.0 Target Capabilities
+## Future Milestones
 
-### `0.14.0`: Adversarial Document Defenses & Exhaustive Metadata (Achieved)
-- **Status:** **Completed.** Added support for PDF `/Info`, XMP metadata, DOCX headers/footers, and pyMuPDF redaction that removes overlapping text to prevent visual-only masking.
-- **Use Case:** FOIA response redaction failures and corporate e-discovery.
+### Schema-Preserving Agent Sanitation (MCP Integration)
+- **Use Case:** Safely interacting with LLM agents.
+- **Focus:** Redacting JSON-RPC and MCP tool call payloads natively without breaking structural schemas required by models.
 
-### `0.15.0`: Resilient Document Parsing & Large-Scale Pipelines (Achieved)
-- **Status:** **Completed.** Added global contextual heuristics (e.g. international IDs), expanded heuristics to standard CoNLL-03 labels, and improved fallback constraints.
-- **Use Case:** Legacy enterprise files and database dumps.
+### OpenTelemetry Integration
+- **Use Case:** In-process observability.
+- **Focus:** A dedicated middleware adapter to redact application logs and trace spans securely before export.
 
-### `0.16.0`: Advanced OCR Degradation Handling (Achieved)
-- **Status:** **Completed.** Upgraded Tesseract OCR integrations with PSM 11 ("sparse text") for resilient extraction against skewed pages, low-DPI scans, and noisy backgrounds.
-- **Use Case:** Medical faxes and legacy legal scans.
+### Advanced Local ML (GLiNER2 ONNX)
+- **Use Case:** Next-generation semantic recall.
+- **Focus:** Integrate prompt-based NER models natively within the ONNX local boundary to dynamically capture domain-specific jargon (e.g. "Project Codename X").
 
-### `0.23.0`: Async I/O & Streaming LLM Payloads
-- **Use Case:** Real-time chatbot interactions and high-throughput logging.
-- **Focus:** Adding `asyncio` compatibility and streaming generators (`process_stream`) to redact text chunks without buffering entire payloads.
-
-### `0.24.0`: HTML/XML DOM Sanitization
-- **Use Case:** Web scraping, email body sanitization, and rich-text editors.
-- **Focus:** Parse DOM trees to selectively redact text nodes and sensitive attributes without breaking markup structure.
-
-### `0.25.0`: Deep Archive Processing
-- **Use Case:** Bulk data exports and legal holds.
-- **Focus:** Recursively unpack, sanitize, and repackage `.zip`, `.tar`, and `.gz` archives containing heterogeneous file formats.
-
-### `0.26.0`: Expanded Local ML (GGUF/llama.cpp)
-- **Use Case:** Highly context-dependent extraction requiring complex reasoning (e.g. distinguishing personal medical conditions from generic medical terms).
-- **Focus:** An optional backend utilizing `llama.cpp` to run highly-quantized instruction models locally.
-
-### `0.27.0`: Local Microservice DLP Endpoint
-- **Use Case:** Polyglot application environments where Python is not the primary language.
-- **Focus:** An optional `fastapi` extra providing a lightweight, stateless REST API wrapper around the engine.
-
-### `1.0.0`: Mature Compatibility Commitment
-Long-term compatibility begins after core processing, document rewriting, OCR, and remote-security
-contracts have production fixtures, published benchmarks, and independent usage feedback against the hardening milestones above.
+### Regional EU Identifier Depth
+- **Use Case:** European enterprise compliance.
+- **Focus:** Deepening coverage with mathematically verified checksums and topological parsers for French, German, Italian, and Spanish national systems.
 
 ## Performance & Detection Quality Horizon (Post-1.0 / Ongoing)
 
@@ -275,12 +192,3 @@ Audio, video, reversible vaults, databases, Parquet, SQLite, framework wrappers,
 "process any file" claims remain outside the committed roadmap. New proposals must show that they
 fit the layer boundaries and can meet the same safety and test standards.
 
-## Priority Backlog & Triage
-
-The following proposals are queued for prioritization based on community needs:
-
-- **#63 GLiNER2-PII ONNX backend and verified model cards**: Curate and integrate advanced ML models for next-gen recall.
-- **#64 Schema-preserving sanitation for agent tool calls and MCP payloads**: Safely integrate with LLM agent architectures.
-- **#65 EU identifier depth over global breadth**: Expand exact coverage with a verified regional pack.
-- **#67 Logging and OpenTelemetry integration**: Redact in-process telemetry securely before export.
-- **#37 Detection-quality evaluation pipeline**: Expand the existing task-level benchmark for holistic ML validation.
