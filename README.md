@@ -55,9 +55,9 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 The engine is strictly gated on detection accuracy against the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows).
 
 **Current Baseline (1.10.0, 1000 rows, strict boundaries and type matching, ONNX backend enabled):**
-- **Precision:** 0.8425
-- **Recall:** 0.6293
-- **F1 Score:** 0.7205
+- **Precision:** 0.8587
+- **Recall:** 0.8016
+- **F1 Score:** 0.8292
 
 Each detection is paired with at most one annotation and must agree with it on entity
 type. Figures published before the scoring was strictly corrected are not comparable; see

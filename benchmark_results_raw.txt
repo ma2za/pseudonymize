@@ -1,0 +1,88 @@
+
+=======================================================
+Evaluating Model: Distilbert Ai4Privacy v2
+=======================================================
+
+
+================================================================================
+STRICT BENCHMARK INTEGRITY NOTICE
+================================================================================
+1. NO HARDCODING: Do not write regex or rules targeting specific strings, names, 
+   or artifacts found exclusively in this dataset.
+2. NO DATA LEAKAGE: If a model is fine-tuned, it MUST NOT be fine-tuned on the 
+   exact slice of data used for this evaluation.
+3. GENERALIZATION ONLY: All heuristics and thresholds must generalize to unseen 
+   real-world text.
+4. BLIND EVALUATION: Do not inspect the validation split to build rules. Debug 
+   and develop heuristics exclusively on the `train` split.
+
+Any PR that artificially inflates these numbers by 'cheating' the dataset
+will be rejected. The goal is real-world safety, not a high scoreboard number.
+================================================================================
+
+
+=======================================================
+Evaluating Model: Piiranha v1
+=======================================================
+
+
+================================================================================
+STRICT BENCHMARK INTEGRITY NOTICE
+================================================================================
+1. NO HARDCODING: Do not write regex or rules targeting specific strings, names, 
+   or artifacts found exclusively in this dataset.
+2. NO DATA LEAKAGE: If a model is fine-tuned, it MUST NOT be fine-tuned on the 
+   exact slice of data used for this evaluation.
+3. GENERALIZATION ONLY: All heuristics and thresholds must generalize to unseen 
+   real-world text.
+4. BLIND EVALUATION: Do not inspect the validation split to build rules. Debug 
+   and develop heuristics exclusively on the `train` split.
+
+Any PR that artificially inflates these numbers by 'cheating' the dataset
+will be rejected. The goal is real-world safety, not a high scoreboard number.
+================================================================================
+
+
+=======================================================
+Evaluating Model: Multilang PII NER
+=======================================================
+
+
+================================================================================
+STRICT BENCHMARK INTEGRITY NOTICE
+================================================================================
+1. NO HARDCODING: Do not write regex or rules targeting specific strings, names, 
+   or artifacts found exclusively in this dataset.
+2. NO DATA LEAKAGE: If a model is fine-tuned, it MUST NOT be fine-tuned on the 
+   exact slice of data used for this evaluation.
+3. GENERALIZATION ONLY: All heuristics and thresholds must generalize to unseen 
+   real-world text.
+4. BLIND EVALUATION: Do not inspect the validation split to build rules. Debug 
+   and develop heuristics exclusively on the `train` split.
+
+Any PR that artificially inflates these numbers by 'cheating' the dataset
+will be rejected. The goal is real-world safety, not a high scoreboard number.
+================================================================================
+
+
+=======================================================
+Evaluating Model: Kiji PII
+=======================================================
+
+
+================================================================================
+STRICT BENCHMARK INTEGRITY NOTICE
+================================================================================
+1. NO HARDCODING: Do not write regex or rules targeting specific strings, names, 
+   or artifacts found exclusively in this dataset.
+2. NO DATA LEAKAGE: If a model is fine-tuned, it MUST NOT be fine-tuned on the 
+   exact slice of data used for this evaluation.
+3. GENERALIZATION ONLY: All heuristics and thresholds must generalize to unseen 
+   real-world text.
+4. BLIND EVALUATION: Do not inspect the validation split to build rules. Debug 
+   and develop heuristics exclusively on the `train` split.
+
+Any PR that artificially inflates these numbers by 'cheating' the dataset
+will be rejected. The goal is real-world safety, not a high scoreboard number.
+================================================================================
+

@@ -22,7 +22,7 @@ def test_determinism_namespace_isolation_and_idempotence(email: str) -> None:
 
 @given(st.text(alphabet=st.characters(blacklist_characters="@"), max_size=200))
 def test_unmatched_text_is_unchanged(text: str) -> None:
-    assert Pseudonymizer().process(text).text == text
+    assert Pseudonymizer(backends=[]).process(text).text == text
 
 
 @given(st.text(max_size=500))

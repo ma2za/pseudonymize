@@ -180,10 +180,10 @@ def evaluate(
 
     engine = Pseudonymizer(bloom_filter=bloom_filter)
     if use_ml:
-        # We need the model downloaded. The test suite uses the llama-ai4privacy model.
+        # We need the model downloaded. The test suite uses the multilang-pii-ner model.
         # Let's assume it's already cached or we can fetch it.
         # To keep it simple, we'll try to initialize it. If it fails, we fall back or error.
-        CACHE_DIR = Path(".cache/pseudonymize-tests/models/llama-ai4privacy-ml")
+        CACHE_DIR = Path(".cache/pseudonymize-tests/models/multilang-pii-ner-ml")
         onnx_model_path = CACHE_DIR / "model_int8.onnx"
         tokenizer_path = CACHE_DIR / "tokenizer.json"
         config_path = CACHE_DIR / "config.json"
@@ -349,7 +349,25 @@ if __name__ == "__main__":
         action="store_true",
         help="Score any overlap as a hit, ignoring whether the entity type matches.",
     )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="validation",
+        help="Dataset split to evaluate (e.g., train, validation).",
+    )
+    parser.add_argument(
+        "--explain",
+        action="store_true",
+        help="Print false positive and false negative explanations.",
+    )
     args = parser.parse_args()
 
     file_path = Path(args.file) if args.file is not None else None
-    evaluate(args.samples, args.ml, strict_labels=not args.span_only, file_path=file_path)
+    evaluate(
+        args.samples,
+        args.ml,
+        strict_labels=not args.span_only,
+        split=args.split,
+        explain=args.explain,
+        file_path=file_path,
+    )

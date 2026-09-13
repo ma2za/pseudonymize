@@ -13,7 +13,7 @@ FIRST_NAMES_M_URL = "https://www2.census.gov/topics/genealogy/1990surnames/dist.
 SURNAMES_URL = "https://www2.census.gov/topics/genealogy/1990surnames/dist.all.last"
 
 
-def download_file(url, dest):
+def download_file(url: str, dest: Path) -> None:
     if not dest.exists():
         print(f"Downloading {url}...")
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})  # noqa: S310

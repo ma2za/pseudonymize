@@ -39,7 +39,7 @@ SUPPORTED_LABELS = {
 }
 
 
-def analyze():
+def analyze() -> None:
     # Only use train split to avoid benchmark cheating
     ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split="train", streaming=True).shuffle(
         seed=42

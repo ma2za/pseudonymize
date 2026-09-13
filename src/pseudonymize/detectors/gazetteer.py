@@ -50,6 +50,9 @@ class GazetteerDetector:
         for match in self._CAPITALIZED_RX.finditer(text):
             word = match.group(0)
 
+            if self.veto_filter is not None and word.lower() in self.veto_filter:
+                continue
+
             # We can also check individual parts if the whole compound word isn't found
             parts = word.split()
 
@@ -84,16 +87,5 @@ class GazetteerDetector:
                         detections.append(
                             Detection(EntityType.PERSON, p_start, p_end, 0.90, self.name)
                         )
-            else:
-                if self.veto_filter is not None and word.lower() in self.veto_filter:
-                    continue
-                if self.location_dawg is not None and word in self.location_dawg:
-                    detections.append(
-                        Detection(EntityType.LOCATION, match.start(), match.end(), 0.90, self.name)
-                    )
-                elif self.person_dawg is not None and word in self.person_dawg:
-                    detections.append(
-                        Detection(EntityType.PERSON, match.start(), match.end(), 0.90, self.name)
-                    )
 
         return detections

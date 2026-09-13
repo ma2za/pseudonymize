@@ -705,15 +705,6 @@ wheels = [
 ]
 
 [[package]]
-name = "diskcache"
-version = "5.6.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3f/21/1c1ffc1a039ddcc459db43cc108658f32c57d271d7289a2794e401d0fdb6/diskcache-5.6.3.tar.gz", hash = "sha256:2c3a3fa2743d8535d832ec61c2054a1641f41775aa7c556758a109941e33e4fc", size = 67916, upload-time = "2023-08-31T06:12:00.316Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/27/4570e78fc0bf5ea0ca45eb1de3818a23787af9b390c0b0a0033a1b8236f9/diskcache-5.6.3-py3-none-any.whl", hash = "sha256:5e31b2d5fbad117cc363ebaf6b689474db18a1f6438bc82358b024abd4c2ca19", size = 45550, upload-time = "2023-08-31T06:11:58.822Z" },
-]
-
-[[package]]
 name = "distlib"
 version = "0.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1380,19 +1371,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/52/dd/843b6314087c41657c7036d7914d8f294bdf9b580aa8513ea0588c8e9a3d/librt-0.13.0-cp314-cp314t-win_amd64.whl", hash = "sha256:260c33e92263fa629b4f6d3c51967a1c2158fe6c33237aaa3ebeac586b085259", size = 126998, upload-time = "2026-07-08T12:26:10.975Z" },
     { url = "https://files.pythonhosted.org/packages/5f/5d/3dcec2884ba1b0806d1408612555c38dd5d68e90156b59f75f6e36435c3a/librt-0.13.0-cp314-cp314t-win_arm64.whl", hash = "sha256:2f281549a4c52ac7bb97997f14353f8bd0e53a34ca0dad1c905cfd0b4a58ae99", size = 110771, upload-time = "2026-07-08T12:26:12.303Z" },
 ]
-
-[[package]]
-name = "llama-cpp-python"
-version = "0.3.35"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "diskcache" },
-    { name = "jinja2" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/71/5ecdad726b87527b361d9d95313c6591f27bb3fad79c9ab524ad4250b4c9/llama_cpp_python-0.3.35.tar.gz", hash = "sha256:1139dbb54509074b70893fab8554e3b079aa9f4d312058ce4018ef0019e3de12", size = 74868054, upload-time = "2026-08-17T09:41:34.939Z" }
 
 [[package]]
 name = "lxml"
@@ -2576,7 +2554,7 @@ wheels = [
 
 [[package]]
 name = "pseudonymize"
-version = "1.19.0"
+version = "1.20.0"
 source = { editable = "." }
 dependencies = [
     { name = "dawg-python" },
@@ -2591,9 +2569,6 @@ api = [
 html = [
     { name = "beautifulsoup4" },
     { name = "lxml" },
-]
-llama = [
-    { name = "llama-cpp-python" },
 ]
 ml = [
     { name = "huggingface-hub" },
@@ -2652,7 +2627,6 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.100.0" },
     { name = "httpx", marker = "extra == 'remote'", specifier = ">=0.28.1" },
     { name = "huggingface-hub", marker = "extra == 'ml'", specifier = ">=1.28.0" },
-    { name = "llama-cpp-python", marker = "extra == 'llama'", specifier = ">=0.2.77" },
     { name = "lxml", marker = "extra == 'html'", specifier = ">=5.0.0" },
     { name = "onnxruntime", marker = "extra == 'ml'", specifier = ">=1.29.0" },
     { name = "openpyxl", marker = "extra == 'office'", specifier = ">=3.1.0" },
@@ -2666,7 +2640,7 @@ requires-dist = [
     { name = "tokenizers", marker = "extra == 'ml'", specifier = ">=0.23.1" },
     { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.20.0" },
 ]
-provides-extras = ["ml", "office", "pdf", "ocr", "remote", "html", "llama", "api"]
+provides-extras = ["ml", "office", "pdf", "ocr", "remote", "html", "api"]
 
 [package.metadata.requires-dev]
 benchmarks = [{ name = "datasets", specifier = ">=3.0.0" }]
