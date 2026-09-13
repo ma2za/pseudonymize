@@ -228,3 +228,6 @@ __marimo__/
 # Data directories
 data/
 data/
+
+# Local testing examples
+examples/*.pdf
