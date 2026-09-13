@@ -53,7 +53,7 @@ def analyze() -> None:
                 [line.strip().lower() for line in f if line.strip()]
             )
 
-    CACHE_DIR = Path(".cache/pseudonymize-tests/models/llama-ai4privacy-ml")
+    CACHE_DIR = Path(".cache/pseudonymize-tests/models/onnx-ai4privacy-ml")
     backend = LocalONNXPIIBackend(
         model_path=CACHE_DIR / "model_int8.onnx",
         tokenizer_path=CACHE_DIR / "tokenizer.json",

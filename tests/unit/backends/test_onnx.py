@@ -44,7 +44,7 @@ def download_file(url: str, dest: Path, sha256: str) -> None:
 
 
 @pytest.fixture(scope="session")
-def llama_artifacts() -> tuple[Path, Path, Path]:
+def onnx_artifacts() -> tuple[Path, Path, Path]:
     paths = []
     for local_name, (remote_path, sha256) in MODEL_FILES.items():
         dest = CACHE_DIR / local_name
@@ -54,8 +54,8 @@ def llama_artifacts() -> tuple[Path, Path, Path]:
     return (paths[0], paths[1], paths[2])
 
 
-def test_ml_backend_capabilities(llama_artifacts: tuple[Path, Path, Path]) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+def test_ml_backend_capabilities(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -100,8 +100,8 @@ def test_ml_backend_missing_optional_dependency(monkeypatch: pytest.MonkeyPatch)
         LocalONNXPIIBackend(model_path="model", tokenizer_path="tok")
 
 
-def test_ml_detect_config_missing_fallback(llama_artifacts: tuple[Path, Path, Path]) -> None:
-    _, tokenizer_path, model_path = llama_artifacts
+def test_ml_detect_config_missing_fallback(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    _, tokenizer_path, model_path = onnx_artifacts
 
     # Do not provide config path, this forces _id2label to evaluate to {}
     backend = LocalONNXPIIBackend(
@@ -114,8 +114,8 @@ def test_ml_detect_config_missing_fallback(llama_artifacts: tuple[Path, Path, Pa
     assert len(detections) == 0
 
 
-def test_ml_detect_empty_block(llama_artifacts: tuple[Path, Path, Path]) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+def test_ml_detect_empty_block(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -138,9 +138,9 @@ def test_ml_detect_empty_block(llama_artifacts: tuple[Path, Path, Path]) -> None
 
 
 def test_ml_detect_handles_unmapped_labels(
-    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    onnx_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -161,9 +161,9 @@ def test_ml_detect_handles_unmapped_labels(
 
 
 def test_ml_detect_real_inference_returns_meaningful_detections(
-    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    onnx_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -259,11 +259,11 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
 
 
 def test_ml_engine_shares_one_alias_per_merged_entity(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
     from pseudonymize import Pseudonymizer
 
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -284,9 +284,9 @@ def test_ml_engine_shares_one_alias_per_merged_entity(
 
 
 def test_ml_detect_raises_on_inference_failure(
-    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    onnx_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -309,9 +309,9 @@ def test_ml_detect_raises_on_inference_failure(
 
 
 def test_ml_detect_raises_on_tokenizer_failure(
-    llama_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+    onnx_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -339,7 +339,7 @@ _TAIL = "Contact Maria Rossi in Milan."
 
 @pytest.mark.parametrize("repetitions", [5, 40, 400])
 def test_ml_detects_personal_data_beyond_a_single_model_window(
-    llama_artifacts: tuple[Path, Path, Path], repetitions: int
+    onnx_artifacts: tuple[Path, Path, Path], repetitions: int
 ) -> None:
     """PII in the tail of a long block must not be skipped.
 
@@ -347,7 +347,7 @@ def test_ml_detects_personal_data_beyond_a_single_model_window(
     model never saw past roughly two kilobytes of text and the tail passed
     through unredacted with no error and no warning.
     """
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -364,9 +364,9 @@ def test_ml_detects_personal_data_beyond_a_single_model_window(
 
 
 def test_ml_windows_cover_the_whole_block(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -386,7 +386,7 @@ def test_ml_windows_cover_the_whole_block(
 
 
 def test_ml_reported_confidence_is_the_model_probability(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
     """A stricter policy must only ever remove detections, never relabel them.
 
@@ -394,7 +394,7 @@ def test_ml_reported_confidence_is_the_model_probability(
     so the same weak prediction was reported at 0.51 under a 0.5 floor and at
     0.99 under a 0.99 floor, and minimum_confidence could filter nothing.
     """
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )
@@ -419,10 +419,10 @@ def test_ml_reported_confidence_is_the_model_probability(
 
 
 def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
     """The runner-up label wins only when it clears an absolute probability."""
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     text = "An obscure text with JohnXYZ and random unconfident bits."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -446,9 +446,9 @@ def test_ml_entity_threshold_controls_recall_without_inflating_confidence(
 
 
 def test_ml_entity_threshold_is_validated(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     with pytest.raises(ValueError, match="entity_threshold"):
         LocalONNXPIIBackend(
             model_path=model_path,
@@ -466,9 +466,9 @@ def test_ml_entity_threshold_is_validated(
 
 
 def test_ml_entity_specific_thresholds(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     text = "Please ship the Apollo unit to warehouse Beta before the Friday deadline, thanks."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -485,9 +485,9 @@ def test_ml_entity_specific_thresholds(
 
 
 def test_ml_subword_span_repair(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     text = "Jean-Paul is a nice person."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -503,9 +503,9 @@ def test_ml_subword_span_repair(
 
 
 def test_ml_context_boosting(
-    llama_artifacts: tuple[Path, Path, Path],
+    onnx_artifacts: tuple[Path, Path, Path],
 ) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+    config_path, tokenizer_path, model_path = onnx_artifacts
     text = "The applicant's name is John, contact him immediately."
     block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
     policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
@@ -520,8 +520,8 @@ def test_ml_context_boosting(
     assert len(detections) >= 0
 
 
-def test_onnx_context_boosting_pair_handling(llama_artifacts: tuple[Path, Path, Path]) -> None:
-    config_path, tokenizer_path, model_path = llama_artifacts
+def test_onnx_context_boosting_pair_handling(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
     backend = LocalONNXPIIBackend(
         model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
     )

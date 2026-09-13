@@ -83,14 +83,6 @@ This installs `onnxruntime`, `tokenizers`, and `numpy` allowing you to configure
 to run a lightweight local quantized DistilBERT model. No models are downloaded implicitly; you must provide 
 your own paths to your downloaded `model.onnx`, `tokenizer.json`, and `config.json`.
 
-Alternatively, if you require complex semantic reasoning, you can install the `llama` extra to run heavily-quantized instruction models using `llama.cpp`:
-
-```console
-python -m pip install pseudonymize[llama]
-```
-
-This allows you to configure the `LocalLlamaBackend` pointing to a local `.gguf` file to perform zero-shot extraction.
-
 ### Optional Document & OCR Support
 
 To extract and safely redact complex file formats, install the relevant extras:
