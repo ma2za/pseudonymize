@@ -42,11 +42,11 @@ def main() -> None:
         {"email": "maria@example.com", "active": True},
     )
 
-    _require(prompt == "Contact <EMAIL_1>")
-    _require(retrieval["query"] == "Find <EMAIL_1>")
-    _require(retrieval["documents"][0]["text"] == "Owner: <EMAIL_1>")  # type: ignore[index]
-    _require(tool_call["arguments"]["email"] == "<EMAIL_1>")  # type: ignore[index]
-    _require(tool_output["output"]["email"] == "<EMAIL_1>")  # type: ignore[index]
+    _require(prompt == "Contact <EML_1>")
+    _require(retrieval["query"] == "Find <EML_1>")
+    _require(retrieval["documents"][0]["text"] == "Owner: <EML_1>")  # type: ignore[index]
+    _require(tool_call["arguments"]["email"] == "<EML_1>")  # type: ignore[index]
+    _require(tool_output["output"]["email"] == "<EML_1>")  # type: ignore[index]
 
 
 if __name__ == "__main__":

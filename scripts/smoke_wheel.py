@@ -25,15 +25,15 @@ def _require(condition: bool, message: str) -> None:
 
 def main() -> None:
     _require(
-        pseudonymize("maria@example.com") == "<EMAIL_1>",
+        pseudonymize("maria@example.com") == "<EML_1>",
         "email smoke test failed",
     )
     _require(
-        pseudonymize("Server 192.0.2.10.") == "Server <IP_ADDRESS_1>.",
+        pseudonymize("Server 192.0.2.10.") == "Server <IP_1>.",
         "IP punctuation smoke test failed",
     )
     result = Pseudonymizer().process_with_report("maria@example.com")
-    _require(result.output == "<EMAIL_1>", "detailed output smoke test failed")
+    _require(result.output == "<EML_1>", "detailed output smoke test failed")
     _require(result.detections[0].backend == "rules", "backend provenance smoke test failed")
     _require("maria@example.com" not in repr(result), "report representation leaked input")
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as directory:
@@ -41,7 +41,7 @@ def main() -> None:
         source.write_text('{"value":"maria@example.com"}', encoding="utf-8")
         file_result = Pseudonymizer().process_file(source)
         _require(
-            file_result.output.read_text(encoding="utf-8") == '{\n  "value": "<EMAIL_1>"\n}\n',
+            file_result.output.read_text(encoding="utf-8") == '{\n  "value": "<EML_1>"\n}\n',
             "built-in JSON file smoke test failed",
         )
         inspected = Pseudonymizer().inspect_file(source)
