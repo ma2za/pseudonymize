@@ -229,13 +229,13 @@ class PDFInspectionAdapter:
                                     replacement_rect, text="", fill=None, cross_out=False
                                 )
                                 insertions.append(
-                                    (getattr(replacement_rect, "bl"), replacement_text, style)
+                                    (replacement_rect.bl, replacement_text, style)  # type: ignore[attr-defined]
                                 )
                         else:
                             # Fail closed if an exact changed span cannot be located.
                             style = _source_text_style(page, rect)
                             page.add_redact_annot(rect, text="", fill=None, cross_out=False)
-                            insertions.append((getattr(rect, "bl"), block.text, style))
+                            insertions.append((rect.bl, block.text, style))
 
                     # Preserve page artwork for text PDFs. OCR detections originate in page
                     # images, so their intersecting pixels must still be blanked securely.
