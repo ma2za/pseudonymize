@@ -8,7 +8,7 @@
   - F1 Score: `0.6826`
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, strict rules).*
 
-## Immediate Next Milestone: `1.1.0` to `1.10.0`
+## Immediate Next Milestone: `0.23.0` to `1.0.0` (Agent Integration & Scale)
 **Focus:** Benchmark Recovery Pipeline
 
 The next 10 releases are singularly focused on improving the F1 score back to >0.90 under the strict evaluation rules:
@@ -22,7 +22,9 @@ The next 10 releases are singularly focused on improving the F1 score back to >0
 - **1.7.0:** Attention-Mask Context Boosting
 - **1.8.0:** Adaptive Windowing for Long Entities
 - **1.9.0:** Multi-Pass Boundary Refinement
-- **1.10.0:** The Strict 90% Benchmark Gate
+- **0.23.0:** Agent/MCP Schema Sanitation
+- **0.24.0:** OpenTelemetry Integration
+- **1.0.0:** Mature Compatibility Commitment
 
 ### Instructions to resume
 1. Start by investigating the fast tokenizer alignment offsets for 1.1.0.
