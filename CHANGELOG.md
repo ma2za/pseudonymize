@@ -2,7 +2,12 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
-## [1.20.0] - 2026-09-13
+## [1.20.1] - 2026-09-13
+
+### Changed
+- Updated benchmark results and completely removed llama dependencies.
+
+## [1.20.0] - 2026-09-12
 
 ### Added
 - **Final Benchmark Run:** Achieved a verified F1 score of 0.8292 (Precision: 0.8587, Recall: 0.8016) on the strict 1000-sample quality evaluation.
