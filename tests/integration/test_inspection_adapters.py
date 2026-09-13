@@ -385,8 +385,10 @@ def test_pdf_replacement_color_falls_back_when_spans_have_no_color() -> None:
                 ]
             }
 
-    assert _source_text_style(PageWithoutColoredText(), type("MockRect", (object,), {"y1": 100.0, "height": 10.0})()) == {
-            "origin_y": 98.5,
+    assert _source_text_style(
+        PageWithoutColoredText(), type("MockRect", (object,), {"y1": 100.0, "height": 10.0})()
+    ) == {
+        "origin_y": 98.5,
         "text_color": (0.0, 0.0, 0.0),
         "fontsize": 11.0,
         "fontname": "helv",
