@@ -187,9 +187,7 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
     # Let's map out the exact expected strings for the entities found
     found_entities = [(d.entity_type, text[d.start : d.end]) for d in sorted_detections]
 
-    assert any(
-        "John" in text_str for et, text_str in found_entities if et == EntityType.PERSON
-    )
+    assert any("John" in text_str for et, text_str in found_entities if et == EntityType.PERSON)
     assert any(
         "Seattle" in text_str for et, text_str in found_entities if et == EntityType.LOCATION
     )
