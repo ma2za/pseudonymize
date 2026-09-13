@@ -18,6 +18,24 @@ class EntityType(StrEnum):
     URL_CREDENTIAL = "URL_CREDENTIAL"
     SECRET = "SECRET"  # noqa: S105
 
+    @property
+    def short_code(self) -> str:
+        return {
+            EntityType.PERSON: "PER",
+            EntityType.ORGANIZATION: "ORG",
+            EntityType.LOCATION: "LOC",
+            EntityType.EMAIL: "EML",
+            EntityType.PHONE: "PHN",
+            EntityType.IP_ADDRESS: "IP",
+            EntityType.IBAN: "IBN",
+            EntityType.PAYMENT_CARD: "PAN",
+            EntityType.NATIONAL_ID: "NID",
+            EntityType.TAX_ID: "TID",
+            EntityType.URL_CREDENTIAL: "CRE",
+            EntityType.SECRET: "SEC",
+        }[self]
+
+
 
 @dataclass(frozen=True, slots=True)
 class Detection:

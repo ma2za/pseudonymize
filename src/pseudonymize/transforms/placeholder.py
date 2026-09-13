@@ -8,4 +8,4 @@ from pseudonymize.transforms.alias import Alias
 class PlaceholderTransformer:
     def render(self, entity: ResolvedEntity, alias: Alias) -> str:
         suffix = f"_{alias.identifier}" if alias.identifier is not None else ""
-        return f"<{alias.entity_type.value}{suffix}>"
+        return f"<{alias.entity_type.short_code}{suffix}>"
