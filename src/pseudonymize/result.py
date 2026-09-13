@@ -19,6 +19,8 @@ class EntityType(StrEnum):
     SECRET = "SECRET"  # noqa: S105
 
 
+
+
 @dataclass(frozen=True, slots=True)
 class Detection:
     entity_type: EntityType
