@@ -115,3 +115,15 @@ reconsidered only after the core roadmap is proven and should not distort the cu
 The project succeeds when an application can place a narrow local boundary around sensitive
 content, choose the appropriate transformation, inspect what happened without leaking what was
 found, and add only the format or detection dependencies it actually needs.
+
+## Future Exploration & Open Proposals
+
+The following architectural and visionary proposals are under consideration for the long-term future:
+
+- **#34 Vision proposal: worldwide language and locale coverage**
+- **#35 Vision proposal: maintained structured registry of privacy regulations per jurisdiction**
+- **#36 Architecture and scalability review: current limits and proposed solutions**
+- **#66 Proposal: training-corpus de-identification mode with erasure-by-key (crypto-shredding)**
+- **#70 Proposal: residual re-identification risk report (the honest dual of detection)**
+- **#71 Proposal: processing receipts (signed, value-free provenance manifests)**
+- **#73 Proposal: pseudonym interchange spec with cross-language test vectors**
