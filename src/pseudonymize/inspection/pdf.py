@@ -228,7 +228,9 @@ class PDFInspectionAdapter:
                                 page.add_redact_annot(
                                     replacement_rect, text="", fill=None, cross_out=False
                                 )
-                                insertions.append((getattr(replacement_rect, "bl"), replacement_text, style))
+                                insertions.append(
+                                    (getattr(replacement_rect, "bl"), replacement_text, style)
+                                )
                         else:
                             # Fail closed if an exact changed span cannot be located.
                             style = _source_text_style(page, rect)
