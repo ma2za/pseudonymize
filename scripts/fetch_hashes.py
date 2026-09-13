@@ -1,7 +1,7 @@
 import hashlib
 import urllib.request
 
-BASE_URL = "https://huggingface.co/onnx-community/llama-ai4privacy-multilingual-categorical-anonymiser-openpii-ONNX/resolve/main/"
+BASE_URL = "https://huggingface.co/onnx-community/distilbert-ai4privacy-multilingual-categorical-anonymiser-openpii-ONNX/resolve/main/"
 FILES = {
     "config.json": "config.json",
     "tokenizer.json": "tokenizer.json",
