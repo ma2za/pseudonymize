@@ -127,7 +127,7 @@ def test_docx_path(tmp_path: Path) -> Path:
     # Header with PII
     section = doc.sections[0]
     section.header.paragraphs[0].text = "Header contact: charlie@example.com"
-    section.footer.paragraphs[0].text = "Footer contact: dave@example.com"
+    section.footer.paragraphs[0].text = "BottomText contact: dave@example.com"
 
     table = doc.add_table(rows=2, cols=2)
     table.rows[0].cells[0].text = "Header"
@@ -405,7 +405,7 @@ def test_process_docx(test_docx_path: Path, tmp_path: Path) -> None:
     assert doc.core_properties.last_modified_by == "[REDACTED]"
 
     assert doc.sections[0].header.paragraphs[0].text == "Header contact: [REDACTED]"
-    assert doc.sections[0].footer.paragraphs[0].text == "[REDACTED] contact: [REDACTED]"
+    assert doc.sections[0].footer.paragraphs[0].text == "BottomText contact: [REDACTED]"
 
 
 def test_process_xlsx(test_xlsx_path: Path, tmp_path: Path) -> None:
