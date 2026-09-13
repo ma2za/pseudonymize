@@ -20,7 +20,7 @@ def test_process_stream_synchronous() -> None:
     result = "".join(engine.process_stream(chunks))
 
     assert (
-        result == "Hello! My email is <EMAIL_1>. Please write back to <EMAIL_1> when you have time."
+        result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
     )
 
 
@@ -45,7 +45,7 @@ async def test_process_stream_asynchronous() -> None:
         result += processed
 
     assert (
-        result == "Hello! My email is <EMAIL_1>. Please write back to <EMAIL_1> when you have time."
+        result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
     )
 
 
@@ -56,7 +56,7 @@ def test_stream_context_overlap() -> None:
     chunks = ["My info is Passport No: ", "ABC12", "345. Thanks!"]
 
     result = "".join(engine.process_stream(chunks))
-    # It might be <NATIONAL_ID_1> or another ID.
+    # It might be <NID_1> or another ID.
     assert "<" in result and ">" in result
 
 
@@ -65,7 +65,7 @@ def test_stream_long_chunk() -> None:
 
     chunks = ["A" * 5000 + " paolo@example.com " + "B" * 5000]
     result = "".join(engine.process_stream(chunks))
-    assert "<EMAIL_1>" in result
+    assert "<EML_1>" in result
     assert len(result) > 9000
 
 
@@ -75,7 +75,7 @@ def test_stream_tiny_chunks() -> None:
     chunks = list(text)
 
     result = "".join(engine.process_stream(chunks))
-    assert result == "My email is <EMAIL_1>."
+    assert result == "My email is <EML_1>."
 
 
 def test_stream_empty_chunks() -> None:
@@ -83,7 +83,7 @@ def test_stream_empty_chunks() -> None:
     chunks = ["", "Hello ", "", "empty@example.com", ""]
 
     result = "".join(engine.process_stream(chunks))
-    assert result == "Hello <EMAIL_1>"
+    assert result == "Hello <EML_1>"
 
 
 def test_detection_stream() -> None:
@@ -105,5 +105,5 @@ def test_detection_stream() -> None:
     result += stream.flush()
 
     assert (
-        result == "Hello! My email is <EMAIL_1>. Please write back to <EMAIL_1> when you have time."
+        result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
     )

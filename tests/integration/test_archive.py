@@ -30,12 +30,12 @@ def test_zip_processing(tmp_path: Path) -> None:
 
     assert (out_dir / "test.txt").exists()
     txt = (out_dir / "test.txt").read_text(encoding="utf-8")
-    assert "<EMAIL_1>" in txt or "<EMAIL_2>" in txt
+    assert "<EML_1>" in txt or "<EML_2>" in txt
     assert "paolo@example.com" not in txt
 
     assert (out_dir / "test.json").exists()
     js = (out_dir / "test.json").read_text(encoding="utf-8")
-    assert "<EMAIL_1>" in js or "<EMAIL_2>" in js
+    assert "<EML_1>" in js or "<EML_2>" in js
     assert "secret@example.com" not in js
 
     assert (out_dir / "unsupported.bin").read_bytes() == b"\x00\x01\x02"
@@ -69,7 +69,7 @@ def test_tar_gz_processing(tmp_path: Path) -> None:
             tar.extractall(path=out_dir)
 
     txt = (out_dir / "test.md").read_text(encoding="utf-8")
-    assert "<EMAIL_1>" in txt
+    assert "<EML_1>" in txt
     assert "paolo@example.com" not in txt
 
 
@@ -112,7 +112,7 @@ def test_deeply_nested_archive(tmp_path: Path) -> None:
             tar.extractall(path=out_tar_dir)
 
     txt = (out_tar_dir / "secret.txt").read_text(encoding="utf-8")
-    assert "<EMAIL_1>" in txt
+    assert "<EML_1>" in txt
     assert "nested@example.com" not in txt
 
 

@@ -97,13 +97,13 @@ def test_json_extracts_only_strings_with_stable_paths_and_semantic_rendering(
     transformed = replace(
         document,
         blocks=(
-            replace(document.blocks[0], text="<EMAIL_1>"),
-            replace(document.blocks[1], text="<IP_ADDRESS_1>"),
+            replace(document.blocks[0], text="<EML_1>"),
+            replace(document.blocks[1], text="<IP_1>"),
         ),
     )
     assert json.loads(adapter.render(transformed)) == {
-        "message": "<EMAIL_1>",
-        "nested": [1, True, None, "<IP_ADDRESS_1>"],
+        "message": "<EML_1>",
+        "nested": [1, True, None, "<IP_1>"],
     }
     assert adapter.render(transformed).endswith(b"\n")
 

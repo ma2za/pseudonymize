@@ -21,14 +21,14 @@ def test_text_report_has_relative_unicode_offsets_and_no_source_value() -> None:
     result = Pseudonymizer().process_with_report(source)
     report = result.detections[0]
 
-    assert result.output == "π <EMAIL_1>"
+    assert result.output == "π <EML_1>"
     assert (report.start, report.end) == (2, 19)
     assert report.entity_type is EntityType.EMAIL
     assert report.block_id == "text"
     assert report.location == TextOffsetLocation(0, len(source))
     assert report.backend == "rules"
     assert report.detector == "email"
-    assert report.token == "<EMAIL_1>"
+    assert report.token == "<EML_1>"
     assert result.statistics.blocks_processed == 1
     assert result.statistics.detections_found == 1
     assert result.statistics.replacements_applied == 1
@@ -50,8 +50,8 @@ def test_nested_data_reports_stable_ids_and_typed_json_paths() -> None:
     output = cast(dict[str, Data], result.output)
 
     assert output["messages"] == [
-        {"content": "<EMAIL_1>"},
-        {"content": "<IP_ADDRESS_1>."},
+        {"content": "<EML_1>"},
+        {"content": "<IP_1>."},
     ]
     assert tuple(report.block_id for report in result.detections) == (
         "block-000000",
@@ -90,7 +90,7 @@ def test_document_processing_preserves_structure_identifiers_and_metadata() -> N
 
     assert result.output.id == "request"
     assert tuple(block.id for block in result.output.blocks) == ("subject", "body")
-    assert result.output.blocks[0].text == "Contact <EMAIL_1>"
+    assert result.output.blocks[0].text == "Contact <EML_1>"
     assert result.output.blocks[1].text == "No PII"
     assert result.output.blocks[0].location == TextOffsetLocation(0, 25)
     assert result.output.blocks[0].metadata == {"kind": "subject"}

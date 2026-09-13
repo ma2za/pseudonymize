@@ -29,10 +29,10 @@ def test_html_sanitization(tmp_path: Path) -> None:
     engine.process_file(in_path, out_path, format=FileFormat.HTML)
 
     result = out_path.read_text(encoding="utf-8")
-    assert "<EMAIL_1>" in result
+    assert "<EML_1>" in result
     assert "john.doe@example.com" not in result
-    assert 'href="mailto:&lt;EMAIL_1&gt;"' in result
-    assert 'alt="Profile of &lt;EMAIL_1&gt;"' in result
+    assert 'href="mailto:&lt;EML_1&gt;"' in result
+    assert 'alt="Profile of &lt;EML_1&gt;"' in result
     assert "<script>" in result
 
 
@@ -69,7 +69,7 @@ def test_html_malformed(tmp_path: Path) -> None:
     engine.process_file(in_path, out_path, format=FileFormat.HTML)
 
     result = out_path.read_text(encoding="utf-8")
-    assert "&lt;EMAIL_1&gt;" in result or "<EMAIL_1>" in result
+    assert "&lt;EML_1&gt;" in result or "<EML_1>" in result
     assert "malformed@example.com" not in result
 
 
@@ -84,6 +84,6 @@ def test_html_nested_tags(tmp_path: Path) -> None:
     engine.process_file(in_path, out_path, format=FileFormat.HTML)
 
     result = out_path.read_text(encoding="utf-8")
-    assert "&lt;EMAIL_1&gt;" in result
+    assert "&lt;EML_1&gt;" in result
     assert "nested@example.com" not in result
     assert "<span>Hello</span>" in result

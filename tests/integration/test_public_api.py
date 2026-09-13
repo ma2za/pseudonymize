@@ -40,7 +40,7 @@ def test_top_level_api() -> None:
         "redact",
     }
     assert set(package.__all__) == expected
-    assert pseudonymize("Email maria@example.com") == "Email <EMAIL_1>"
-    assert pseudonymize("Email maria@example.com", mode="generic") == "Email <EMAIL>"
+    assert pseudonymize("Email maria@example.com") == "Email <EML_1>"
+    assert pseudonymize("Email maria@example.com", mode="generic") == "Email <EML>"
     assert redact("Email maria@example.com") == "Email [REDACTED]"
     assert Pseudonymizer(mode=TransformationMode.NUMBERED, policy=Policy.default())

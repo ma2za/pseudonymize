@@ -27,6 +27,6 @@ def test_intra_document_coreference() -> None:
 
     res = engine.process_batch(texts)
 
-    assert "<PERSON_2>" in res[1].text
+    assert "<PER_2>" in res[1].text
     assert "Jonathan" not in res[1].text
     assert "Doe" not in res[1].text
