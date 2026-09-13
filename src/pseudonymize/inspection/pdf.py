@@ -209,6 +209,7 @@ class PDFInspectionAdapter:
 
             for page_index, page in enumerate(doc):
                 if page_index in page_blocks:
+                    insertions = []
                     for block in page_blocks[page_index]:
                         loc = block.location
                         if not isinstance(loc, CoordinateLocation):
@@ -223,15 +224,14 @@ class PDFInspectionAdapter:
                         )
                         if replacements:
                             for replacement_rect, replacement_text in replacements:
-                                _add_redaction(
-                                    page,
-                                    replacement_rect,
-                                    replacement_text,
-                                    _source_text_style(page, replacement_rect),
-                                )
+                                style = _source_text_style(page, replacement_rect)
+                                page.add_redact_annot(replacement_rect, text="", fill=None, cross_out=False)
+                                insertions.append((replacement_rect.bl, replacement_text, style))
                         else:
                             # Fail closed if an exact changed span cannot be located.
-                            _add_redaction(page, rect, block.text, _source_text_style(page, rect))
+                            style = _source_text_style(page, rect)
+                            page.add_redact_annot(rect, text="", fill=None, cross_out=False)
+                            insertions.append((rect.bl, block.text, style))
 
                     # Preserve page artwork for text PDFs. OCR detections originate in page
                     # images, so their intersecting pixels must still be blanked securely.
@@ -243,6 +243,9 @@ class PDFInspectionAdapter:
                         graphics=0,
                         text=0,
                     )
+                    
+                    for pt, text, style in insertions:
+                        page.insert_text(pt, text, fontsize=style["fontsize"], color=style["text_color"], fontname=style["fontname"])
 
             # Apply metadata updates and clear missing fields to prevent leaks
             new_metadata = {
