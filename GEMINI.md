@@ -54,3 +54,8 @@ candidate and `/release:verify` to validate it.
 
 At handoff, state files changed, checks run, checks not run, and any external
 actions still requiring maintainer approval.
+
+## Recent Architectural Changes
+- **Dense Placeholders**: The engine uses short 3-letter entity codes natively (e.g. `<PER_1>`, `<EML_1>`, `[REDACTED_LOC]`) to tightly format tabular and PDF datasets.
+- **PDF Rendering Engine**: Re-engineered to explicitly draw pseudo-text over erased bounding boxes with proportional font-size down-scaling and exact `origin_y` baseline calculation (raised by 15% to perfectly center fallback Helvetica overlays).
+- **Zero ML Dependencies**: The `llama-cpp-python` backend and its associated scripts/tests have been completely and permanently eradicated in favor of lightweight ONNX logic.
