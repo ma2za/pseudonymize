@@ -9,5 +9,5 @@ class RedactTransformer:
     typed: bool = False
 
     def render(self, entity: ResolvedEntity, alias: Alias) -> str:
-        suffix = f"_{entity.detection.entity_type.value}" if self.typed else ""
+        suffix = f"_{entity.detection.entity_type.short_code}" if self.typed else ""
         return f"[REDACTED{suffix}]"

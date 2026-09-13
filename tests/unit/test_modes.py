@@ -37,7 +37,7 @@ class PersonBackend:
 
 
 def test_numbered_mode_is_default() -> None:
-    assert pseudonymize("Email paolo@example.com.") == "Email <EMAIL_1>."
+    assert pseudonymize("Email paolo@example.com.") == "Email <EML_1>."
 
 
 def test_person_backend_and_exact_normalized_resolution() -> None:
@@ -46,14 +46,14 @@ def test_person_backend_and_exact_normalized_resolution() -> None:
     _DETECTOR_WEIGHT["test_person"] = 1.0
     engine = Pseudonymizer(backends=[RulesBackend(), PersonBackend()])
     result = engine.process("Paolo Mazza met Paolo   Mazza and Maria Rossi.")
-    assert result.text == "<PERSON_1> met <PERSON_1> and <PERSON_2>."
+    assert result.text == "<PER_1> met <PER_1> and <PER_2>."
 
 
 def test_generic_mode() -> None:
     result = pseudonymize(
         "paolo@example.com then maria@example.com", mode=TransformationMode.GENERIC
     )
-    assert result == "<EMAIL> then <EMAIL>"
+    assert result == "<EML> then <EML>"
 
 
 def test_deterministic_mode_is_stable_and_namespaced() -> None:
@@ -62,7 +62,7 @@ def test_deterministic_mode_is_stable_and_namespaced() -> None:
     )
     assert first == pseudonymize("paolo@example.com", mode="deterministic", key=KEY, namespace="a")
     assert first != pseudonymize("paolo@example.com", mode="deterministic", key=KEY, namespace="b")
-    assert re.fullmatch(r"<EMAIL_[A-Z2-7]{12}>", first)
+    assert re.fullmatch(r"<EML_[A-Z2-7]{12}>", first)
 
 
 def test_deterministic_configuration_is_explicit() -> None:
@@ -91,21 +91,21 @@ def test_deterministic_configuration_is_explicit() -> None:
 
 def test_redacted_mode() -> None:
     assert redact("paolo@example.com") == "[REDACTED]"
-    assert redact("paolo@example.com", typed=True) == "[REDACTED_EMAIL]"
+    assert redact("paolo@example.com", typed=True) == "[REDACTED_EML]"
 
 
 def test_numbering_is_per_type_and_per_call() -> None:
     engine = Pseudonymizer()
     text = "paolo@example.com 192.168.1.1 maria@example.com"
-    assert engine.process(text).text == "<EMAIL_1> <IP_ADDRESS_1> <EMAIL_2>"
-    assert engine.process("maria@example.com").text == "<EMAIL_1>"
+    assert engine.process(text).text == "<EML_1> <IP_1> <EML_2>"
+    assert engine.process("maria@example.com").text == "<EML_1>"
 
 
 def test_explicit_scope_preserves_aliases_across_calls() -> None:
     scope = Pseudonymizer().new_scope()
-    assert scope.process("paolo@example.com").text == "<EMAIL_1>"
-    assert scope.process("maria@example.com paolo@example.com").text == ("<EMAIL_2> <EMAIL_1>")
-    assert scope.process_data({"email": "paolo@example.com"}) == {"email": "<EMAIL_1>"}
+    assert scope.process("paolo@example.com").text == "<EML_1>"
+    assert scope.process("maria@example.com paolo@example.com").text == ("<EML_2> <EML_1>")
+    assert scope.process_data({"email": "paolo@example.com"}) == {"email": "<EML_1>"}
 
 
 def test_batch_uses_one_scope() -> None:
@@ -113,8 +113,8 @@ def test_batch_uses_one_scope() -> None:
         ["paolo@example.com", "maria@example.com paolo@example.com"]
     )
     assert tuple(result.text for result in results) == (
-        "<EMAIL_1>",
-        "<EMAIL_2> <EMAIL_1>",
+        "<EML_1>",
+        "<EML_2> <EML_1>",
     )
 
 
@@ -123,8 +123,8 @@ def test_existing_placeholders_are_ignored_and_processing_is_idempotent() -> Non
     once = engine.process("paolo@example.com").text
     assert engine.process(once).text == once
     assert engine.process(
-        "<PERSON_1> <EMAIL> [REDACTED_EMAIL] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>"
-    ).text == ("<PERSON_1> <EMAIL> [REDACTED_EMAIL] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>")
+        "<PER_1> <EML> [REDACTED_EML] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>"
+    ).text == ("<PER_1> <EML> [REDACTED_EML] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>")
 
 
 def test_explicit_empty_backends_disable_detection() -> None:
@@ -136,16 +136,16 @@ def test_mapping_is_opt_in_hidden_and_restorable() -> None:
     without_mapping = engine.process("Paolo Mazza")
     assert without_mapping.mapping is None
     with pytest.raises(ValueError, match="include_mapping"):
-        without_mapping.restore("<PERSON_1>")
+        without_mapping.restore("<PER_1>")
 
     result = engine.process("Paolo Mazza", include_mapping=True)
-    assert result.mapping == {"<PERSON_1>": "Paolo Mazza"}
+    assert result.mapping == {"<PER_1>": "Paolo Mazza"}
     assert "Paolo Mazza" not in repr(result)
-    assert result.restore("<PERSON_1> should verify PERSON_1 and <PERSON_10>.") == (
-        "Paolo Mazza should verify PERSON_1 and <PERSON_10>."
+    assert result.restore("<PER_1> should verify PERSON_1 and <PER_10>.") == (
+        "Paolo Mazza should verify PERSON_1 and <PER_10>."
     )
     with pytest.raises(TypeError):
-        result.mapping["<PERSON_2>"] = "Maria Rossi"  # type: ignore[index]
+        result.mapping["<PER_2>"] = "Maria Rossi"  # type: ignore[index]
 
 
 def test_deterministic_mapping_and_empty_mapping() -> None:
@@ -172,8 +172,8 @@ def test_nested_payload_uses_one_alias_scope_without_mutation() -> None:
     }
     output = Pseudonymizer().process_data(payload)
     assert output == {
-        "first": "<EMAIL_1>",
-        "nested": ["<EMAIL_2>", "<EMAIL_1>"],
+        "first": "<EML_1>",
+        "nested": ["<EML_2>", "<EML_1>"],
         "temperature": 0.2,
     }
     assert payload["first"] == "paolo@example.com"
@@ -192,7 +192,7 @@ def test_structured_entity_wins_overlap() -> None:
     result = Pseudonymizer(backends=[RulesBackend(), BroadPersonBackend()]).process(
         "paolo@example.com"
     )
-    assert result.text == "<EMAIL_1>"
+    assert result.text == "<EML_1>"
 
 
 def test_composite_backend_combines_optional_and_rule_detection() -> None:
@@ -203,4 +203,4 @@ def test_composite_backend_combines_optional_and_rule_detection() -> None:
     result = Pseudonymizer(
         backends=[backend],
     ).process("Paolo Mazza paolo@example.com")
-    assert result.text == "<PERSON_1> <EMAIL_1>"
+    assert result.text == "<PER_1> <EML_1>"

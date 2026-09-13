@@ -27,7 +27,7 @@ def test_large_jsonl_preserves_scope_and_removes_every_match(tmp_path: Path) -> 
     assert result.statistics.blocks_processed == 4_000
     assert result.statistics.replacements_applied == 6_000
     assert output[1_999]["record"] == 1_999
-    assert {record["owner"] for record in output} == {"<EMAIL_1>", "<EMAIL_2>"}
+    assert {record["owner"] for record in output} == {"<EML_1>", "<EML_2>"}
 
 
 def test_deterministic_batch_is_stable_unique_and_idempotent() -> None:
@@ -47,6 +47,6 @@ def test_control_characters_do_not_leak_matches_into_reports() -> None:
 
     result = Pseudonymizer().process_with_report(source)
 
-    assert result.output == "\x00\u202e\u2066<EMAIL_1>\u2069\n<IP_ADDRESS_1>\x1f"
+    assert result.output == "\x00\u202e\u2066<EML_1>\u2069\n<IP_1>\x1f"
     assert "maria@example.com" not in repr(result)
     assert "192.0.2.10" not in repr(result)

@@ -280,7 +280,7 @@ def test_ml_engine_shares_one_alias_per_merged_entity(
         for replacement in result.replacements
         if replacement.detection.entity_type is EntityType.PERSON
     }
-    assert person_tokens == {"<PERSON_1>"}
+    assert person_tokens == {"<PER_1>"}
 
 
 def test_ml_detect_raises_on_inference_failure(

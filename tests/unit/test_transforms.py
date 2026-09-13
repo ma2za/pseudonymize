@@ -34,7 +34,7 @@ def test_numbered_assigner_reuses_normalized_identity() -> None:
 def test_generic_and_placeholder_rendering() -> None:
     resolved = entity()
     alias = GenericAliasAssigner().assign(resolved, AliasContext())
-    assert PlaceholderTransformer().render(resolved, alias) == "<EMAIL>"
+    assert PlaceholderTransformer().render(resolved, alias) == "<EML>"
 
 
 def test_deterministic_assigner_is_domain_separated() -> None:
@@ -54,4 +54,4 @@ def test_key_validation_generation_and_redaction() -> None:
     resolved = entity()
     alias = GenericAliasAssigner().assign(resolved, AliasContext())
     assert RedactTransformer().render(resolved, alias) == "[REDACTED]"
-    assert RedactTransformer(typed=True).render(resolved, alias) == "[REDACTED_EMAIL]"
+    assert RedactTransformer(typed=True).render(resolved, alias) == "[REDACTED_EML]"

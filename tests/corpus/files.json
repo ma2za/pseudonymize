@@ -3,7 +3,7 @@
     "name": "text-bom-crlf",
     "suffix": ".txt",
     "input_base64": "77u/bWFyaWFAZXhhbXBsZS5jb20NCg==",
-    "expected_base64": "77u/PEVNQUlMXzE+DQo=",
+    "expected_base64": "77u/PEVNTF8xPg0K",
     "locations": [
       {
         "kind": "text_offset",
@@ -16,7 +16,7 @@
     "name": "markdown-lf",
     "suffix": ".md",
     "input_base64": "Q29udGFjdCBtYXJpYUBleGFtcGxlLmNvbQo=",
-    "expected_base64": "Q29udGFjdCA8RU1BSUxfMT4K",
+    "expected_base64": "Q29udGFjdCA8RU1MXzE+Cg==",
     "locations": [
       {
         "kind": "text_offset",
@@ -31,8 +31,8 @@
     "input_base64": "eyJjaXR5IjoiQnVkYXBlc3Qg4oCTIMOhcnbDrXp0xbFyxZEiLCJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20iLCJlc2NhcGVkIjoibWFyaWFAZXhhbXBsZS5jb20ifQ==",
     "expected_json": {
       "city": "Budapest \u2013 \u00e1rv\u00edzt\u0171r\u0151",
-      "contact": "<EMAIL_1>",
-      "escaped": "<EMAIL_1>"
+      "contact": "<EML_1>",
+      "escaped": "<EML_1>"
     },
     "locations": [
       {
@@ -55,10 +55,10 @@
     "input_base64": "eyJjb250YWN0IjoibWFyaWFAZXhhbXBsZS5jb20ifQ0KeyJpcCI6IjE5Mi4wLjIuMTAifQo=",
     "expected_jsonl": [
       {
-        "contact": "<EMAIL_1>"
+        "contact": "<EML_1>"
       },
       {
-        "ip": "<IP_ADDRESS_1>"
+        "ip": "<IP_1>"
       }
     ],
     "locations": [
@@ -89,7 +89,7 @@
         "empty"
       ],
       [
-        "<EMAIL_1>",
+        "<EML_1>",
         "line one\r\nline two",
         ""
       ]
@@ -117,10 +117,10 @@
         "level2": {
           "level3": [
             {
-              "contact": "<EMAIL_1>, <EMAIL_1>, <EMAIL_1>"
+              "contact": "<EML_1>, <EML_1>, <EML_1>"
             },
             {
-              "mixed": "this is <EMAIL_1> and \u202e<EMAIL_1>\u202c"
+              "mixed": "this is <EML_1> and \u202e<EML_1>\u202c"
             }
           ]
         }
@@ -191,7 +191,7 @@
       ],
       [
         "nested, \n commas",
-        "<EMAIL_1>",
+        "<EML_1>",
         ",\"quotes\""
       ]
     ],
@@ -207,7 +207,7 @@
     "name": "adversarial-txt-zwnj-bidi",
     "suffix": ".txt",
     "input_base64": "TGVmdC10by1yaWdodCBwYW9sb0BleGFtcGxlLmNvbSDigK5wYW9sb0BleGFtcGxlLmNvbeKArAo=",
-    "expected_base64": "TGVmdC10by1yaWdodCA8RU1BSUxfMT4g4oCuPEVNQUlMXzE+4oCsCg==",
+    "expected_base64": "TGVmdC10by1yaWdodCA8RU1MXzE+IOKArjxFTUxfMT7igKwK",
     "locations": [
       {
         "kind": "text_offset",
@@ -228,15 +228,15 @@
     "expected_jsonl": [
       {
         "id": 1,
-        "text": "normal <EMAIL_1>"
+        "text": "normal <EML_1>"
       },
       {
         "id": 2,
-        "text": "null\u0000byte <EMAIL_1>"
+        "text": "null\u0000byte <EML_1>"
       },
       {
         "id": 3,
-        "text": "<EMAIL_1> trailing"
+        "text": "<EML_1> trailing"
       }
     ],
     "locations": [

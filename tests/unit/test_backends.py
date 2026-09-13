@@ -59,7 +59,7 @@ def test_backend_provenance_is_added_without_changing_detector() -> None:
     backend = StubBackend("local", (_email_detection(),))
     result = Pseudonymizer(backends=[backend]).process_with_report("maria@example.com")
 
-    assert result.output == "<EMAIL_1>"
+    assert result.output == "<EML_1>"
     assert result.detections[0].backend == "local"
     assert result.detections[0].detector == "stub"
     assert result.statistics.backend_invocations == 1
