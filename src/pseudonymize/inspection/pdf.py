@@ -306,6 +306,7 @@ def _source_text_style(page: object, rect: object) -> dict[str, object]:
         "text_color": (0.0, 0.0, 0.0),
         "fontsize": 11.0,
         "fontname": "helv",
+        "origin_y": getattr(rect, "y1", 0.0) - (getattr(rect, "height", 0.0) * 0.15),
     }
     content = page.get_text("dict", clip=rect)  # type: ignore[attr-defined]
     for block in content.get("blocks", ()):
@@ -313,6 +314,8 @@ def _source_text_style(page: object, rect: object) -> dict[str, object]:
             for span in line.get("spans", ()):
                 color = span.get("color")
                 if isinstance(color, int):
+                    import pymupdf
+
                     red, green, blue = pymupdf.sRGB_to_pdf(color)
                     style["text_color"] = (float(red), float(green), float(blue))
 
@@ -329,6 +332,10 @@ def _source_text_style(page: object, rect: object) -> dict[str, object]:
                         style["fontname"] = "cour"
                     else:
                         style["fontname"] = "helv"
+
+                origin = span.get("origin")
+                if isinstance(origin, (tuple, list)) and len(origin) == 2:
+                    style["origin_y"] = float(origin[1]) - (float(str(style["fontsize"])) * 0.15)
                 return style
     return style
 
