@@ -122,9 +122,9 @@ def test_existing_placeholders_are_ignored_and_processing_is_idempotent() -> Non
     engine = Pseudonymizer()
     once = engine.process("paolo@example.com").text
     assert engine.process(once).text == once
-    assert engine.process(
+    assert engine.process("<PER_1> <EML> [REDACTED_EML] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>").text == (
         "<PER_1> <EML> [REDACTED_EML] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>"
-    ).text == ("<PER_1> <EML> [REDACTED_EML] <PZ1:EMAIL:ABCDEFGHIJKLMNOP>")
+    )
 
 
 def test_explicit_empty_backends_disable_detection() -> None:

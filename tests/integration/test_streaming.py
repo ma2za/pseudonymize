@@ -19,9 +19,7 @@ def test_process_stream_synchronous() -> None:
 
     result = "".join(engine.process_stream(chunks))
 
-    assert (
-        result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
-    )
+    assert result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
 
 
 @pytest.mark.asyncio
@@ -44,9 +42,7 @@ async def test_process_stream_asynchronous() -> None:
     async for processed in engine.process_stream_async(async_chunks()):
         result += processed
 
-    assert (
-        result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
-    )
+    assert result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
 
 
 def test_stream_context_overlap() -> None:
@@ -104,6 +100,4 @@ def test_detection_stream() -> None:
         result += stream.feed(c)
     result += stream.flush()
 
-    assert (
-        result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."
-    )
+    assert result == "Hello! My email is <EML_1>. Please write back to <EML_1> when you have time."

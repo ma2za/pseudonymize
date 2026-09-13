@@ -36,7 +36,6 @@ class EntityType(StrEnum):
         }[self]
 
 
-
 @dataclass(frozen=True, slots=True)
 class Detection:
     entity_type: EntityType
