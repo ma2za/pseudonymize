@@ -274,3 +274,13 @@ documentation recommends the narrowest installation that satisfies the workload.
 Audio, video, reversible vaults, databases, Parquet, SQLite, framework wrappers, and generic
 "process any file" claims remain outside the committed roadmap. New proposals must show that they
 fit the layer boundaries and can meet the same safety and test standards.
+
+## Priority Backlog & Triage
+
+The following proposals are queued for prioritization based on community needs:
+
+- **#63 GLiNER2-PII ONNX backend and verified model cards**: Curate and integrate advanced ML models for next-gen recall.
+- **#64 Schema-preserving sanitation for agent tool calls and MCP payloads**: Safely integrate with LLM agent architectures.
+- **#65 EU identifier depth over global breadth**: Expand exact coverage with a verified regional pack.
+- **#67 Logging and OpenTelemetry integration**: Redact in-process telemetry securely before export.
+- **#37 Detection-quality evaluation pipeline**: Expand the existing task-level benchmark for holistic ML validation.
