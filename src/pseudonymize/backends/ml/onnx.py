@@ -346,7 +346,7 @@ class LocalONNXPIIBackend(DetectionBackend):
         o_label_id = next((k for k, v in (self._id2label or {}).items() if v == "O"), 0)
 
         for idx, token_probs in enumerate(probs):
-            is_seq_b = idx < len(type_ids) and type_ids[idx] == 1
+            is_seq_b = hasattr(encoding, "sequence_ids") and encoding.sequence_ids[idx] == 1
             if is_seq_b:
                 predictions.append(o_label_id)
                 confidences.append(1.0)
@@ -405,7 +405,11 @@ class LocalONNXPIIBackend(DetectionBackend):
                 prev_label_id = predictions[idx - 1]
                 prev_label_str = (self._id2label or {}).get(int(prev_label_id))
 
-                if prev_label_str and prev_label_str != "O":
+                is_same_seq = True
+                if hasattr(encoding, "sequence_ids"):
+                    is_same_seq = encoding.sequence_ids[idx - 1] == encoding.sequence_ids[idx]
+
+                if prev_label_str and prev_label_str != "O" and is_same_seq:
                     _prev_start, prev_end = encoding.offsets[idx - 1]
                     curr_start, curr_end = encoding.offsets[idx]
 

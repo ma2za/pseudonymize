@@ -41,6 +41,9 @@ def test_numbered_mode_is_default() -> None:
 
 
 def test_person_backend_and_exact_normalized_resolution() -> None:
+    from pseudonymize.spans import _DETECTOR_WEIGHT
+
+    _DETECTOR_WEIGHT["test_person"] = 1.0
     engine = Pseudonymizer(backends=[RulesBackend(), PersonBackend()])
     result = engine.process("Paolo Mazza met Paolo   Mazza and Maria Rossi.")
     assert result.text == "<PERSON_1> met <PERSON_1> and <PERSON_2>."
@@ -193,6 +196,11 @@ def test_structured_entity_wins_overlap() -> None:
 
 
 def test_composite_backend_combines_optional_and_rule_detection() -> None:
+    from pseudonymize.spans import _DETECTOR_WEIGHT
+
+    _DETECTOR_WEIGHT["test_person"] = 1.0
     backend = CompositeBackend([RulesBackend(), PersonBackend()])
-    result = Pseudonymizer(backends=[backend]).process("Paolo Mazza paolo@example.com")
+    result = Pseudonymizer(
+        backends=[backend],
+    ).process("Paolo Mazza paolo@example.com")
     assert result.text == "<PERSON_1> <EMAIL_1>"
