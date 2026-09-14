@@ -74,11 +74,20 @@ export default function Header() {
                 <Link href="/dashboard" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
                   {t('dashboard')}
                 </Link>
-                <form action="/api/auth/signout" method="POST">
-                  <button type="submit" className="rounded-md bg-[var(--pz-surface-inset)] border border-[var(--pz-border-strong)] px-3 py-1.5 text-sm font-medium text-[var(--pz-text)] shadow-sm hover:bg-[var(--pz-surface)] transition-colors">
-                    {t('signOut')}
-                  </button>
-                </form>
+                <button 
+                  onClick={async () => {
+                    await authClient.signOut({
+                      fetchOptions: {
+                        onSuccess: () => {
+                          window.location.href = "/";
+                        },
+                      },
+                    });
+                  }}
+                  className="rounded-md bg-[var(--pz-surface-inset)] border border-[var(--pz-border-strong)] px-3 py-1.5 text-sm font-medium text-[var(--pz-text)] shadow-sm hover:bg-[var(--pz-surface)] transition-colors"
+                >
+                  {t('signOut')}
+                </button>
               </>
             ) : !isPending ? (
               <>
@@ -140,11 +149,20 @@ export default function Header() {
                   <Link href="/dashboard" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-[var(--pz-text)] hover:bg-[var(--pz-surface-inset)]" onClick={closeMenu}>
                     {t('dashboard')}
                   </Link>
-                  <form action="/api/auth/signout" method="POST" className="mt-2">
-                    <button type="submit" className="w-full text-left -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-[var(--pz-text)] hover:bg-[var(--pz-surface-inset)]">
-                      {t('signOut')}
-                    </button>
-                  </form>
+                  <button 
+                    onClick={async () => {
+                      await authClient.signOut({
+                        fetchOptions: {
+                          onSuccess: () => {
+                            window.location.href = "/";
+                          },
+                        },
+                      });
+                    }}
+                    className="w-full text-left -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-[var(--pz-text)] hover:bg-[var(--pz-surface-inset)] mt-2"
+                  >
+                    {t('signOut')}
+                  </button>
                 </>
               ) : !isPending ? (
                 <>

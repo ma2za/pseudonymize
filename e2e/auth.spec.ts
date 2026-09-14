@@ -47,4 +47,32 @@ test.describe('Authentication & Protected Routes', () => {
     const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.checkValidity());
     expect(isInvalid).toBe(true);
   });
+
+  test('should successfully sign out an authenticated user without 404', async ({ page }) => {
+    // 1. Sign up a new user to get a valid session
+    await page.goto('/en/signup');
+    const email = `test.signout.${Date.now()}@example.com`;
+    const password = 'Password123!';
+    
+    await page.locator('input[name="name"]').fill('Test Signout User');
+    await page.locator('input[name="email"]').fill(email);
+    await page.locator('input[name="password"]').fill(password);
+    
+    await page.getByRole('button', { name: /Create account/i }).click();
+
+    // 2. Wait to be redirected to dashboard (authenticated state)
+    await expect(page).toHaveURL(/.*\/dashboard/);
+
+    // 3. Click the Sign Out button
+    // The text might be localized, so we use a robust selector or text matching.
+    // 'Sign out' is the default English text for the button we modified.
+    await page.getByRole('button', { name: 'Sign out' }).click();
+
+    // 4. Verify we are redirected to the homepage, NOT a 404 page
+    // The signout success callback uses `window.location.href = "/";`
+    await expect(page).toHaveURL(/\/en$/); // Should end up at /en (homepage)
+    
+    // 5. Verify the login button is visible again, confirming signed-out state
+    await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
+  });
 });
