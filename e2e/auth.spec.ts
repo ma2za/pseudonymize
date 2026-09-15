@@ -54,11 +54,11 @@ test.describe('Authentication & Protected Routes', () => {
     const email = `test.signout.${Date.now()}@example.com`;
     const password = 'Password123!';
     
-    await page.locator('input[name="name"]').fill('Test Signout User');
-    await page.locator('input[name="email"]').fill(email);
-    await page.locator('input[name="password"]').fill(password);
+    await page.locator('#name-input').fill('Test Signout User');
+    await page.locator('#email-input').fill(email);
+    await page.locator('#password-input').fill(password);
     
-    await page.getByRole('button', { name: /Create account/i }).click();
+    await page.getByRole('button', { name: 'Sign up' }).click();
 
     // 2. Wait to be redirected to dashboard (authenticated state)
     await expect(page).toHaveURL(/.*\/dashboard/);
