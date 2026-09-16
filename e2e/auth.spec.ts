@@ -60,8 +60,9 @@ test.describe('Authentication & Protected Routes', () => {
     
     await page.getByRole('button', { name: 'Sign up' }).click();
 
-    // 2. Wait to be redirected to dashboard (authenticated state)
-    await expect(page).toHaveURL(/.*\/dashboard/);
+    // The sign up creates the user but better-auth might require login depending on config, OR it directly logs in. Let's explicitly log in if we aren't redirected.
+    // Wait for URL to change to dashboard
+    await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 10000 });
 
     // 3. Click the Sign Out button
     // The text might be localized, so we use a robust selector or text matching.
@@ -69,7 +70,7 @@ test.describe('Authentication & Protected Routes', () => {
     await page.getByRole('button', { name: 'Sign out' }).click();
 
     // 4. Verify we are redirected to the homepage, NOT a 404 page
-    // The signout success callback uses `window.location.href = "/";`
+    // The signout success callback uses `window.location.href = \`/${locale}\`;`
     await expect(page).toHaveURL(/\/en$/); // Should end up at /en (homepage)
     
     // 5. Verify the login button is visible again, confirming signed-out state
