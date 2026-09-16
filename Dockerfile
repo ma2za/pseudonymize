@@ -1,11 +1,10 @@
 FROM node:22-alpine AS base
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+RUN apk add --no-cache libc6-compat openssl
 RUN npm install -g npm@latest
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -46,11 +45,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --legacy-peer-deps --no-audit --no-fund --omit=dev
-
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
@@ -64,6 +58,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
+# Install prisma CLI globally to run migrations without permission issues
+RUN npm install -g prisma@6.19.3
+
 USER nextjs
 
 EXPOSE 3000
@@ -73,4 +70,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Automatically run Prisma migrations before starting Next.js using the traced node_modules
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "prisma db push --accept-data-loss && node server.js"]
