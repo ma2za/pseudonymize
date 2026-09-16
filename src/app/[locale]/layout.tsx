@@ -10,6 +10,9 @@ import Footer from '@/components/Footer';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { PostHogProvider } from '@/components/PostHogProvider';
 
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
+
 const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -80,21 +83,25 @@ export default async function RootLayout({
   if (!(routing.locales as readonly string[]).includes(locale)) {
     notFound();
   }
-  
+
   setRequestLocale(locale);
   const messages = await getMessages();
+
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
 
   // Suppress hydration warning on HTML tag because next-themes manipulates it
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.className} bg-[var(--pz-canvas)] text-[var(--pz-text)] antialiased flex flex-col min-h-screen`}>
         <PostHogProvider>
-          <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>   
             <NextIntlClientProvider messages={messages}>
               <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--pz-cipher)] focus:text-[var(--pz-ink)] focus:rounded-md focus:font-semibold">
                 Skip to content
               </a>
-              <Header />
+              <Header session={session} />
               <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
                 {children}
               </main>
