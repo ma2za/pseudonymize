@@ -118,6 +118,7 @@ test.describe("Proper E2E Flow: Auth, API Keys, Settings (No Mocks)", () => {
     await expect(page).toHaveURL(/.*\/en/);
 
     console.log("Verifying account is deleted by attempting to login again...");
+    await page.context().clearCookies();
     await page.goto("/en/login");
     await page.locator('input[type="email"]#email-input').fill(email);
     await page.locator('input[type="password"]#password-input').fill(password);

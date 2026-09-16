@@ -17,18 +17,10 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
-  // 3. Redirect authenticated users away from auth pages
-  const isAuthPage = /^\/([a-zA-Z-]+)\/(login|signup)(\/.*)?$/.test(pathname);
-  if (isAuthPage && hasSession) {
-    const match = pathname.match(/^\/([a-zA-Z-]+)\//);
-    const locale = match ? match[1] : 'en';
-    return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
-  }
-
   // 4. Proceed with next-intl middleware
   return intlMiddleware(request);
 }
 
 export const config = {
-  matcher: ['/', '/(en|es|fr|de|it|pt|nl|ru|zh|ja|ko|ar|hi|tr|pl|sv|no|da|fi|el)/:path*', '/api/auth/signout']
+  matcher: ['/', '/(en|es|fr|de|it|pt|nl|ru|zh|ja|ko|ar|hi|tr|pl|sv|no|da|fi|el)/:path*', '/api/auth/signout']  
 };

@@ -56,6 +56,11 @@ export async function deleteAccount() {
       prisma.user.delete({ where: { id: userId } })
     ]);
 
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    cookieStore.delete('better-auth.session_token');
+    cookieStore.delete('__Secure-better-auth.session_token');
+
     return { success: true };
   } catch (error) {
     console.error('Failed to delete account:', error);
