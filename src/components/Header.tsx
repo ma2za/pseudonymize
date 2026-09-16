@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/i18n/routing';
 import { authClient } from '@/lib/auth-client';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -13,6 +13,7 @@ import { Menu, X } from 'lucide-react';
 export default function Header() {
   const t = useTranslations('Global');
   const tHome = useTranslations('Home');
+  const locale = useLocale();
   const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -74,15 +75,10 @@ export default function Header() {
                 <Link href="/dashboard" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
                   {t('dashboard')}
                 </Link>
-                <button 
+                <button
                   onClick={async () => {
-                    await authClient.signOut({
-                      fetchOptions: {
-                        onSuccess: () => {
-                          window.location.href = "/";
-                        },
-                      },
-                    });
+                    await authClient.signOut();
+                    window.location.href = `/${locale}`;
                   }}
                   className="rounded-md bg-[var(--pz-surface-inset)] border border-[var(--pz-border-strong)] px-3 py-1.5 text-sm font-medium text-[var(--pz-text)] shadow-sm hover:bg-[var(--pz-surface)] transition-colors"
                 >
@@ -151,13 +147,8 @@ export default function Header() {
                   </Link>
                   <button 
                     onClick={async () => {
-                      await authClient.signOut({
-                        fetchOptions: {
-                          onSuccess: () => {
-                            window.location.href = "/";
-                          },
-                        },
-                      });
+                      await authClient.signOut();
+                      window.location.href = `/${locale}`;
                     }}
                     className="w-full text-left -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-[var(--pz-text)] hover:bg-[var(--pz-surface-inset)] mt-2"
                   >
