@@ -59,7 +59,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # Install prisma CLI globally to run migrations without permission issues
-RUN npm install -g prisma@6.19.3
+RUN npm install -g --allow-scripts=prisma,@prisma/engines prisma@6.19.3
 
 USER nextjs
 
@@ -70,4 +70,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Automatically run Prisma migrations before starting Next.js using the traced node_modules
-CMD ["sh", "-c", "prisma db push --accept-data-loss && node server.js"]
+CMD ["sh", "-c", "prisma db push --accept-data-loss > startup.log 2>&1 ; cat startup.log ; node server.js > server.log 2>&1 || cat server.log ; sleep 3600"]
