@@ -9,18 +9,6 @@ export default function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const hasSession = request.cookies.has('better-auth.session_token') || request.cookies.has('__Secure-better-auth.session_token');
 
-  // 1. Handle legacy signout intercept
-  if (pathname === '/api/auth/signout') {
-    const response = NextResponse.redirect(new URL('/', request.url));
-    response.cookies.delete('better-auth.session_token');
-    response.cookies.delete('__Secure-better-auth.session_token');
-    response.cookies.delete('better-auth.session_data');
-    response.cookies.delete('__Secure-better-auth.session_data');
-    response.cookies.delete('next-auth.session-token');
-    response.cookies.delete('__Secure-next-auth.session-token');
-    return response;
-  }
-
   // 2. Fast Edge Route Protection to prevent unauthenticated layout flashes
   const isDashboard = /^\/([a-zA-Z-]+)\/dashboard(\/.*)?$/.test(pathname);
   if (isDashboard && !hasSession) {
