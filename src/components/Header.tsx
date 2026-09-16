@@ -10,11 +10,10 @@ import { GithubIcon } from './GithubIcon';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ session }: { session: { session: any, user: any } | null }) {
   const t = useTranslations('Global');
   const tHome = useTranslations('Home');
   const locale = useLocale();
-  const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -70,7 +69,7 @@ export default function Header() {
           <ThemeToggle />
           
           <div className="hidden sm:flex items-center gap-4">
-            {!isPending && session ? (
+            {session ? (
               <>
                 <Link href="/dashboard" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
                   {t('dashboard')}
@@ -85,7 +84,7 @@ export default function Header() {
                   {t('signOut')}
                 </button>
               </>
-            ) : !isPending ? (
+            ) : (
               <>
                 <Link href="/login" className="text-sm font-medium leading-6 text-[var(--pz-text-secondary)] hover:text-[var(--pz-text)] transition-colors">
                   {t('signIn')}
@@ -94,7 +93,7 @@ export default function Header() {
                   <BrandButton className="py-1.5 px-3 text-sm">{tHome('getStarted')}</BrandButton>
                 </Link>
               </>
-            ) : null}
+            )}
           </div>
 
           <div className="flex lg:hidden">
@@ -140,7 +139,7 @@ export default function Header() {
             </div>
 
             <div className="pt-4 flex flex-col gap-4">
-              {!isPending && session ? (
+              {session ? (
                 <>
                   <Link href="/dashboard" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-[var(--pz-text)] hover:bg-[var(--pz-surface-inset)]" onClick={closeMenu}>
                     {t('dashboard')}
@@ -155,7 +154,7 @@ export default function Header() {
                     {t('signOut')}
                   </button>
                 </>
-              ) : !isPending ? (
+              ) : (
                 <>
                   <Link href="/login" className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-[var(--pz-text)] hover:bg-[var(--pz-surface-inset)]" onClick={closeMenu}>
                     {t('signIn')}
@@ -164,7 +163,7 @@ export default function Header() {
                     <BrandButton className="w-full justify-center">{tHome('getStarted')}</BrandButton>
                   </Link>
                 </>
-              ) : null}
+              )}
             </div>
           </div>
         </div>
