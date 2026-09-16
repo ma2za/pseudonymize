@@ -35,7 +35,14 @@ export const auth = betterAuth({
     trustedOrigins: [
         "https://pseudonymize.io", 
         "https://www.pseudonymize.io", 
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "http://localhost:3030",
+        "http://localhost:3040",
+        "http://localhost:3090",
+        "http://localhost:3105",
+        "http://localhost:3106",
+        "http://localhost:3108",
+        "http://localhost:3110"
     ],
     emailAndPassword: {
         enabled: true,
