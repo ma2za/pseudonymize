@@ -25,9 +25,10 @@ publishable without requiring unfinished later layers.
 | `0.15.0` | Published | ML and heuristic detection enhancements |
 | `0.16.0` | Published | Advanced OCR degradation handling |
 | `0.17.0` | Published | Contextual identifier and sub-word boundary robustness |
-| `1.0.0` | Published | Mature compatibility commitment & strict 1-to-1 boundary matching |
-| `1.10.0` | Published | Local PII optimizations & international trigger expansion |
-| `0.18.0` | Next | Resilient document parsing and large-scale pipelines |
+| `0.18.0` | Published | Contextual Heuristic Augmentation |
+| `1.0.0`  | Published | Mature compatibility commitment & strict 1-to-1 boundary matching |
+| `1.20.0` | Published | Stable evaluation baseline achievement (0.8292 F1) |
+| `1.21.0` | Next      | Scale & Integration |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -151,35 +152,6 @@ Key structural achievements included:
 - **Structural Parsing**: Multi-lingual address topologies, corporate suffix FSMs, intra-document coreference propagation, and dynamic detector-aware conflict matrices.
 - **Artifact & Performance**: Stripped all heavy NLP dependencies (like Llama/Torch), focusing entirely on lightning-fast ONNX quantized inference and pure-Python heuristics.
 
-
-## Future Milestones
-
-### Schema-Preserving Agent Sanitation (MCP Integration)
-- **Use Case:** Safely interacting with LLM agents.
-- **Focus:** Redacting JSON-RPC and MCP tool call payloads natively without breaking structural schemas required by models.
-
-### OpenTelemetry Integration
-- **Use Case:** In-process observability.
-- **Focus:** A dedicated middleware adapter to redact application logs and trace spans securely before export.
-
-### Advanced Local ML (GLiNER2 ONNX)
-- **Use Case:** Next-generation semantic recall.
-- **Focus:** Integrate prompt-based NER models natively within the ONNX local boundary to dynamically capture domain-specific jargon (e.g. "Project Codename X").
-
-### Regional EU Identifier Depth
-- **Use Case:** European enterprise compliance.
-- **Focus:** Deepening coverage with mathematically verified checksums and topological parsers for French, German, Italian, and Spanish national systems.
-
-## Performance & Detection Quality Horizon (Post-1.0 / Ongoing)
-
-To continually improve precision and recall (currently heavily measured in `benchmarks/evaluate_quality.py`) without introducing hardcoded or brittle regex artifacts, the following generalizable architectural improvements are slated for upcoming releases:
-
-1. **Dynamic Entity-Specific Thresholds (ML)**: Instead of a flat `entity_threshold` across all labels, allow per-entity calibration. For example, lower activation thresholds for `LOCATION` (which historically suffers from low recall but high precision) while keeping `PERSON` strictly bounded.
-2. **Context-Assisted ML Boosting**: Integrate the `ContextDetector` into the ML loop. If a token falls within 30 characters of a context trigger ("Name:", "Address:"), dynamically boost the ML logits for that specific text window, resolving the "missed isolated entities" problem.
-3. **Span-Level Subword Repair (Token-Merge Averaging)**: DistilBERT uses WordPiece. If the tokenizer splits a name into subwords and assigns conflicting probabilities across them (e.g., dropping a middle subword), implement a CRF-style continuation heuristic to coerce adjacent subwords into a unified entity unless separated by a hard boundary.
-4. **Ensemble Voting Arbitrator**: When multiple backends run simultaneously, introduce an `EnsembleArbitrator` allowing modes like `HighRecall` (Union), `HighPrecision` (Intersection - requires at least two backends to agree), or `Two-Pass` (Regex proposes, ML verifies).
-5. **Cross-Lingual Zero-Shot Backend (GLiNER)**: Introduce an optional backend using GLiNER (Generalist Model for NER). GLiNER uses prompt-based label injection natively supporting 20+ languages out of the box, allowing dynamic detection of arbitrary entities ("Internal Project Code") with a fundamentally higher recall ceiling than traditional BERT models.
-
 ## Optional dependency policy
 
 Extras appear only with the release that owns them: `ml`, `pdf`, `office`, `ocr`, `documents`,
@@ -191,4 +163,3 @@ documentation recommends the narrowest installation that satisfies the workload.
 Audio, video, reversible vaults, databases, Parquet, SQLite, framework wrappers, and generic
 "process any file" claims remain outside the committed roadmap. New proposals must show that they
 fit the layer boundaries and can meet the same safety and test standards.
-
