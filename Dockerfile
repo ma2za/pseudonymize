@@ -70,4 +70,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Automatically run Prisma migrations before starting Next.js using the traced node_modules
-CMD ["sh", "-c", "prisma db push --accept-data-loss > startup.log 2>&1 ; cat startup.log ; node server.js > server.log 2>&1 || cat server.log ; sleep 3600"]
+CMD ["sh", "-c", "prisma db push --accept-data-loss ; node server.js || sleep 3600"]
