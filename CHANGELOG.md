@@ -2,6 +2,15 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.21.0] - 2026-09-17
+
+### Added
+- **Zero-Copy & LRU Caching Fast-Paths:** Implemented a new LRU Cache wrapper inside the ONNX pipeline that natively bypasses ML loops and string tokenization overheads for previously seen structural windows/names.
+- **Batched Vectorization (AVX):** Rewrote the internal ONNX loop to dynamically batch sequential offsets into padded blocks, heavily saturating CPU vector lanes for a 1.7x raw throughput speedup.
+- **Extensive Adversarial Pipeline Guards:** Added 22 extreme zero-width, combining character, surrogate, markdown, XML, CSV injection, and Bidi-override adversarial tests to explicitly enforce engine durability.
+- **Automated Performance Regression Gates:** Added a `pytest-benchmark` GitHub Action configured to securely fail the CI pipeline if batch logic falls below 120% of previous throughput bounds.
+
+
 ## [1.20.2] - 2026-09-13
 
 ### Fixed
