@@ -243,7 +243,7 @@ class LocalONNXPIIBackend(DetectionBackend):
 
             [[] for _ in range(len(windows_to_process))]
 
-            for i, (w_text, w_start, w_context) in enumerate(windows_to_process):
+            for _i, (_w_text, _w_start, _w_context) in enumerate(windows_to_process):
                 # We can try to hit the LRU cache manually by looking up the wrapped func
                 # If we don't want to introspect the cache, we can just process everything.
                 # However, since `_infer_text_cached` handles its own cache, we can't easily "peek".
@@ -559,7 +559,7 @@ class LocalONNXPIIBackend(DetectionBackend):
             # Disable padding again so single window doesn't get padded unnecessarily
             self._tokenizer.no_padding()
         else:
-            # Fallback if tokenizer doesn't support batch directly (should not happen with huggingface tokenizers)
+            # Fallback if tokenizer doesn't support batch directly (should not happen)
             encodings = []
             for text, pair in zip(texts, context_pairs, strict=False):
                 if pair and len(text.split()) < 10:
