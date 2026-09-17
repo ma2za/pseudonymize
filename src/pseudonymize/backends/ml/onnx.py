@@ -1,8 +1,10 @@
+import functools
 import json
 import os
 import re
 import typing
 from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -293,9 +295,9 @@ class LocalONNXPIIBackend(DetectionBackend):
                 break
         return windows
 
-    def _detect_window(
-        self, text: str, char_offset: int, policy: Policy, context_pair: str | None = None
-    ) -> list[Detection]:
+    def _infer_text(
+        self, text: str, policy: Policy, context_pair: str | None = None
+    ) -> tuple[Detection, ...]:
         # Only use context pair boosting for short, isolated texts (v1.7.0)
         # to prevent format mismatch degradation on long natural sentences.
         if context_pair and len(text.split()) < 10:
@@ -493,12 +495,21 @@ class LocalONNXPIIBackend(DetectionBackend):
                 results.append(
                     Detection(
                         entity_type=entity_type,
-                        start=start + char_offset,
-                        end=end + char_offset,
+                        start=start,
+                        end=end,
                         confidence=confidence,
                         backend=self.name,
                         detector="onnx",
                     )
                 )
 
-        return results
+        return tuple(results)
+
+    def _detect_window(
+        self, text: str, char_offset: int, policy: Policy, context_pair: str | None = None
+    ) -> list[Detection]:
+        # Fast-Path: Bypass ML loop entirely for cached tokens/windows
+        cached = self._infer_text_cached(text, policy, context_pair)
+        if char_offset == 0:
+            return list(cached)
+        return [replace(d, start=d.start + char_offset, end=d.end + char_offset) for d in cached]
