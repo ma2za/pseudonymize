@@ -134,3 +134,40 @@ def test_adversarial_zwnj_obfuscation(tmp_path: Path) -> None:
     # If detection works, it will be redacted. If not, it won't crash.
     # We assert it does not crash by reading the file.
     assert "Contact" in text
+
+
+def test_adversarial_jsonl_massive_row(tmp_path: Path) -> None:
+    # A single JSONL row with a 1MB payload to test streaming buffer limits
+    engine = Pseudonymizer(mode=TransformationMode.REDACTED)
+    path = tmp_path / "huge.jsonl"
+    out_path = tmp_path / "huge_out.jsonl"
+
+    import json
+
+    # A 1MB string
+    junk = "a" * (1024 * 1024)
+    payload = {"content": f"{junk} secret@example.com {junk}"}
+    path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+
+    engine.process_file(path, out_path, format=FileFormat.JSONL)
+
+    text = out_path.read_text(encoding="utf-8")
+    assert "[REDACTED]" in text
+    assert "secret@example.com" not in text
+
+
+def test_adversarial_csv_injection(tmp_path: Path) -> None:
+    # Test CSV injection vectors like Excel formulas starting with =, +, -, @
+    engine = Pseudonymizer(mode=TransformationMode.REDACTED)
+    path = tmp_path / "inject.csv"
+    out_path = tmp_path / "inject_out.csv"
+
+    path.write_text(
+        "id,value\n1,=cmd|' /C calc'!A0 secret@example.com\n2,@SUM(1+1) secret@example.com\n",
+        encoding="utf-8",
+    )
+    engine.process_file(path, out_path, format=FileFormat.CSV)
+
+    text = out_path.read_text(encoding="utf-8")
+    assert "[REDACTED]" in text
+    assert "secret@example.com" not in text
