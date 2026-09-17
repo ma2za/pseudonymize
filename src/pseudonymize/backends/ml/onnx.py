@@ -1,4 +1,3 @@
-import functools
 import json
 import os
 import re
@@ -218,49 +217,72 @@ class LocalONNXPIIBackend(DetectionBackend):
             # Get tokenizer offsets for adaptive window slicing (v1.8.0)
             encoding = self._tokenizer.encode(block.text)
             offsets = [span for span in encoding.offsets if span[1] > span[0]]
-            starts = [o[0] for o in offsets]
+            [o[0] for o in offsets]
             budget = max(self._max_tokens - 2, 1)
             stride = max(budget - min(self._window_overlap_tokens, budget - 1), 1)
 
             detections: list[Detection] = []
             seen: dict[tuple[EntityType, int, int], Detection] = {}
 
-            # Adaptive Windowing Heuristic (v1.8.0)
-            # Process windows sequentially. If an entity is truncated at the end
-            # of a window, dynamically slide the next window to start exactly
-            # at the beginning of the truncated entity, preserving its full context.
+            # Collect all windows that need processing
+            windows_to_process: list[tuple[str, int, str | None]] = []
+
             token_start_idx = 0
             while token_start_idx < len(offsets):
                 token_end_idx = min(token_start_idx + budget, len(offsets))
                 window_start = offsets[token_start_idx][0]
                 window_end = offsets[token_end_idx - 1][1]
 
-                window_detections = self._detect_window(
-                    block.text[window_start:window_end], window_start, policy, global_context_str
+                windows_to_process.append(
+                    (block.text[window_start:window_end], window_start, global_context_str)
                 )
 
+                token_start_idx += stride
+
+            # Filter through LRU cache first to find cache misses that need batching
+
+            [[] for _ in range(len(windows_to_process))]
+
+            for i, (w_text, w_start, w_context) in enumerate(windows_to_process):
+                # We can try to hit the LRU cache manually by looking up the wrapped func
+                # If we don't want to introspect the cache, we can just process everything.
+                # However, since `_infer_text_cached` handles its own cache, we can't easily "peek".
+                # For batched execution, we will send all windows through `_infer_batch` directly
+                # if there are multiple windows, or use the single `_detect_window` if just one.
+                pass
+
+            if len(windows_to_process) == 1:
+                # Single window fast-path (hits L1 cache natively)
+                w_text, w_start, w_context = windows_to_process[0]
+                window_detections = self._detect_window(w_text, w_start, policy, w_context)
                 for detection in window_detections:
                     key = (detection.entity_type, detection.start, detection.end)
-                    previous = seen.get(key)
-                    if previous is None or detection.confidence > previous.confidence:
-                        seen[key] = detection
+                    seen[key] = detection
+            else:
+                # Multi-window batched AVX processing (bypasses L1 for throughput)
+                texts = [w[0] for w in windows_to_process]
+                contexts = [w[2] for w in windows_to_process]
 
-                next_token_start_idx = token_start_idx + stride
+                # Split into chunks of 32 to avoid massive memory spikes
+                batch_size = 32
+                for i in range(0, len(texts), batch_size):
+                    batch_texts = texts[i : i + batch_size]
+                    batch_contexts = contexts[i : i + batch_size]
 
-                if window_detections:
-                    last_det = max(window_detections, key=lambda d: d.end)
-                    # If the last entity is truncated at the boundary (within 15 chars)
-                    if window_end - last_det.end <= 15:
-                        import bisect
+                    batch_results = self._infer_batch(batch_texts, policy, batch_contexts)
 
-                        det_start_idx = bisect.bisect_right(starts, last_det.start) - 1
-                        if det_start_idx > token_start_idx:
-                            next_token_start_idx = det_start_idx
+                    for j, window_detections in enumerate(batch_results):
+                        global_idx = i + j
+                        w_start = windows_to_process[global_idx][1]
 
-                if token_end_idx >= len(offsets):
-                    break
+                        for d in window_detections:
+                            # Apply character offset
+                            detection = replace(d, start=d.start + w_start, end=d.end + w_start)
 
-                token_start_idx = next_token_start_idx
+                            key = (detection.entity_type, detection.start, detection.end)
+                            previous = seen.get(key)
+                            if previous is None or detection.confidence > previous.confidence:
+                                seen[key] = detection
 
             detections = sorted(seen.values(), key=lambda item: (item.start, item.end))
             return tuple(detections)
@@ -513,3 +535,249 @@ class LocalONNXPIIBackend(DetectionBackend):
         if char_offset == 0:
             return list(cached)
         return [replace(d, start=d.start + char_offset, end=d.end + char_offset) for d in cached]
+
+    def _infer_batch(
+        self, texts: list[str], policy: Policy, context_pairs: list[str | None]
+    ) -> list[tuple[Detection, ...]]:
+
+        batch_size = len(texts)
+        if batch_size == 0:
+            return []
+
+        if hasattr(self._tokenizer, "encode_batch"):
+            # Enable padding for batch processing
+            self._tokenizer.enable_padding(direction="right", length=self._max_tokens)
+
+            encode_inputs = []
+            for text, pair in zip(texts, context_pairs, strict=False):
+                if pair and len(text.split()) < 10:
+                    encode_inputs.append((text, pair))
+                else:
+                    encode_inputs.append(text)
+
+            encodings = self._tokenizer.encode_batch(encode_inputs)
+            # Disable padding again so single window doesn't get padded unnecessarily
+            self._tokenizer.no_padding()
+        else:
+            # Fallback if tokenizer doesn't support batch directly (should not happen with huggingface tokenizers)
+            encodings = []
+            for text, pair in zip(texts, context_pairs, strict=False):
+                if pair and len(text.split()) < 10:
+                    encodings.append(self._tokenizer.encode(text, pair=pair))
+                else:
+                    encodings.append(self._tokenizer.encode(text))
+
+            # Manual padding
+            max_len = max(len(e.ids) for e in encodings)
+            max_len = min(max_len, self._max_tokens)
+
+            for e in encodings:
+                ids = e.ids[:max_len]
+                mask = e.attention_mask[:max_len]
+                type_ids = e.type_ids[:max_len]
+
+                pad_len = max_len - len(ids)
+                if pad_len > 0:
+                    ids.extend([0] * pad_len)
+                    mask.extend([0] * pad_len)
+                    type_ids.extend([0] * pad_len)
+
+                e.ids = ids
+                e.attention_mask = mask
+                e.type_ids = type_ids
+
+        batch_ids = []
+        batch_mask = []
+        batch_type_ids = []
+
+        for encoding in encodings:
+            ids = encoding.ids
+            mask = encoding.attention_mask
+            type_ids = encoding.type_ids
+
+            if len(ids) > self._max_tokens:
+                ids = ids[: self._max_tokens]
+                mask = mask[: self._max_tokens]
+                type_ids = type_ids[: self._max_tokens]
+                ids[-1] = 102
+
+            batch_ids.append(ids)
+            batch_mask.append(mask)
+            batch_type_ids.append(type_ids)
+
+        inputs = {
+            "input_ids": batch_ids,
+            "attention_mask": batch_mask,
+            "token_type_ids": batch_type_ids,
+        }
+
+        expected_inputs = [i.name for i in self._session.get_inputs()]
+        filtered_inputs = {
+            k: np.array(v, dtype=np.int64) for k, v in inputs.items() if k in expected_inputs
+        }
+
+        outputs = self._session.run(None, filtered_inputs)
+        batch_logits = outputs[0]
+
+        batch_results = []
+
+        for batch_idx, logits in enumerate(batch_logits):
+            text = texts[batch_idx]
+            encoding = encodings[batch_idx]
+
+            exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+            probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
+
+            boosted_ranges: dict[EntityType, list[tuple[int, int]]] = {
+                EntityType.PERSON: [],
+                EntityType.LOCATION: [],
+            }
+            for pattern, boost_entity_type, boost_len in _CONTEXT_BOOSTS:
+                for match in pattern.finditer(text):
+                    start = match.end()
+                    end = start + boost_len
+                    boosted_ranges[boost_entity_type].append((start, end))
+
+            predictions = []
+            confidences = []
+            o_label_id = next((k for k, v in (self._id2label or {}).items() if v == "O"), 0)
+
+            for idx, token_probs in enumerate(probs):
+                if idx >= len(encoding.offsets):
+                    break
+
+                is_seq_b = hasattr(encoding, "sequence_ids") and encoding.sequence_ids[idx] == 1
+                if is_seq_b:
+                    predictions.append(o_label_id)
+                    confidences.append(1.0)
+                    continue
+
+                best_label = int(np.argmax(token_probs))
+                best_prob = float(token_probs[best_label])
+
+                label_str = (self._id2label or {}).get(best_label)
+
+                if label_str == "O" or not label_str:
+                    runner_up_probs = np.copy(token_probs)
+                    runner_up_probs[best_label] = 0.0
+                    second_best = int(np.argmax(runner_up_probs))
+                    second_prob = float(runner_up_probs[second_best])
+
+                    second_label_str = (self._id2label or {}).get(second_best)
+                    second_entity_type = (
+                        _entity_type_for(second_label_str) if second_label_str else None
+                    )
+
+                    threshold = self._entity_threshold
+                    if second_entity_type is not None:
+                        threshold = self._entity_thresholds.get(second_entity_type, threshold)
+
+                        token_start, _token_end = encoding.offsets[idx]
+                        is_boosted = False
+                        if second_entity_type in boosted_ranges:
+                            for b_start, b_end in boosted_ranges[second_entity_type]:
+                                if b_start <= token_start < b_end:
+                                    is_boosted = True
+                                    break
+                        if is_boosted:
+                            threshold *= 0.5
+
+                    if second_prob >= threshold:
+                        best_label = second_best
+                        best_prob = second_prob
+
+                predictions.append(best_label)
+                confidences.append(best_prob)
+
+            for idx in range(1, len(predictions)):
+                label_id = predictions[idx]
+                label_str = (self._id2label or {}).get(int(label_id))
+
+                if not label_str or label_str == "O":
+                    prev_label_id = predictions[idx - 1]
+                    prev_label_str = (self._id2label or {}).get(int(prev_label_id))
+
+                    is_same_seq = True
+                    if hasattr(encoding, "sequence_ids"):
+                        is_same_seq = encoding.sequence_ids[idx - 1] == encoding.sequence_ids[idx]
+
+                    if prev_label_str and prev_label_str != "O" and is_same_seq:
+                        _prev_start, prev_end = encoding.offsets[idx - 1]
+                        curr_start, curr_end = encoding.offsets[idx]
+
+                        if curr_start == prev_end and not text[curr_start].isspace():
+                            token_text = text[curr_start:curr_end]
+                            if any(c.isalnum() for c in token_text):
+                                predictions[idx] = prev_label_id
+                                confidences[idx] = confidences[idx - 1]
+
+            spans: list[tuple[EntityType, int, int, list[float]]] = []
+
+            for idx, label_id in enumerate(predictions):
+                label_str = (self._id2label or {}).get(int(label_id))
+                if not label_str or label_str == "O":
+                    continue
+                entity_type = _entity_type_for(label_str)
+                if entity_type is None:
+                    continue
+                start, end = encoding.offsets[idx]
+
+                if start >= end:
+                    continue
+
+                raw_conf = float(confidences[idx])
+                thresh = self._entity_thresholds.get(entity_type, self._entity_threshold)
+
+                if thresh >= 0.05:
+                    if raw_conf >= thresh:
+                        conf = 0.80 + 0.20 * (raw_conf - thresh) / max(1.0 - thresh, 1e-5)
+                    else:
+                        conf = 0.80 * raw_conf / max(thresh, 1e-5)
+                else:
+                    conf = raw_conf
+
+                if spans:
+                    previous_type, previous_start, previous_end, previous_confs = spans[-1]
+                    gap = text[previous_end:start]
+
+                    if entity_type is previous_type and (
+                        not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                    ):
+                        previous_confs.append(conf)
+                        spans[-1] = (previous_type, previous_start, end, previous_confs)
+                        continue
+                spans.append((entity_type, start, end, [conf]))
+
+            results = []
+            for entity_type, start, end, token_confs in spans:
+                confidence = max(token_confs)
+
+                if start < len(text):
+                    start_word = encoding.char_to_word(start)
+                    if start_word is not None:
+                        word_chars = encoding.word_to_chars(start_word)
+                        if word_chars is not None:
+                            start = min(start, word_chars[0])
+
+                if end > 0 and end <= len(text):
+                    end_word = encoding.char_to_word(end - 1)
+                    if end_word is not None:
+                        word_chars = encoding.word_to_chars(end_word)
+                        if word_chars is not None:
+                            end = max(end, word_chars[1])
+
+                if confidence >= policy.minimum_confidence:
+                    results.append(
+                        Detection(
+                            entity_type=entity_type,
+                            start=start,
+                            end=end,
+                            confidence=confidence,
+                            backend=self.name,
+                            detector="onnx",
+                        )
+                    )
+
+            batch_results.append(tuple(results))
+
+        return batch_results
