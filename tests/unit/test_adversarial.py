@@ -1,3 +1,5 @@
+from typing import Any
+
 from pseudonymize import Pseudonymizer, TransformationMode
 
 
@@ -72,7 +74,7 @@ def test_character_alignment_utf8_multi_byte() -> None:
 
 def test_deeply_nested_json_adversarial() -> None:
     engine = Pseudonymizer(mode=TransformationMode.REDACTED)
-    data = {"a": "bob@example.com"}
+    data: dict[str, Any] = {"a": "bob@example.com"}
     for _ in range(50):
         data = {"next": data}
     result = engine.process_data(data)
