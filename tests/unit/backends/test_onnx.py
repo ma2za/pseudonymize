@@ -214,11 +214,13 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
         return FakeEncoding(encoding)
 
     monkeypatch.setattr(backend._tokenizer, "encode", fake_encode)
+    backend._infer_text_cached.cache_clear()
     detections = backend.detect(block, policy)
     assert len(detections) == 0
 
     # Ensure coverage for when label_str exists but isn't something we map
     backend._id2label = dict.fromkeys(range(100), "B-UNKNOWN")
+    backend._infer_text_cached.cache_clear()
     detections = backend.detect(block, policy)
     assert len(detections) == 0
 
@@ -250,6 +252,7 @@ def test_ml_detect_real_inference_returns_meaningful_detections(
         return [logits]
 
     monkeypatch.setattr(backend._session, "run", fake_run)
+    backend._infer_text_cached.cache_clear()
     detections = backend.detect(block, policy)
     assert len(detections) >= 3
     found_types = {d.entity_type for d in detections}

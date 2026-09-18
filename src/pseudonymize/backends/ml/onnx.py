@@ -1,3 +1,4 @@
+import functools
 import json
 import os
 import re
@@ -137,6 +138,9 @@ class LocalONNXPIIBackend(DetectionBackend):
         self._id2label: dict[int, str] | None = None
         self._max_tokens: int = _DEFAULT_MAX_TOKENS
 
+        # Zero-Copy & LRU Caching Fast-Path (1.21.0)
+        self._infer_text_cached = functools.lru_cache(maxsize=1024)(self._infer_batch)
+
     @property
     def name(self) -> str:
         return self._name
@@ -271,11 +275,11 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                     batch_results = self._infer_batch(batch_texts, policy, batch_contexts)
 
-                    for j, window_detections in enumerate(batch_results):
+                    for j, win_detections in enumerate(batch_results):
                         global_idx = i + j
                         w_start = windows_to_process[global_idx][1]
 
-                        for d in window_detections:
+                        for d in win_detections:
                             # Apply character offset
                             detection = replace(d, start=d.start + w_start, end=d.end + w_start)
 
@@ -531,7 +535,8 @@ class LocalONNXPIIBackend(DetectionBackend):
         self, text: str, char_offset: int, policy: Policy, context_pair: str | None = None
     ) -> list[Detection]:
         # Fast-Path: Bypass ML loop entirely for cached tokens/windows
-        cached = self._infer_text_cached(text, policy, context_pair)
+        # Wrap single string into list to match signature of _infer_batch
+        cached = self._infer_text_cached((text,), policy, (context_pair,))[0]
         if char_offset == 0:
             return list(cached)
         return [replace(d, start=d.start + char_offset, end=d.end + char_offset) for d in cached]
@@ -548,7 +553,7 @@ class LocalONNXPIIBackend(DetectionBackend):
             # Enable padding for batch processing
             self._tokenizer.enable_padding(direction="right", length=self._max_tokens)
 
-            encode_inputs = []
+            encode_inputs: list[str | tuple[str, str]] = []
             for text, pair in zip(texts, context_pairs, strict=False):
                 if pair and len(text.split()) < 10:
                     encode_inputs.append((text, pair))
