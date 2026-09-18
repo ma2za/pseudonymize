@@ -76,9 +76,20 @@ class Policy:
         if self.schema_preserving:
             # Common JSON-RPC, MCP, and JSON Schema structural keys
             schema_keys = {
-                "schema", "inputschema", "properties", "required", "type",
-                "items", "definitions", "description", "title", "enum",
-                "jsonrpc", "method", "id", "error"
+                "schema",
+                "inputschema",
+                "properties",
+                "required",
+                "type",
+                "items",
+                "definitions",
+                "description",
+                "title",
+                "enum",
+                "jsonrpc",
+                "method",
+                "id",
+                "error",
             }
             # If any segment of the path contains these structural keys, bypass redaction
             if any(str(part).lower() in schema_keys for part in path):
