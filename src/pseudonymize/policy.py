@@ -34,6 +34,7 @@ class Policy:
     exclude_paths: tuple[str, ...] = ()
     network_policy: NetworkPolicy = NetworkPolicy.DENY
     allowed_remote_backends: Set[str] = frozenset()
+    schema_preserving: bool = True
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "entity_types", frozenset(self.entity_types))
@@ -42,6 +43,7 @@ class Policy:
         object.__setattr__(self, "exclude_paths", tuple(self.exclude_paths))
         object.__setattr__(self, "network_policy", NetworkPolicy(self.network_policy))
         object.__setattr__(self, "allowed_remote_backends", frozenset(self.allowed_remote_backends))
+        object.__setattr__(self, "schema_preserving", bool(self.schema_preserving))
         if not 0 <= self.minimum_confidence <= 1:
             raise ValueError("minimum_confidence must be between 0 and 1")
 
@@ -71,6 +73,17 @@ class Policy:
         return cls(entity_types=frozenset({EntityType.IBAN, EntityType.PAYMENT_CARD}))
 
     def allows_path(self, path: tuple[str, ...]) -> bool:
+        if self.schema_preserving:
+            # Common JSON-RPC, MCP, and JSON Schema structural keys
+            schema_keys = {
+                "schema", "inputschema", "properties", "required", "type",
+                "items", "definitions", "description", "title", "enum",
+                "jsonrpc", "method", "id", "error"
+            }
+            # If any segment of the path contains these structural keys, bypass redaction
+            if any(str(part).lower() in schema_keys for part in path):
+                return False
+
         if any(_path_matches(pattern, path) for pattern in self.exclude_paths):
             return False
         return not self.include_paths or any(

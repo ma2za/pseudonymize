@@ -160,3 +160,45 @@ def test_format_character_stripping_skips_rebuild_when_nothing_is_removed() -> N
     stripped, mapping = _strip_format_characters("a​b")
     assert stripped == "ab"
     assert mapping == [0, 2, 3]
+
+
+def test_mcp_schema_preserving_redaction() -> None:
+    # A full MCP / JSON-RPC payload including a tool definition with schemas
+    # and tool arguments with PII.
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+            "name": "send_email",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The user email address, e.g. john.smith@example.com"
+                    }
+                },
+                "required": ["email"]
+            },
+            "arguments": {
+                "email": "john.smith@example.com",
+                "text": "My email is john.smith@example.com and phone is +39 333 123 4567."
+            }
+        },
+        "id": 1
+    }
+
+    engine = Pseudonymizer()
+    sanitized = engine.process_data(payload)
+
+    # 1. Structural schema components and metadata MUST be preserved untouched!
+    # (i.e. 'john.smith@example.com' inside description must NOT be redacted because it's part of the Schema description)
+    assert sanitized["jsonrpc"] == "2.0"
+    assert sanitized["method"] == "tools/call"
+    assert sanitized["params"]["inputSchema"]["properties"]["email"]["description"] == "The user email address, e.g. john.smith@example.com"
+    assert sanitized["params"]["inputSchema"]["required"] == ["email"]
+
+    # 2. Runtime execution arguments containing PII MUST be redacted/pseudonymized!
+    assert sanitized["params"]["arguments"]["email"] != "john.smith@example.com"
+    assert "john.smith@example.com" not in sanitized["params"]["arguments"]["text"]
+    assert "+39 333 123 4567" not in sanitized["params"]["arguments"]["text"]

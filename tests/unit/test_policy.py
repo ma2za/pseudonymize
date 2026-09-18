@@ -33,3 +33,20 @@ def test_path_matching() -> None:
 def test_invalid_confidence() -> None:
     with pytest.raises(ValueError, match="confidence"):
         Policy(minimum_confidence=-1)
+
+
+def test_schema_preserving_agent_sanitation() -> None:
+    policy = Policy.default()
+    # Structural JSON-RPC and MCP schema fields must be bypassed (return False)
+    assert not policy.allows_path(("params", "inputSchema", "properties", "email", "type"))
+    assert not policy.allows_path(("jsonrpc",))
+    assert not policy.allows_path(("method",))
+    assert not policy.allows_path(("id",))
+
+    # Standard data fields should still be allowed for redaction (return True)
+    assert policy.allows_path(("params", "arguments", "email"))
+    assert policy.allows_path(("params", "text"))
+
+    # When disabled, schema fields can be redacted as normal
+    unsafe_policy = Policy(schema_preserving=False)
+    assert unsafe_policy.allows_path(("params", "inputSchema", "properties", "email", "type"))

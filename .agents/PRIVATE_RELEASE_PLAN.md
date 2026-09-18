@@ -29,7 +29,7 @@ Following the stabilization of our 0.8292 F1 baseline, the roadmap must now aggr
 - **Advanced Local ML (GLiNER2 ONNX):** Integrate prompt-based NER models natively within the ONNX local boundary. Crucial for dynamically capturing domain-specific jargon (e.g., "Project Codename X") without fine-tuning. Must run under tight latency budgets.
 - **Cross-Lingual Zero-Shot Capabilities:** Leverage GLiNER's inherent multi-lingual support (20+ languages) to scale beyond English-centric BERT variants, fundamentally raising our recall ceiling.
 - **Context-Assisted ML Boosting:** Integrate the `ContextDetector` tightly with the ML loop. If a token falls within 30 characters of a hard trigger ("Address:", "Name:"), dynamically boost the model's logits for that specific text window to recover missed isolated entities.
-- **Ensemble Voting Arbitrator:** With multiple backends (RegEx, BERT, GLiNER) running, introduce an `EnsembleArbitrator`. Support topological modes: `HighRecall` (Union), `HighPrecision` (Intersection), or `Two-Pass` (Heuristics propose, ML verifies).
+- **Ensemble Voting Arbitrator:** With multiple backends (RegEx, BERT, GLiNER) running, introduce an `EnsembleArbitrator`. Support topological modes: `HighRecall` (Union), `HighPrecision` (Intersection), or `Two-Pass` (Heuristics propose, ML verifies). *(Update: Intersection mode was fully implemented and empirically evaluated on our quality benchmark, yielding near-perfect Precision of 0.9853 but severely degrading Recall to 0.3540 and F1 to 0.5209. To maintain strict F1/Recall integrity, the feature was safely reverted and discarded).*
 
 ---
 
