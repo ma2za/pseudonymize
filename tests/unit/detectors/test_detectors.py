@@ -2,6 +2,7 @@ import pytest
 
 from pseudonymize import EntityType
 from pseudonymize.detectors.email import EmailDetector
+from pseudonymize.detectors.german import GermanTINDetector, _valid_german_tin
 from pseudonymize.detectors.iban import IbanDetector, _valid_mod97
 from pseudonymize.detectors.ip_address import IpAddressDetector
 from pseudonymize.detectors.italian import (
@@ -14,6 +15,11 @@ from pseudonymize.detectors.location import LocationDetector
 from pseudonymize.detectors.payment_card import PaymentCardDetector, _valid_luhn
 from pseudonymize.detectors.phone import PhoneDetector
 from pseudonymize.detectors.secret import SecretDetector
+from pseudonymize.detectors.spanish import (
+    SpanishNIFDetector,
+    _valid_spanish_cif,
+    _valid_spanish_nif,
+)
 from pseudonymize.detectors.url import UrlDetector
 
 
@@ -84,6 +90,11 @@ from pseudonymize.detectors.url import UrlDetector
             EntityType.LOCATION,
             "10001",
         ),
+        (SpanishNIFDetector(), "NIF is 12345678Z.", EntityType.NATIONAL_ID, "12345678Z"),
+        (SpanishNIFDetector(), "NIE is X1234567L.", EntityType.NATIONAL_ID, "X1234567L"),
+        (SpanishNIFDetector(), "CIF is A58818501.", EntityType.TAX_ID, "A58818501"),
+        (GermanTINDetector(), "TIN is 26985072315.", EntityType.TAX_ID, "26985072315"),
+        (GermanTINDetector(), "TIN is 26 985 072 315.", EntityType.TAX_ID, "26 985 072 315"),
     ],
 )
 def test_valid_candidates(detector: object, text: str, entity_type: EntityType, value: str) -> None:
@@ -108,6 +119,10 @@ def test_valid_candidates(detector: object, text: str, entity_type: EntityType, 
         (ItalianFiscalCodeDetector(), "TSTTST90A00Z999M"),
         (ItalianVATDetector(), "Italian VAT ID IT 12345678904"),
         (ItalianVATDetector(), "Unlabelled number 12345678903"),
+        (SpanishNIFDetector(), "12345678A"),
+        (SpanishNIFDetector(), "X1234567A"),
+        (GermanTINDetector(), "26985072314"),
+        (GermanTINDetector(), "12345678901"),
     ],
 )
 def test_invalid_candidates(detector: object, text: str) -> None:
@@ -123,6 +138,11 @@ def test_validators_reject_repeated_or_malformed_values() -> None:
     assert not _valid_fiscal_code("TSTTST90A00Z999M")
     assert _valid_vat("IT 12345678903")
     assert not _valid_vat("00000000000")
+    assert _valid_spanish_nif("12345678", "Z")
+    assert not _valid_spanish_nif("12345678", "A")
+    assert _valid_spanish_cif("A", "5881850", "1")
+    assert _valid_german_tin("26985072315")
+    assert not _valid_german_tin("12345678901")
 
 
 def test_phone_rejects_repeated_digits() -> None:
