@@ -17,6 +17,7 @@ from pseudonymize.document import (
 )
 from pseudonymize.engine import ProcessingScope, Pseudonymizer
 from pseudonymize.formats import FileFormat
+from pseudonymize.otel import DlpLoggingFilter, OTelRedactionSpanProcessor
 from pseudonymize.policy import NetworkPolicy, Policy
 from pseudonymize.processing import (
     DetectionReport,
@@ -37,6 +38,7 @@ __all__ = [
     "Detection",
     "DetectionBackend",
     "DetectionReport",
+    "DlpLoggingFilter",
     "Document",
     "EntityResolver",
     "EntityType",
@@ -46,6 +48,7 @@ __all__ = [
     "JSONPathLocation",
     "MetadataValue",
     "NetworkPolicy",
+    "OTelRedactionSpanProcessor",
     "OutputAdapter",
     "Policy",
     "ProcessingResult",
