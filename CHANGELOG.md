@@ -2,6 +2,11 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.24.0] - Unreleased
+
+### Added
+- Started development of Asynchronous Observability & Distributed DLP Adapter focusing on zero-overhead OpenTelemetry middleware.
+
 ## [1.23.0] - 2026-09-18
 
 ### Added
