@@ -153,7 +153,6 @@ def evaluate(
     split: str = "validation",
     explain: bool = False,
     file_path: Path | None = None,
-    use_intersection: bool = False,
 ) -> None:
     print(INTEGRITY_NOTICE)
 
@@ -199,16 +198,7 @@ def evaluate(
             tokenizer_path=tokenizer_path,
             config_path=config_path,
         )
-        if use_intersection:
-            from pseudonymize.backends import CompositeBackend, EnsembleMode
-
-            composite = CompositeBackend(
-                backends=[*engine.backends, backend],
-                ensemble_mode=EnsembleMode.INTERSECTION,
-            )
-            engine = Pseudonymizer(backends=[composite], bloom_filter=bloom_filter)
-        else:
-            engine = Pseudonymizer(backends=[*engine.backends, backend], bloom_filter=bloom_filter)
+        engine = Pseudonymizer(backends=[*engine.backends, backend], bloom_filter=bloom_filter)
 
     true_positives = 0
     false_positives = 0
@@ -370,11 +360,6 @@ if __name__ == "__main__":
         action="store_true",
         help="Print false positive and false negative explanations.",
     )
-    parser.add_argument(
-        "--intersection",
-        action="store_true",
-        help="Use EnsembleMode.INTERSECTION to combine backends.",
-    )
     args = parser.parse_args()
 
     file_path = Path(args.file) if args.file is not None else None
@@ -385,5 +370,4 @@ if __name__ == "__main__":
         split=args.split,
         explain=args.explain,
         file_path=file_path,
-        use_intersection=args.intersection,
     )

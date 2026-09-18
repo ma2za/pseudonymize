@@ -4,7 +4,6 @@ from pseudonymize.backends import (
     BackendCapabilities,
     CompositeBackend,
     DetectionBackend,
-    EnsembleMode,
     RulesBackend,
 )
 from pseudonymize.document import (
@@ -39,7 +38,6 @@ __all__ = [
     "DetectionBackend",
     "DetectionReport",
     "Document",
-    "EnsembleMode",
     "EntityResolver",
     "EntityType",
     "ExactEntityResolver",
