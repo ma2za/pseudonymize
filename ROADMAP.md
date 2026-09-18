@@ -30,7 +30,8 @@ publishable without requiring unfinished later layers.
 | `1.20.0` | Published | Stable evaluation baseline achievement (0.8292 F1) |
 | `1.21.0` | Published | Scale & Integration (Batched Vectorization & LRU Caching Fast-Paths) |
 | `1.22.0` | Published | Next-Generation Semantic Recall & Schema-Preserving Agent Sanitation (MCP) |
-| `1.23.0` | Next      | Ecosystem Integration & Structural Depth |
+| `1.23.0` | Published | Ecosystem Integration & Regional EU Identifier Depth (German Steuer-IdNr, Spanish NIF/NIE/CIF) |
+| `1.24.0` | Next      | Asynchronous Observability & Distributed DLP Adapter |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
