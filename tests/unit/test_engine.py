@@ -175,27 +175,29 @@ def test_mcp_schema_preserving_redaction() -> None:
                 "properties": {
                     "email": {
                         "type": "string",
-                        "description": "The user email address, e.g. john.smith@example.com"
+                        "description": "The user email address, e.g. john.smith@example.com",
                     }
                 },
-                "required": ["email"]
+                "required": ["email"],
             },
             "arguments": {
                 "email": "john.smith@example.com",
-                "text": "My email is john.smith@example.com and phone is +39 333 123 4567."
-            }
+                "text": "My email is john.smith@example.com and phone is +39 333 123 4567.",
+            },
         },
-        "id": 1
+        "id": 1,
     }
 
     engine = Pseudonymizer()
     sanitized = engine.process_data(payload)
 
     # 1. Structural schema components and metadata MUST be preserved untouched!
-    # (i.e. 'john.smith@example.com' inside description must NOT be redacted because it's part of the Schema description)
+    # (i.e. 'john.smith@example.com' inside description must NOT be redacted
+    # because it's part of the Schema description)
     assert sanitized["jsonrpc"] == "2.0"
     assert sanitized["method"] == "tools/call"
-    assert sanitized["params"]["inputSchema"]["properties"]["email"]["description"] == "The user email address, e.g. john.smith@example.com"
+    expected_desc = "The user email address, e.g. john.smith@example.com"
+    assert sanitized["params"]["inputSchema"]["properties"]["email"]["description"] == expected_desc
     assert sanitized["params"]["inputSchema"]["required"] == ["email"]
 
     # 2. Runtime execution arguments containing PII MUST be redacted/pseudonymized!
