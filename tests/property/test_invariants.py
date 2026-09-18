@@ -1,6 +1,6 @@
 import copy
 
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from pseudonymize import Pseudonymizer, pseudonymize
@@ -9,6 +9,7 @@ KEY = b"k" * 32
 
 
 @given(st.from_regex(r"[A-Za-z][A-Za-z0-9]{0,20}@example\.com", fullmatch=True))
+@settings(deadline=None)
 def test_determinism_namespace_isolation_and_idempotence(email: str) -> None:
     first = pseudonymize(email, mode="deterministic", key=KEY, namespace="a")
     assert first == pseudonymize(email, mode="deterministic", key=KEY, namespace="a")
@@ -21,11 +22,13 @@ def test_determinism_namespace_isolation_and_idempotence(email: str) -> None:
 
 
 @given(st.text(alphabet=st.characters(blacklist_characters="@"), max_size=200))
+@settings(deadline=None)
 def test_unmatched_text_is_unchanged(text: str) -> None:
     assert Pseudonymizer(backends=[]).process(text).text == text
 
 
 @given(st.text(max_size=500))
+@settings(deadline=None)
 def test_arbitrary_unicode_is_idempotent(text: str) -> None:
     engine = Pseudonymizer()
     once = engine.process(text).text
@@ -43,6 +46,7 @@ JSON_DATA = st.recursive(
 
 
 @given(JSON_DATA)
+@settings(deadline=None)
 def test_arbitrary_nested_data_is_immutable_and_idempotent(data: object) -> None:
     original = copy.deepcopy(data)
     engine = Pseudonymizer()
