@@ -30,7 +30,7 @@ jobs:
         run: uv sync --all-extras --frozen --group test
 
       - name: Run benchmarks
-        run: uv run pytest benchmarks/ --benchmark-json benchmark-output.json
+        run: uv run pytest benchmarks/ --no-cov --benchmark-json benchmark-output.json
 
       - name: Store and compare benchmark results
         uses: benchmark-action/github-action-benchmark@v1
