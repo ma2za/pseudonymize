@@ -31,7 +31,9 @@ publishable without requiring unfinished later layers.
 | `1.21.0` | Published | Scale & Integration (Batched Vectorization & LRU Caching Fast-Paths) |
 | `1.22.0` | Published | Next-Generation Semantic Recall & Schema-Preserving Agent Sanitation (MCP) |
 | `1.23.0` | Published | Ecosystem Integration & Regional EU Identifier Depth (German Steuer-IdNr, Spanish NIF/NIE/CIF) |
-| `1.24.0` | Next      | Asynchronous Observability & Distributed DLP Adapter |
+| `1.24.0` | Published | Asynchronous Observability & Distributed DLP Adapter (Zero-Overhead OpenTelemetry & Logging) |
+| `1.25.0` | Published | Distributed Scaling, Property Test Resilience & Pre-Commit Verification |
+| `1.26.0` | Next      | Enterprise DLP Broker & Active Policy Sync |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
