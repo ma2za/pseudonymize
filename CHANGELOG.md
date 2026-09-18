@@ -2,10 +2,10 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
-## [1.23.0] - Unreleased
+## [1.23.0] - 2026-09-18
 
 ### Added
-- Started development of Ecosystem Integration & Structural Depth focusing on Schema-Preserving AST traversal and Regional EU Identifier depth.
+- **Regional EU Identifier Depth:** Added mathematically verified German and Spanish national identifier detectors. Implements German Steuer-IdNr (Tax ID) with full ISO 7064 Mod 11,10 custom transition matrix checksums, Spanish NIF/NIE (National ID) with mod-23 lookup, and Spanish CIF (Corporate tax codes) with custom corporate mod-10 double-addition checksum validation.
 
 ## [1.22.0] - 2026-09-18
 
