@@ -2,6 +2,11 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.22.0] - Unreleased
+
+### Added
+- Started development of Next-Generation Semantic Recall focusing on GLiNER, cross-lingual capabilities, and ensemble arbitrage.
+
 ## [1.21.0] - 2026-09-17
 
 ### Added
