@@ -76,6 +76,6 @@ class OTelRedactionSpanProcessor:
                         else:
                             new_val.append(item)
                     span.attributes[key] = type(val)(new_val)
-        except Exception:
+        except Exception:  # noqa: S110
             # Shield the hot path from any runtime attribute mutation errors
             pass
