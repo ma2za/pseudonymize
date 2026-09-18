@@ -2,10 +2,10 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
-## [1.22.0] - Unreleased
+## [1.22.0] - 2026-09-18
 
 ### Added
-- Started development of Next-Generation Semantic Recall focusing on GLiNER, cross-lingual capabilities, and ensemble arbitrage.
+- **Schema-Preserving Agent Sanitation (MCP/JSON-RPC Integration):** Added automated, structural JSON Schema and JSON-RPC key preservation for hierarchical `process_data()` payloads. Structural keys (such as `inputSchema`, `properties`, `required`, `jsonrpc`, `method`, etc.) are preserved untouched to prevent breaking agent schemas, while dynamic execution arguments are safely redacted.
 
 ## [1.21.0] - 2026-09-17
 

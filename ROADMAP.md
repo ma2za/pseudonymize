@@ -29,7 +29,8 @@ publishable without requiring unfinished later layers.
 | `1.0.0`  | Published | Mature compatibility commitment & strict 1-to-1 boundary matching |
 | `1.20.0` | Published | Stable evaluation baseline achievement (0.8292 F1) |
 | `1.21.0` | Published | Scale & Integration (Batched Vectorization & LRU Caching Fast-Paths) |
-| `1.22.0` | Next      | Next-Generation Semantic Recall |
+| `1.22.0` | Published | Next-Generation Semantic Recall & Schema-Preserving Agent Sanitation (MCP) |
+| `1.23.0` | Next      | Ecosystem Integration & Structural Depth |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
