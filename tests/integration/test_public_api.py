@@ -13,6 +13,7 @@ def test_top_level_api() -> None:
         "DetectionBackend",
         "DetectionReport",
         "Document",
+        "EnsembleMode",
         "EntityType",
         "EntityResolver",
         "ExactEntityResolver",
