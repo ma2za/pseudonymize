@@ -2,6 +2,11 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [1.23.0] - Unreleased
+
+### Added
+- Started development of Ecosystem Integration & Structural Depth focusing on Schema-Preserving AST traversal and Regional EU Identifier depth.
+
 ## [1.22.0] - 2026-09-18
 
 ### Added
