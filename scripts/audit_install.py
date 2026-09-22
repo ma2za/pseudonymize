@@ -17,6 +17,7 @@ FORBIDDEN_IMPORTS = {
     "pypdf",
     "pytesseract",
 }
+EXPECTED_BASE_REQUIREMENTS = frozenset()
 
 
 def _blocked_network(*arguments: object, **keywords: object) -> None:
@@ -38,9 +39,13 @@ def main() -> None:
     installed = distribution("pseudonymize")
     if installed.version != expected_version:
         raise RuntimeError("installed version does not match release")
-    if installed.requires:
-        [req for req in installed.requires if "extra ==" not in req]
-        # Allow base dependencies now
+    base_requirements = frozenset(
+        requirement.split(";", 1)[0].strip()
+        for requirement in installed.requires or ()
+        if "extra ==" not in requirement
+    )
+    if base_requirements != EXPECTED_BASE_REQUIREMENTS:
+        raise RuntimeError("installed base dependencies do not match the release contract")
     files = {str(path).replace("\\", "/") for path in installed.files or ()}
     if "pseudonymize/py.typed" not in files:
         raise RuntimeError("installed package is missing py.typed")

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from scripts.verify_release import (
+    EXPECTED_BASE_REQUIREMENTS,
     EXPECTED_DEVELOPMENT_CLASSIFIER,
     EXPECTED_PROJECT_URLS,
     EXPECTED_PYTHON_CLASSIFIERS,
@@ -29,7 +30,7 @@ def _write_project(root: Path, version: str = "0.1.0") -> None:
 def _write_wheel(
     directory: Path,
     version: str = "0.1.0",
-    dependency: bool = False,
+    requirements: tuple[str, ...] = tuple(EXPECTED_BASE_REQUIREMENTS),
     development_classifier: str = EXPECTED_DEVELOPMENT_CLASSIFIER,
 ) -> None:
     metadata = email.message.Message()
@@ -42,8 +43,8 @@ def _write_wheel(
         metadata["Project-URL"] = f"{label}, {url}"
     for classifier in EXPECTED_PYTHON_CLASSIFIERS:
         metadata["Classifier"] = classifier
-    if dependency:
-        metadata["Requires-Dist"] = "example"
+    for requirement in requirements:
+        metadata["Requires-Dist"] = requirement
     path = directory / f"pseudonymize-{version}-py3-none-any.whl"
     with zipfile.ZipFile(path, "w") as archive:
         archive.writestr("pseudonymize/py.typed", "")
@@ -85,8 +86,20 @@ def test_release_rejects_mismatched_tag() -> None:
         verify_tag("0.1.0", "v0.1.0rc1")
 
 
-def test_release_rejects_runtime_dependency(tmp_path: Path) -> None:
-    pass  # We now allow runtime dependencies for the base wheel
+@pytest.mark.parametrize(
+    "requirements",
+    [("unexpected>=1",)],
+)
+def test_release_rejects_base_dependency_mismatch(
+    tmp_path: Path, requirements: tuple[str, ...]
+) -> None:
+    _write_project(tmp_path)
+    distribution_directory = tmp_path / "dist"
+    distribution_directory.mkdir()
+    _write_wheel(distribution_directory, requirements=requirements)
+    _write_sdist(distribution_directory)
+    with pytest.raises(ValueError, match="base dependencies"):
+        verify_release(tmp_path, distribution_directory, None)
 
 
 def test_release_rejects_prerelease_classifier(tmp_path: Path) -> None:
