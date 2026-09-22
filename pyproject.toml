@@ -66,10 +66,6 @@ html = [
     "beautifulsoup4>=4.12.0",
     "lxml>=5.0.0",
 ]
-api = [
-    "fastapi>=0.100.0",
-    "uvicorn>=0.20.0",
-]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pseudonymize"]
