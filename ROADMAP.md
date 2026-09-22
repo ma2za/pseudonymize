@@ -34,6 +34,11 @@ publishable without requiring unfinished later layers.
 | `1.24.0` | Published | Asynchronous Observability & Distributed DLP Adapter (Zero-Overhead OpenTelemetry & Logging) |
 | `1.25.0` | Published | Distributed Scaling, Property Test Resilience & Pre-Commit Verification |
 | `1.26.0` | Next      | Enterprise DLP Broker & Active Policy Sync |
+| `1.27.0` | Next      | Multi-Lingual Contextual Proximity & Cross-Entropy Boosting |
+| `1.28.0` | Next      | Semantic Coreference Propagation & Entity-Component Linker |
+| `1.29.0` | Next      | Contrastive Subword Alignment & Bayesian ML Calibration |
+| `1.30.0` | Next      | Graph-Based Entity Disambiguation & Gazetteer-Veto Tries |
+| `1.31.0` | Next      | Multi-Pass Ensemble Fusion & Adaptive Conflict-Resolution Matrices |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -156,6 +161,31 @@ Key structural achievements included:
 - **ML Optimizations**: Dynamic confidence calibration, token-to-character alignment, attention-mask context boosting, and multi-pass boundary refinement.
 - **Structural Parsing**: Multi-lingual address topologies, corporate suffix FSMs, intra-document coreference propagation, and dynamic detector-aware conflict matrices.
 - **Artifact & Performance**: Stripped all heavy NLP dependencies (like Llama/Torch), focusing entirely on lightning-fast ONNX quantized inference and pure-Python heuristics.
+
+### `1.27.0` to `1.31.0`: Legitimate Quality & Benchmark Optimization (Planned)
+
+To legitimately bridge the gap to a 90% F1 score without overfitting or cheating on the `ai4privacy` dataset, the following staged releases focus on robust ML engineering, structural heuristics, and contextual calibration:
+
+#### `1.27.0`: Multi-Lingual Contextual Proximity & Cross-Entropy Boosting
+- **Soft-Matching Windowed Context Vectorizer**: Replace rigid regex-based context triggers with a soft-matching multi-lingual keyword similarity matrix (covering German, Spanish, French, Italian, and English TIN/SSN/VAT variants).
+- **Context-Proximity Decay**: Implement an exponential distance decay scorer, boosting candidate confidence if a verified context keyword is nearby (decaying smoothly up to an 80-character window).
+- **Negative-Evidence Vetoes**: Add rules that instantly veto candidates if surrounding negative context is found (e.g., preceded by "vversion", "revision", "page", or "HTTP").
+
+#### `1.28.0`: Semantic Coreference Propagation & Entity-Component Linker
+- **Component-Level Dynamic Gazetteers**: Register individual parts of high-confidence full names (e.g., "Jonathan" from "Jonathan Miller") into an in-memory session DAWG to propagate and detect subsequent partial mentions.
+- **Fuzzy Sequence Alignment**: Match and link typographical variations, nicknames, or misspelled occurrences of the same name within a single document session to ensure consistent mapping and avoid boundary errors.
+
+#### `1.29.0`: Contrastive Subword Alignment & Bayesian ML Calibration
+- **Contrastive Subword Aligner (CSA)**: Analyze character-level morphology around boundaries to snap raw model token index offsets to the nearest valid Unicode word boundaries or strip trailing word-pieces (e.g., `##son`).
+- **Bayesian Calibration Layer**: Calibrate raw confidence scores using token-level attributes (token length, capitalization ratio, vocabulary frequency, and position) to replace static thresholds with adaptive decision boundaries.
+
+#### `1.30.0`: Graph-Based Entity Disambiguation & Gazetteer-Veto Tries
+- **Bipartite Entity Disambiguation Graph**: Disambiguate entities (e.g., "Washington" as `PERSON` if near "George" or `LOCATION` if near "street") by building dynamic co-occurrence relationships.
+- **Compact Prose Veto DAWG**: Map standard dictionary words using an optimized trie to veto low-confidence NER predictions that fall onto common prose words (like "Hope" or "May") unless strong local context is present.
+
+#### `1.31.0`: Multi-Pass Ensemble Fusion & Adaptive Conflict-Resolution Matrices
+- **Adaptive Conflict-Resolution Matrix**: Replace simple priority ranking with type-specific conditional probabilities where rules (like checksummed `IBAN`) can veto ML, but high-confidence ML `PERSON` overrides generic rules.
+- **Two-Pass Attention Consolidator**: Extract high-confidence structural anchors in Pass 1, then inject them as localized attention/mask hints back to the ONNX model in Pass 2 to guide prediction of complex surrounding entities.
 
 ## Optional dependency policy
 

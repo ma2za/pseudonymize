@@ -190,17 +190,32 @@ def test_mcp_schema_preserving_redaction() -> None:
 
     engine = Pseudonymizer()
     sanitized = engine.process_data(payload)
+    assert isinstance(sanitized, dict)
 
     # 1. Structural schema components and metadata MUST be preserved untouched!
     # (i.e. 'john.smith@example.com' inside description must NOT be redacted
     # because it's part of the Schema description)
     assert sanitized["jsonrpc"] == "2.0"
     assert sanitized["method"] == "tools/call"
+
+    params = sanitized["params"]
+    assert isinstance(params, dict)
+    input_schema = params["inputSchema"]
+    assert isinstance(input_schema, dict)
+    properties = input_schema["properties"]
+    assert isinstance(properties, dict)
+    email_prop = properties["email"]
+    assert isinstance(email_prop, dict)
+
     expected_desc = "The user email address, e.g. john.smith@example.com"
-    assert sanitized["params"]["inputSchema"]["properties"]["email"]["description"] == expected_desc
-    assert sanitized["params"]["inputSchema"]["required"] == ["email"]
+    assert email_prop["description"] == expected_desc
+    assert input_schema["required"] == ["email"]
 
     # 2. Runtime execution arguments containing PII MUST be redacted/pseudonymized!
-    assert sanitized["params"]["arguments"]["email"] != "john.smith@example.com"
-    assert "john.smith@example.com" not in sanitized["params"]["arguments"]["text"]
-    assert "+39 333 123 4567" not in sanitized["params"]["arguments"]["text"]
+    arguments = params["arguments"]
+    assert isinstance(arguments, dict)
+    assert arguments["email"] != "john.smith@example.com"
+    text_arg = arguments["text"]
+    assert isinstance(text_arg, str)
+    assert "john.smith@example.com" not in text_arg
+    assert "+39 333 123 4567" not in text_arg

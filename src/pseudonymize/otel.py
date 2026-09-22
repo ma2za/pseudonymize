@@ -21,7 +21,7 @@ class DlpLoggingFilter(logging.Filter):
 
         # Redact any string arguments passed to the log formatting
         if record.args:
-            new_args = []
+            new_args: list[Any] = []
             for arg in record.args:
                 if isinstance(arg, str):
                     new_args.append(self.engine.process(arg).text)

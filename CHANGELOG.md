@@ -2,7 +2,7 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
-## [1.26.0] - Unreleased
+## [1.26.0] - 2026-09-19
 
 ### Added
 - Started development of Enterprise DLP Broker & Active Policy Sync.
