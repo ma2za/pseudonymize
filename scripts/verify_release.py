@@ -1,4 +1,5 @@
 import argparse
+import email.message
 import email.parser
 import os
 import tarfile
@@ -19,6 +20,7 @@ EXPECTED_PYTHON_CLASSIFIERS = {
     f"Programming Language :: Python :: {version}" for version in ("3.11", "3.12", "3.13", "3.14")
 }
 EXPECTED_DEVELOPMENT_CLASSIFIER = "Development Status :: 5 - Production/Stable"
+EXPECTED_BASE_REQUIREMENTS = frozenset()
 REQUIRED_SDIST_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -58,6 +60,14 @@ def verify_tag(version: str, tag: str | None) -> None:
         raise ValueError(f"tag {tag!r} does not match project version {version!r}")
 
 
+def base_requirements(metadata: email.message.Message) -> frozenset[str]:
+    return frozenset(
+        requirement.split(";", 1)[0].strip()
+        for requirement in metadata.get_all("Requires-Dist", failobj=[])
+        if "extra ==" not in requirement
+    )
+
+
 def verify_wheel(path: Path, version: str, project_root: Path) -> None:
     if path.stat().st_size >= MAXIMUM_WHEEL_BYTES:
         raise ValueError(f"wheel exceeds {MAXIMUM_WHEEL_BYTES} bytes")
@@ -73,8 +83,8 @@ def verify_wheel(path: Path, version: str, project_root: Path) -> None:
             raise ValueError("wheel licence expression is invalid")
         if metadata["Requires-Python"] != ">=3.11":
             raise ValueError("wheel Python requirement is invalid")
-        metadata.get_all("Requires-Dist", failobj=[])
-        # Base wheel can now have dependencies like dawg-python and requests
+        if base_requirements(metadata) != EXPECTED_BASE_REQUIREMENTS:
+            raise ValueError("wheel base dependencies do not match the release contract")
         project_urls = dict(
             value.split(", ", 1) for value in metadata.get_all("Project-URL", failobj=[])
         )

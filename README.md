@@ -32,7 +32,8 @@ no telemetry or model downloads, and denies remote-capable backends by default.
   processing scope.
 - **Safe observability.** Detailed reports expose types, offsets, provenance, and counts without
   copying matched values.
-- **Small installation.** The wheel is typed and has zero base runtime dependencies.
+- **Small installation.** The wheel is typed and has zero base runtime dependencies. Document,
+  OCR, ML, HTML, and remote HTTP support remain optional.
 - **Explicit extension points.** Detection and format handling are separate, so custom backends
   and adapters do not replace the core policy and transformation logic.
 - **Designed for LLM boundaries.** Nested payload processing preserves structure and lets policies
@@ -258,7 +259,7 @@ supported entity types, provenance, remote capability, and remote-processing con
 core. Malformed and out-of-range detections fail with sanitized exceptions.
 
 No capitalization heuristic is used for names. `PERSON`, `ORGANIZATION`, and `LOCATION` are public
-entity types, but the base package does not detect them.
+entity types; optional local ML can detect them.
 
 ## Network policy
 
@@ -268,8 +269,9 @@ are true:
 1. The active policy is `ALLOW_CONFIGURED` with the backend allowlisted, or `ALLOW_ALL`.
 2. The backend explicitly sets `allow_remote_processing=True`.
 
-An API key alone never enables network access. The current package defines this security contract
-but ships no remote provider or HTTP dependency.
+An API key alone never enables network access. The optional `remote` extra includes
+`HTTPRemoteBackend`; when explicitly enabled, it sends each configured content block to the
+caller-selected endpoint.
 
 ## Reversible mappings
 

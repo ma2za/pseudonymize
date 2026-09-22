@@ -33,12 +33,11 @@ publishable without requiring unfinished later layers.
 | `1.23.0` | Published | Ecosystem Integration & Regional EU Identifier Depth (German Steuer-IdNr, Spanish NIF/NIE/CIF) |
 | `1.24.0` | Published | Asynchronous Observability & Distributed DLP Adapter (Zero-Overhead OpenTelemetry & Logging) |
 | `1.25.0` | Published | Distributed Scaling, Property Test Resilience & Pre-Commit Verification |
-| `1.26.0` | Next      | Enterprise DLP Broker & Active Policy Sync |
-| `1.27.0` | Next      | Multi-Lingual Contextual Proximity & Cross-Entropy Boosting |
-| `1.28.0` | Next      | Semantic Coreference Propagation & Entity-Component Linker |
-| `1.29.0` | Next      | Contrastive Subword Alignment & Bayesian ML Calibration |
-| `1.30.0` | Next      | Graph-Based Entity Disambiguation & Gazetteer-Veto Tries |
-| `1.31.0` | Next      | Multi-Pass Ensemble Fusion & Adaptive Conflict-Resolution Matrices |
+| `1.26.0` | In development | Contract reconciliation and release-proof baseline |
+| `1.27.0` | Planned | Reproducible evaluation, production-safety hardening, and detector evidence |
+| `1.28.0` | Planned | Measured multilingual contextual recall improvements |
+| `1.29.0` | Planned | ML calibration, entity linking, and robust boundary alignment |
+| `1.30.0` | Planned | Ensemble conflict resolution only if it improves held-out metrics |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -50,9 +49,10 @@ but compatibility guarantees start only with `0.1.0`.
 - Strict mypy passes for source, tests, benchmarks, and scripts.
 - Supported Python versions pass on Linux, macOS, and Windows.
 - Branch coverage meets the release floor and never falls below the previous tagged baseline.
-  The current enforced floor is 95.36%, set by `--cov-fail-under` in `pyproject.toml`.
+  `pyproject.toml` is the source of truth; its current enforced floor is 94.10%.
 - Property, contract, clean-wheel, documentation, and packaging checks pass.
-- The base wheel remains typed and declares zero runtime dependencies.
+- The base wheel remains typed. Its runtime-dependency policy exactly matches
+  `pyproject.toml`, wheel metadata, installed-wheel audit output, and public documentation.
 - Importing `pseudonymize` does not load optional document, OCR, model, or HTTP packages.
 - Reports, warnings, exceptions, logs, CLI output, and representations do not expose matched
   values.
@@ -64,6 +64,210 @@ but compatibility guarantees start only with `0.1.0`.
 - Coverage alone is not a quality target. A release should become harder to fake with an incomplete
   or unsafe implementation.
 - Tests must be meaningful and execute actual logic. Do not use dummy artifacts, toy models, or mock inference. Specifically, optional backends (like ONNX ML) must be tested against real, dynamically downloaded lightweight model artifacts (e.g., quantized BERT) cached outside version control to rigorously verify the true inference pipeline for PII pseudonymization. ML features are strictly limited to PII and must never be developed or presented as general-purpose NLP tools.
+
+## Recovery roadmap: `1.26.0` onward
+
+This section is the operating plan for a fresh implementation chat. It takes precedence over
+aspirational feature names elsewhere in this file. Do not start a new detector, provider, or
+enterprise integration while an earlier release's exit criteria are unmet.
+
+### Baseline facts to preserve
+
+- The package is a pseudonymization boundary, not anonymization, compliance certification, or an
+  enterprise DLP system.
+- The published strict quality baseline is 0.8292 F1 (precision 0.8587, recall 0.8016) on 1,000
+  sampled validation rows of `ai4privacy/pii-masking-openpii-1.5m`, with one-to-one matching,
+  exact entity types, and strict boundaries. It is a point-in-time measurement, not a guarantee.
+- The base distribution declares no runtime dependencies. Optional remote support declares
+  `httpx`; the base package remains dependency-free, while the project still ships an optional
+  HTTP provider.
+- `HTTPRemoteBackend` sends raw block text to its configured endpoint only after the engine's
+  explicit network-policy checks. Its presence means remote processing is a shipped capability,
+  even if no hosted service is operated by this project.
+- `SYNTHETIC_BENCHMARK=1` bypasses checksum validation. It is test/benchmark scaffolding and must
+  not be usable accidentally by an application process.
+
+### Working rules for fresh chats
+
+1. Read `pyproject.toml`, `README.md`, `VISION.md`, `docs/limitations.md`, this roadmap, and the
+   affected implementation and tests before editing.
+2. Treat `pyproject.toml`, built wheel metadata, and installed-wheel behavior as authoritative for
+   packaging claims. Treat a reproducibly rerunnable benchmark command and its raw result as
+   authoritative for quality claims.
+3. Do not add a feature merely because it appears in an old changelog or roadmap entry. Verify it
+   exists, is covered, is packaged, and is documented accurately.
+4. Preserve the no-raw-value rule for public reports, logs, exceptions, warnings, CLI diagnostics,
+   telemetry, and object representations. Tests may use synthetic values only.
+5. Make changes in small independently releasable units. Every behavior change needs positive,
+   negative, boundary, Unicode, adversarial, and interaction coverage appropriate to its risk.
+6. A quality change may ship only when it improves the fixed held-out evaluation with per-entity
+   counts and a committed command/configuration record. Do not claim improvement from a changed
+   scoring rule, sample, label set, model artifact, or environment variable.
+
+### `1.26.0`: make the contract true
+
+Goal: remove the gap between what the project says, what installation declares, and what the wheel
+does. This release is documentation, packaging, and safety work, not an enterprise broker.
+
+Required work:
+
+1. Choose and document one base dependency policy.
+   - Preferred: restore a standard-library-only core by moving DAWG/gazetteer and all HTTP code
+     behind narrow extras, and ensure base imports cannot require those packages. This is complete
+     for the current base wheel; retain the release checks and clean-wheel coverage.
+   - Alternative: retain the dependencies and remove every zero-dependency/dependency-free claim
+     from README, vision, roadmap, release verifier output, package metadata descriptions, and
+     release materials.
+   - In either case, add a test that builds the wheel and asserts the exact non-extra
+     `Requires-Dist` set expected for that policy.
+2. Resolve the remote-backend contract.
+   - Either keep `HTTPRemoteBackend`, document it in README, API docs, threat model, dependency
+     policy, and limitations, and test its payload, timeout, retry, authentication, and error
+     sanitization behavior; or remove it and its `remote` extra/tests/docs completely.
+   - If retained, document that configured endpoints receive raw content blocks, identify the
+     outbound fields, require TLS validation by default, bound payload size, and make endpoint,
+     timeout, retry, and redirect behavior explicit.
+   - Ensure transport errors never include request text, authorization values, or server response
+     bodies. Add regression tests for each leak vector.
+3. Remove contradictory release checks.
+   - Make `scripts/verify_release.py` and `scripts/audit_install.py` enforce the selected base
+     dependency policy rather than contain no-op or misleading checks.
+   - Correct their user-facing output so it cannot claim dependency-free after accepting base
+     dependencies.
+   - State the actual coverage floor only once, sourced from `pyproject.toml`; either raise it
+     deliberately with a passing suite or leave it at 94.10%.
+4. Fix release metadata discipline.
+   - A version becomes “Published” only after its matching `v<version>` tag, successful release
+     workflow, PyPI artifact, and GitHub release exist.
+   - Keep unreleased work under an `[Unreleased]` changelog section. Do not date a release entry
+     before publication or label a planned feature as shipped.
+   - Update comparison links to current tags and add a release-script assertion that the current
+     version is not accidentally described as published without a matching tag.
+5. Constrain benchmark-only bypasses.
+   - Replace ambient `SYNTHETIC_BENCHMARK` behavior with an explicit benchmark-only dependency
+     injection or an opt-in object unavailable from normal public processing APIs.
+   - If environment configuration remains, reject it outside a dedicated benchmark command and
+     add subprocess tests proving production execution cannot enable it.
+
+Exit criteria:
+
+- README, vision, roadmap, package metadata, generated wheel metadata, and installed behavior all
+  state the same dependency and remote-processing contract.
+- Clean-wheel tests cover base install and every documented extra independently.
+- The release verifier fails on a dependency-policy mismatch, a tag/version mismatch, and a false
+  dependency-free claim.
+- Documentation build, ruff, mypy, full pytest suite, package verification, and supported Python
+  matrix pass from a frozen lockfile.
+
+### `1.27.0`: evaluation and safety evidence
+
+Goal: turn the benchmark and security claims into repeatable release evidence before increasing
+scope.
+
+Required work:
+
+1. Make benchmark execution reproducible.
+   - Pin the dataset revision, split, language filtering, random seed, sample-selection algorithm,
+     supported labels, scoring mode, policy configuration, model artifact URLs, and SHA-256 values.
+   - Emit a machine-readable result containing revision, command arguments, package commit,
+     Python/OS/CPU information, model hashes, annotation/detection/true-positive/false-positive/
+     false-negative counts, and per-entity precision/recall/F1.
+   - Keep the validation set measurement-only. Use a separate train/development workflow for
+     experimentation and never tune on the fixed held-out sample.
+   - Add a CI job that at least validates evaluator determinism on a committed small synthetic
+     fixture. Run the full external benchmark on a scheduled/manual trusted workflow and attach
+     result artifacts to releases.
+2. Establish a security regression corpus.
+   - Cover Unicode normalization, zero-width and bidi controls, escaped/encoded structured values,
+     chunk boundaries, nested payloads, CSV/JSON/XML/HTML boundaries, document metadata, and
+     hostile remote responses.
+   - For each past leak or bypass, retain the smallest regression fixture and a test that proves
+     both detection/replacement and safe diagnostics.
+3. Audit defaults and unsafe configuration.
+   - Verify default policy behavior for every entity type and extension.
+   - Ensure remote processing requires both explicit policy permission and per-backend consent;
+     prove denied paths cannot open a client or resolve a network destination.
+   - Document residual risks: false negatives, alias linkability, mappings, deterministic keys,
+     document-rendering fidelity, CSV formulas, and remote data disclosure.
+
+Exit criteria:
+
+- A release can cite a result artifact that another maintainer can rerun without reverse
+  engineering the environment.
+- Quality claims include confidence-relevant counts and per-entity results, not aggregate F1 alone.
+- Security corpus and clean-wheel checks run in CI without external secrets.
+
+### `1.28.0`: measured multilingual contextual detection
+
+Goal: improve recall where structured detector evidence is weak without silently broadening false
+positives.
+
+Required work:
+
+1. Add contextual identifier triggers only through data-driven, locale-scoped rules. Each rule must
+   specify supported languages, positive examples, negative examples, window length, and why it
+   cannot match ordinary prose or version/page/reference values.
+2. Replace binary proximity boosts with explainable bounded scoring: candidate confidence, nearby
+   positive evidence, negative evidence, distance, and final threshold. Keep explanations
+   value-free in reports.
+3. Test mixed-language text, accent/Unicode variants, punctuation, tables, no-context identifiers,
+   and negative contexts such as software versions, revision IDs, HTTP values, and page numbers.
+4. Compare against the frozen held-out benchmark and an adversarial precision corpus. Revert any
+   rule that improves aggregate recall but regresses an entity family or materially degrades
+   precision without a documented policy decision.
+
+Exit criteria:
+
+- Every new rule has a bounded matching contract and regression tests.
+- Published benchmark evidence shows the change relative to the `1.27.0` baseline with identical
+  scorer, data revision, model, and configuration.
+
+### `1.29.0`: ML reliability and in-document linking
+
+Goal: improve model-derived detections without pretending heuristic aliases are semantic truth.
+
+Required work:
+
+1. Audit ONNX token-to-character mapping with multilingual, combining-character, emoji, CJK,
+   hyphenated, possessive, and window-boundary fixtures. Preserve exact original offsets.
+2. Calibrate thresholds from a development set only. Store calibration inputs and results, make
+   the threshold policy-visible, and measure per-label calibration rather than a single opaque
+   global boost.
+3. Keep coreference/session linking conservative and scope-bound. It may propagate only from
+   high-confidence full entities; it must never persist across scopes, mutate caller input, or
+   invent a match from an ambiguous token alone.
+4. Add false-positive tests for common names, month names, titles, organizations, locations, and
+   document headings. Test that reset/new scope removes all learned linking state.
+
+Exit criteria:
+
+- Offset correctness is independently tested before and after transformation.
+- Calibration and coreference each demonstrate held-out benefit and no unacceptable precision
+  regression; otherwise they remain experimental or are removed.
+
+### `1.30.0`: ensemble decisions and operational readiness
+
+Goal: make multi-backend decisions inspectable, deterministic, and safe under disagreement.
+
+Required work:
+
+1. Define one documented overlap-resolution order based on evidence strength, entity semantics,
+   confidence, and stable tie-breakers. Do not add a learned matrix without training data and an
+   evaluation artifact.
+2. Test every pairwise conflict among rules, gazetteer, ML, coreference, and remote backends,
+   including same-span, partial overlap, nested spans, and detector-order permutation.
+3. Separate optional observability from privacy processing. Verify OpenTelemetry and logging
+   integrations cannot import optional packages at base import, cannot expose source values, and
+   have explicit performance measurements rather than unsupported latency claims.
+4. Publish an operational deployment guide with key rotation, mapping handling, policy review,
+   remote endpoint approval, rate/size limits, monitoring without raw values, incident response,
+   and known non-goals.
+
+Exit criteria:
+
+- Results are deterministic across backend order and supported Python versions.
+- Each claimed enterprise/operational capability has an end-to-end test, documentation, and a
+  clearly named responsible configuration boundary.
 
 ## `0.1.0`: dependency-free core and machine-readable content
 
