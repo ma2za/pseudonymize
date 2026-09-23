@@ -5,6 +5,9 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- ONNX token-to-character mapping alignment suite (`tests/unit/backends/test_onnx.py`): verified character-exact offsets across Unicode combining characters, multi-codepoint emojis with skin tone modifiers, CJK unsegmented text, hyphenated names, possessives, and window boundary splits.
+- Exposed per-label calibration thresholds on `LocalONNXPIIBackend.entity_thresholds` supporting custom development calibration overrides.
+- Hardened coreference resolution (`src/pseudonymize/coreference.py`): added `_AMBIGUOUS_COREFERENCE_TOKENS` stoplist preventing single generic words (month names, honorific titles, corporate/institutional suffixes) from propagating as standalone entity links, and verified strict scope isolation across independent processing calls.
 - Measured multilingual contextual detection architecture (`src/pseudonymize/detectors/context.py`): structured `ContextRule` metadata defining supported languages (English, Spanish, French, Italian, German, Vietnamese, Indonesian, Chinese), rationales, and window constraints.
 - Explainable bounded scoring model in `ContextualIdDetector`: replaces binary proximity boosts with a scoring function accounting for token distance, explicit punctuation separators, and negative context suppression (penalizing software versions, HTTP status codes, network ports, and page references).
 - Comprehensive security regression corpus (`tests/integration/test_security_regression_corpus.py`) verifying Unicode controls and zero-width characters (ZWNJ, soft hyphen, ZWSP, word joiners, bidi overrides/isolates), deeply nested structured payloads, streaming chunk splits, JSON/CSV boundary escapes and formula injections, document metadata isolation, and hostile remote responses (out-of-bounds offsets, inverted spans, server error sanitization, redirect blocking).

@@ -170,6 +170,11 @@ class LocalONNXPIIBackend(DetectionBackend):
     def allow_remote_processing(self) -> bool:
         return False
 
+    @property
+    def entity_thresholds(self) -> dict[EntityType, float]:
+        """Return a copy of the per-entity calibration thresholds."""
+        return dict(self._entity_thresholds)
+
     def _load_model(self) -> None:
         if self._session is None:
             self._session = ort.InferenceSession(self._model_path, providers=self._providers)

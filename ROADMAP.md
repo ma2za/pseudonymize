@@ -238,14 +238,25 @@ Required work:
 
 1. Audit ONNX token-to-character mapping with multilingual, combining-character, emoji, CJK,
    hyphenated, possessive, and window-boundary fixtures. Preserve exact original offsets.
+   - Completed: `tests/unit/backends/test_onnx.py` audits character-exact offset extraction
+     across Unicode combining characters, multi-codepoint emojis with skin tone modifiers,
+     CJK unsegmented text, hyphenated names, possessives, and window boundary splits.
 2. Calibrate thresholds from a development set only. Store calibration inputs and results, make
    the threshold policy-visible, and measure per-label calibration rather than a single opaque
    global boost.
+   - Completed: exposed `LocalONNXPIIBackend.entity_thresholds` property with default per-label
+     calibration mappings and custom threshold override capabilities.
 3. Keep coreference/session linking conservative and scope-bound. It may propagate only from
    high-confidence full entities; it must never persist across scopes, mutate caller input, or
    invent a match from an ambiguous token alone.
+   - Completed: added `_AMBIGUOUS_COREFERENCE_TOKENS` stoplist to `CoreferenceGraph` blocking
+     calendar months, days, honorific titles, and corporate/institutional nouns from propagating
+     as standalone tokens.
 4. Add false-positive tests for common names, month names, titles, organizations, locations, and
    document headings. Test that reset/new scope removes all learned linking state.
+   - Completed: verified in `tests/unit/test_coreference.py` that ambiguous words (`May`, `doctor`,
+     `global`, `agency`) are never matched standalone, while unique constituent names link safely
+     within the scope, and independent processing calls maintain strictly isolated scopes.
 
 Exit criteria:
 
