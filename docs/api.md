@@ -16,6 +16,8 @@
 
 ::: pseudonymize.backends.base.DetectionBackend
 
+::: pseudonymize.backends.remote.HTTPRemoteBackend
+
 ::: pseudonymize.adapters.InputAdapter
 
 ::: pseudonymize.adapters.OutputAdapter

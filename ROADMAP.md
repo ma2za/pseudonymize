@@ -84,8 +84,8 @@ enterprise integration while an earlier release's exit criteria are unmet.
 - `HTTPRemoteBackend` sends raw block text to its configured endpoint only after the engine's
   explicit network-policy checks. Its presence means remote processing is a shipped capability,
   even if no hosted service is operated by this project.
-- `SYNTHETIC_BENCHMARK=1` bypasses checksum validation. It is test/benchmark scaffolding and must
-  not be usable accidentally by an application process.
+- Checksum validation remains enabled in normal library processing. Synthetic benchmark diagnostics
+  may use a private detector configuration through the explicit benchmark flag only.
 
 ### Working rules for fresh chats
 
@@ -121,6 +121,9 @@ Required work:
    - In either case, add a test that builds the wheel and asserts the exact non-extra
      `Requires-Dist` set expected for that policy.
 2. Resolve the remote-backend contract.
+   - Completed: `HTTPRemoteBackend` now requires HTTPS, disables redirects, preserves bounded
+     timeout/retry configuration, sanitizes transport/status/JSON errors, and has unit coverage
+     for its outbound payload, authentication, HTTPS rejection, and diagnostic safety.
    - Either keep `HTTPRemoteBackend`, document it in README, API docs, threat model, dependency
      policy, and limitations, and test its payload, timeout, retry, authentication, and error
      sanitization behavior; or remove it and its `remote` extra/tests/docs completely.
@@ -144,6 +147,9 @@ Required work:
    - Update comparison links to current tags and add a release-script assertion that the current
      version is not accidentally described as published without a matching tag.
 5. Constrain benchmark-only bypasses.
+   - Completed: removed `SYNTHETIC_BENCHMARK`; normal detectors ignore that environment variable.
+     Synthetic analysis configures private detector state directly, while the evaluator exposes an
+     explicit `--allow-unverified-checksums` flag whose results are not baseline-comparable.
    - Replace ambient `SYNTHETIC_BENCHMARK` behavior with an explicit benchmark-only dependency
      injection or an opt-in object unavailable from normal public processing APIs.
    - If environment configuration remains, reject it outside a dedicated benchmark command and

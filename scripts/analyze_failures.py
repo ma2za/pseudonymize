@@ -1,11 +1,15 @@
 import logging
-import os
 from collections import defaultdict
+from dataclasses import replace
 from pathlib import Path
 
 from datasets import load_dataset
 
 from pseudonymize.backends.ml.onnx import LocalONNXPIIBackend
+from pseudonymize.detectors import DEFAULT_DETECTORS
+from pseudonymize.detectors.checksums import AlgorithmicChecksumDetector
+from pseudonymize.detectors.iban import IbanDetector
+from pseudonymize.detectors.payment_card import PaymentCardDetector
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.memory.bloom import BloomFilter
 from pseudonymize.result import EntityType
@@ -59,13 +63,19 @@ def analyze() -> None:
         tokenizer_path=CACHE_DIR / "tokenizer.json",
         config_path=CACHE_DIR / "config.json",
     )
-    engine = Pseudonymizer(backends=[*Pseudonymizer().backends, backend], bloom_filter=bloom_filter)
+    detectors = tuple(
+        replace(detector, _accept_unverified=True)
+        if isinstance(detector, (AlgorithmicChecksumDetector, IbanDetector, PaymentCardDetector))
+        else detector
+        for detector in DEFAULT_DETECTORS
+    )
+    engine = Pseudonymizer(
+        backends=[*Pseudonymizer(detectors=detectors).backends, backend], bloom_filter=bloom_filter
+    )
 
     count = 0
     fn_samples = defaultdict(list)
     fp_samples = defaultdict(list)
-
-    os.environ["SYNTHETIC_BENCHMARK"] = "1"
 
     for row in ds:
         if row["language"] != "en":

@@ -62,6 +62,7 @@ def test_http_remote_backend_detect_success(mock_httpx: mock.MagicMock) -> None:
     _args, kwargs = mock_client_instance.post.call_args
     assert kwargs["json"]["text"] == "Call Maria at maria@example.com"
     assert "PERSON" in kwargs["json"]["entity_types"]
+    assert mock_httpx.call_args.kwargs["follow_redirects"] is False
 
 
 def test_http_remote_backend_detect_auth(mock_httpx: mock.MagicMock) -> None:
@@ -85,33 +86,56 @@ def test_http_remote_backend_detect_auth(mock_httpx: mock.MagicMock) -> None:
     assert kwargs["headers"]["Authorization"] == "Bearer mytoken123"
 
 
-def test_http_remote_backend_http_error(mock_httpx: mock.MagicMock) -> None:
-    backend = HTTPRemoteBackend("remote", "http://x", frozenset({EntityType.PERSON}))
-    block = ContentBlock("id1", "hello", TextOffsetLocation(0, 5))
+def test_http_remote_backend_rejects_non_https_endpoint() -> None:
+    with pytest.raises(ValueError, match="HTTPS"):
+        HTTPRemoteBackend("remote", "http://x", frozenset({EntityType.PERSON}))
+
+
+def test_http_remote_backend_sanitizes_request_error(mock_httpx: mock.MagicMock) -> None:
+    backend = HTTPRemoteBackend("remote", "https://x", frozenset({EntityType.PERSON}))
+    block = ContentBlock("id1", "maria@example.com", TextOffsetLocation(0, 17))
 
     mock_client_instance = mock_httpx.return_value.__enter__.return_value
-    mock_client_instance.post.side_effect = httpx.RequestError("Connection failed")
+    mock_client_instance.post.side_effect = httpx.RequestError("maria@example.com token=secret")
 
-    with pytest.raises(BackendExecutionError, match="HTTP request failed"):
+    with pytest.raises(BackendExecutionError, match="remote request failed") as error:
         backend.detect(block, Policy.default())
+    assert "maria@example.com" not in str(error.value)
+    assert "secret" not in str(error.value)
 
 
-def test_http_remote_backend_invalid_json(mock_httpx: mock.MagicMock) -> None:
-    backend = HTTPRemoteBackend("remote", "http://x", frozenset({EntityType.PERSON}))
-    block = ContentBlock("id1", "hello", TextOffsetLocation(0, 5))
+def test_http_remote_backend_sanitizes_http_error(mock_httpx: mock.MagicMock) -> None:
+    backend = HTTPRemoteBackend("remote", "https://x", frozenset({EntityType.PERSON}))
+    block = ContentBlock("id1", "maria@example.com", TextOffsetLocation(0, 17))
+    request = httpx.Request("POST", "https://x")
+    response = httpx.Response(500, request=request, text="maria@example.com")
+    error = httpx.HTTPStatusError("maria@example.com", request=request, response=response)
+
+    mock_client_instance = mock_httpx.return_value.__enter__.return_value
+    mock_client_instance.post.return_value.raise_for_status.side_effect = error
+
+    with pytest.raises(BackendExecutionError, match="remote response was unsuccessful") as raised:
+        backend.detect(block, Policy.default())
+    assert "maria@example.com" not in str(raised.value)
+
+
+def test_http_remote_backend_sanitizes_invalid_json(mock_httpx: mock.MagicMock) -> None:
+    backend = HTTPRemoteBackend("remote", "https://x", frozenset({EntityType.PERSON}))
+    block = ContentBlock("id1", "maria@example.com", TextOffsetLocation(0, 17))
 
     mock_response = mock.MagicMock()
-    mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
+    mock_response.json.side_effect = json.JSONDecodeError("maria@example.com", "", 0)
 
     mock_client_instance = mock_httpx.return_value.__enter__.return_value
     mock_client_instance.post.return_value = mock_response
 
-    with pytest.raises(BackendExecutionError, match="Invalid JSON response"):
+    with pytest.raises(BackendExecutionError, match="remote response was not valid JSON") as error:
         backend.detect(block, Policy.default())
+    assert "maria@example.com" not in str(error.value)
 
 
 def test_http_remote_backend_handles_malformed_detections(mock_httpx: mock.MagicMock) -> None:
-    backend = HTTPRemoteBackend("remote", "http://x", frozenset({EntityType.PERSON}))
+    backend = HTTPRemoteBackend("remote", "https://x", frozenset({EntityType.PERSON}))
     block = ContentBlock("id1", "hello", TextOffsetLocation(0, 5))
 
     mock_response = mock.MagicMock()

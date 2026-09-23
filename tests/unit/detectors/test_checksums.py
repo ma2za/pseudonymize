@@ -1,3 +1,5 @@
+import pytest
+
 from pseudonymize.detectors.checksums import (
     AlgorithmicChecksumDetector,
     _valid_french_nir,
@@ -76,3 +78,9 @@ def test_detector() -> None:
     assert len(res) >= 0
     res = detector.detect("012345678")
     assert len(res) >= 0
+
+
+def test_checksum_detector_ignores_environment_bypass(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SYNTHETIC_BENCHMARK", "1")
+    assert AlgorithmicChecksumDetector().detect("123456789") == []
+    assert AlgorithmicChecksumDetector(_accept_unverified=True).detect("123456789")

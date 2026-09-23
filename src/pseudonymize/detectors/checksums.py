@@ -136,37 +136,34 @@ def _valid_french_nir(value: str) -> bool:
 @dataclass(frozen=True, slots=True)
 class AlgorithmicChecksumDetector:
     name: str = "checksum"
+    _accept_unverified: bool = False
 
     def detect(self, text: str) -> list[Detection]:
-        import os
-
-        bypass_checksums = os.environ.get("SYNTHETIC_BENCHMARK") == "1"
-
         detections = [
             Detection(EntityType.NATIONAL_ID, match.start(), match.end(), 1.0, self.name)
             for match in _AADHAAR_RX.finditer(text)
-            if bypass_checksums or _valid_verhoeff(match.group())
+            if self._accept_unverified or _valid_verhoeff(match.group())
         ]
         detections.extend(
             Detection(EntityType.NATIONAL_ID, match.start(), match.end(), 1.0, self.name)
             for match in _CHINESE_ID_RX.finditer(text)
-            if bypass_checksums or _valid_gb11643(match.group())
+            if self._accept_unverified or _valid_gb11643(match.group())
         )
         for match in _GENERIC_9_11_RX.finditer(text):
             val = match.group()
             clean = "".join(c for c in val if c.isdigit())
             if len(clean) == 9:
-                if bypass_checksums or _valid_luhn(clean):
+                if self._accept_unverified or _valid_luhn(clean):
                     detections.append(
                         Detection(
                             EntityType.NATIONAL_ID, match.start(), match.end(), 1.0, self.name
                         )
                     )
-                elif bypass_checksums or _valid_mod11(clean):
+                elif self._accept_unverified or _valid_mod11(clean):
                     detections.append(
                         Detection(EntityType.TAX_ID, match.start(), match.end(), 1.0, self.name)
                     )
-            elif len(clean) == 11 and (bypass_checksums or _valid_mod11(clean)):
+            elif len(clean) == 11 and (self._accept_unverified or _valid_mod11(clean)):
                 detections.append(
                     Detection(EntityType.TAX_ID, match.start(), match.end(), 1.0, self.name)
                 )
@@ -174,6 +171,6 @@ class AlgorithmicChecksumDetector:
         detections.extend(
             Detection(EntityType.NATIONAL_ID, match.start(), match.end(), 1.0, self.name)
             for match in _FRENCH_NIR_RX.finditer(text)
-            if bypass_checksums or _valid_french_nir(match.group())
+            if self._accept_unverified or _valid_french_nir(match.group())
         )
         return detections
