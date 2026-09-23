@@ -145,6 +145,15 @@ def test_validators_reject_repeated_or_malformed_values() -> None:
     assert not _valid_german_tin("12345678901")
 
 
+def test_checksum_bypass_is_explicit() -> None:
+    invalid_card = "4111 1111 1111 1112"
+    invalid_iban = "GB82 WEST 1234 5698 7654 33"
+    assert PaymentCardDetector().detect(invalid_card) == []
+    assert IbanDetector().detect(invalid_iban) == []
+    assert PaymentCardDetector(_accept_unverified=True).detect(invalid_card)
+    assert IbanDetector(_accept_unverified=True).detect(invalid_iban)
+
+
 def test_phone_rejects_repeated_digits() -> None:
     assert PhoneDetector().detect("+11 111 111 111") == []
 

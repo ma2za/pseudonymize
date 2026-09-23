@@ -1,4 +1,3 @@
-import os
 import re
 from dataclasses import dataclass
 
@@ -25,11 +24,9 @@ def _valid_luhn(value: str) -> bool:
 @dataclass(frozen=True, slots=True)
 class PaymentCardDetector:
     name: str = "payment_card"
+    _accept_unverified: bool = False
 
     def detect(self, text: str) -> list[Detection]:
-        # During synthetic evaluations where generators produce random 16-digit numbers,
-        # we bypass the algorithmic checksum to properly measure boundary matching recall.
-        bypass_luhn = os.environ.get("SYNTHETIC_BENCHMARK") == "1"
         detections = []
         for match in _CARD.finditer(text):
             val = match.group()
@@ -42,7 +39,7 @@ class PaymentCardDetector:
             if match.start() > 0 and text[match.start() - 1] == "+":
                 continue
 
-            if bypass_luhn or _valid_luhn(val):
+            if self._accept_unverified or _valid_luhn(val):
                 detections.append(
                     Detection(EntityType.PAYMENT_CARD, match.start(), match.end(), 1.0, self.name)
                 )

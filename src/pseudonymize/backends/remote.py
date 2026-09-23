@@ -1,5 +1,6 @@
 import json
 from collections.abc import Sequence
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -20,6 +21,13 @@ class HTTPRemoteBackend(DetectionBackend):
         timeout: float = 5.0,
         max_retries: int = 2,
     ) -> None:
+        parsed_endpoint = urlsplit(endpoint)
+        if parsed_endpoint.scheme != "https" or not parsed_endpoint.netloc:
+            raise ValueError("remote endpoint must be an HTTPS URL")
+        if timeout <= 0:
+            raise ValueError("remote timeout must be positive")
+        if max_retries < 0:
+            raise ValueError("remote retries must not be negative")
         self._name = name
         self._endpoint = endpoint
         self._capabilities = BackendCapabilities(entity_types, remote=True)
@@ -52,17 +60,19 @@ class HTTPRemoteBackend(DetectionBackend):
         }
 
         transport = httpx.HTTPTransport(retries=self._max_retries)
-        with httpx.Client(transport=transport, timeout=self._timeout) as client:
+        with httpx.Client(
+            transport=transport, timeout=self._timeout, follow_redirects=False
+        ) as client:
             try:
                 response = client.post(self._endpoint, json=payload, headers=headers)
                 response.raise_for_status()
                 data = response.json()
             except httpx.RequestError as e:
-                raise BackendExecutionError(f"HTTP request failed: {e}") from e
+                raise BackendExecutionError("remote request failed") from e
             except httpx.HTTPStatusError as e:
-                raise BackendExecutionError(f"HTTP error {e.response.status_code}") from e
+                raise BackendExecutionError("remote response was unsuccessful") from e
             except json.JSONDecodeError as e:
-                raise BackendExecutionError(f"Invalid JSON response: {e}") from e
+                raise BackendExecutionError("remote response was not valid JSON") from e
 
         detections: list[Detection] = []
         if not isinstance(data, dict) or "detections" not in data:

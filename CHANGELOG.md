@@ -2,6 +2,13 @@
 
 All notable changes follow Keep a Changelog and Semantic Versioning.
 
+## [Unreleased]
+
+### Changed
+- Removed the ambient `SYNTHETIC_BENCHMARK` checksum bypass. Synthetic benchmark diagnostics now
+  use an explicit benchmark-only configuration, while normal library processing always validates
+  checksums.
+
 ## [1.26.0] - 2026-09-19
 
 ### Added

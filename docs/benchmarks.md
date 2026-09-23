@@ -9,6 +9,10 @@ ship; timing is reviewed rather than gated.
 uv run --extra ml --with datasets python benchmarks/evaluate_quality.py --samples 1000 --ml
 ```
 
+`--allow-unverified-checksums` is available only for synthetic-corpus diagnostics where invalid
+checksum-shaped values are intentional. It is not enabled by default, does not alter normal library
+processing, and results produced with it must not be compared to the strict published baseline.
+
 Scored against the `ai4privacy/pii-masking-openpii-1.5m` validation split, English rows,
 shuffled with a fixed seed.
 

@@ -33,10 +33,12 @@ processing failure as fail-closed: do not send the original payload as a fallbac
 
 ## Remote backends
 
-The base package ships no remote backend. If an application supplies one, enable it only with both
-backend consent and a matching `NetworkPolicy`. Restrict network egress to the intended provider,
-set bounded timeouts outside the core, and verify that retries and provider SDK diagnostics cannot
-record plaintext.
+The optional `remote` extra supplies `HTTPRemoteBackend`. It sends the complete configured content
+block and requested entity-type names to the caller-selected HTTPS endpoint. Use it only with both
+backend consent and a matching `NetworkPolicy`; the default policy denies it. Redirects are not
+followed, requests use a bounded timeout and retry count, and transport diagnostics are sanitized.
+Restrict network egress to the intended provider, choose the smallest processable blocks, and
+verify that provider-side retries, logs, and diagnostics cannot retain plaintext.
 
 ## Operational checklist
 

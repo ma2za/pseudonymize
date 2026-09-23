@@ -3,6 +3,7 @@ import logging
 import sys
 import time
 import typing
+from dataclasses import replace
 from pathlib import Path
 
 try:
@@ -13,6 +14,10 @@ except ImportError:
     sys.exit(1)
 
 from pseudonymize.backends.ml.onnx import LocalONNXPIIBackend
+from pseudonymize.detectors import DEFAULT_DETECTORS, Detector
+from pseudonymize.detectors.checksums import AlgorithmicChecksumDetector
+from pseudonymize.detectors.iban import IbanDetector
+from pseudonymize.detectors.payment_card import PaymentCardDetector
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.result import EntityType
 
@@ -153,6 +158,7 @@ def evaluate(
     split: str = "validation",
     explain: bool = False,
     file_path: Path | None = None,
+    allow_unverified_checksums: bool = False,
 ) -> None:
     print(INTEGRITY_NOTICE)
 
@@ -178,7 +184,14 @@ def evaluate(
                 [line.strip().lower() for line in f if line.strip()]
             )
 
-    engine = Pseudonymizer(bloom_filter=bloom_filter)
+    detectors: tuple[Detector, ...] = tuple(
+        replace(detector, _accept_unverified=True)
+        if allow_unverified_checksums
+        and isinstance(detector, (AlgorithmicChecksumDetector, IbanDetector, PaymentCardDetector))
+        else detector
+        for detector in DEFAULT_DETECTORS
+    )
+    engine = Pseudonymizer(detectors=detectors, bloom_filter=bloom_filter)
     if use_ml:
         # We need the model downloaded. The test suite uses the multilang-pii-ner model.
         # Let's assume it's already cached or we can fetch it.
@@ -360,6 +373,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Print false positive and false negative explanations.",
     )
+    parser.add_argument(
+        "--allow-unverified-checksums",
+        action="store_true",
+        help="Benchmark synthetic checksum-shaped values without a library-wide bypass.",
+    )
     args = parser.parse_args()
 
     file_path = Path(args.file) if args.file is not None else None
@@ -370,4 +388,5 @@ if __name__ == "__main__":
         split=args.split,
         explain=args.explain,
         file_path=file_path,
+        allow_unverified_checksums=args.allow_unverified_checksums,
     )
