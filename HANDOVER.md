@@ -68,13 +68,20 @@ the actual worktree.
 - Policy defaults and network egress isolation audit complete in `tests/unit/test_policy_defaults_audit.py`,
   verifying all 12 entity types under default/strict policies, and proving denied remote paths never
   touch socket creation or DNS resolution.
+- Measured multilingual contextual detection architecture established in
+  `src/pseudonymize/detectors/context.py` with explicit `ContextRule` metadata (specifying supported
+  languages `en`, `es`, `fr`, `it`, `de`, `vi`, `id`, `zh`, rationale, and window constraints).
+- Implemented explainable bounded scoring in `ContextualIdDetector` with distance decay, separator
+  bonuses (`:` and `#`), and negative context suppression (penalizing software versions, HTTP
+  status codes, ports, and page references). Verified across 43 context unit tests.
 
 ## Remaining work, in strict order
 
-1. Audit held-out benchmark and baseline measurements.
-   - Run a clean baseline record of `1.27.0` against the pinned immutable dataset revision.
-2. Only then consider `1.28.0` detector changes. Each rule needs locale scope, positive and
-   negative cases, false-positive rationale, and held-out evidence.
+1. `1.29.0`: ML reliability and in-document linking.
+   - Audit ONNX token-to-character mapping with multilingual, combining-character, emoji, CJK,
+     hyphenated, possessive, and window-boundary fixtures.
+   - Calibrate thresholds from development set; keep linking conservative and scope-bound.
+2. Publish baseline comparisons and retain release records.
 
 ## Required verification before any commit
 

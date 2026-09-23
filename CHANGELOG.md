@@ -5,6 +5,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- Measured multilingual contextual detection architecture (`src/pseudonymize/detectors/context.py`): structured `ContextRule` metadata defining supported languages (English, Spanish, French, Italian, German, Vietnamese, Indonesian, Chinese), rationales, and window constraints.
+- Explainable bounded scoring model in `ContextualIdDetector`: replaces binary proximity boosts with a scoring function accounting for token distance, explicit punctuation separators, and negative context suppression (penalizing software versions, HTTP status codes, network ports, and page references).
 - Comprehensive security regression corpus (`tests/integration/test_security_regression_corpus.py`) verifying Unicode controls and zero-width characters (ZWNJ, soft hyphen, ZWSP, word joiners, bidi overrides/isolates), deeply nested structured payloads, streaming chunk splits, JSON/CSV boundary escapes and formula injections, document metadata isolation, and hostile remote responses (out-of-bounds offsets, inverted spans, server error sanitization, redirect blocking).
 - Policy defaults and network egress isolation audit (`tests/unit/test_policy_defaults_audit.py`) verifying all 12 declared entity types across default and strict policies, and proving denied remote paths never touch sockets or DNS.
 - Independent clean-wheel installation and import auditing for each documented extra (`html`, `ml`, `ocr`, `office`, `pdf`, `remote`) via `scripts/audit_extras.py` and `scripts/audit_install.py --extra`.
