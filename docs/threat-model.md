@@ -47,7 +47,7 @@ defeats the boundary.
 - Process every outbound string-bearing structure and test known detector limitations.
 - Keep the default network policy denied and restrict host egress for local-only deployments.
 - Treat an enabled `HTTPRemoteBackend` endpoint as a plaintext recipient for each selected content
-  block; use HTTPS, provider controls, bounded retries, and a narrow path policy.
+  block; use HTTPS, provider controls, bounded retries, caller-enforced payload bounds, and a narrow path policy.
 - Treat custom backends and adapters as privileged in-process code.
 
 ## Excluded

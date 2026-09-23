@@ -1,9 +1,16 @@
 import argparse
+import hashlib
+import json
 import logging
+import os
+import platform
+import shutil
+import subprocess
 import sys
 import time
 import typing
 from dataclasses import replace
+from importlib.metadata import version
 from pathlib import Path
 
 try:
@@ -23,6 +30,8 @@ from pseudonymize.result import EntityType
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("evaluate_quality")
+DATASET_NAME = "ai4privacy/pii-masking-openpii-1.5m"
+SHUFFLE_SEED = 42
 
 # We evaluate precision and recall against these specific AI4Privacy labels
 # that map to the capabilities of pseudonymize's core detectors and ML backend.
@@ -151,6 +160,34 @@ def load_local_jsonl(file_path: Path) -> typing.Iterator[dict[str, typing.Any]]:
             yield row
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _git_commit() -> str | None:
+    git_bin = shutil.which("git")
+    if not git_bin:
+        return os.environ.get("GITHUB_SHA")
+    try:
+        completed = subprocess.run(  # noqa: S603
+            [git_bin, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if completed.returncode == 0:
+            commit = completed.stdout.strip()
+            if commit:
+                return commit
+    except Exception:  # noqa: S110
+        pass
+    return os.environ.get("GITHUB_SHA")
+
+
 def evaluate(
     num_samples: int,
     use_ml: bool,
@@ -159,20 +196,22 @@ def evaluate(
     explain: bool = False,
     file_path: Path | None = None,
     allow_unverified_checksums: bool = False,
-) -> None:
+    dataset_revision: str | None = None,
+) -> dict[str, object]:
     print(INTEGRITY_NOTICE)
 
     if file_path is not None:
         logger.info(f"Loading local evaluation dataset from {file_path}...")
         ds = load_local_jsonl(file_path)
     else:
-        logger.info(
-            f"Loading ai4privacy/pii-masking-openpii-1.5m ({split} split, English subset)..."
-        )
+        if dataset_revision is None:
+            raise ValueError("dataset_revision is required when evaluating a remote dataset")
+        logger.info(f"Loading {DATASET_NAME}@{dataset_revision} ({split} split, English subset)...")
         # We shuffle with a fixed seed to ensure a consistent, reproducible
         # pseudo-random sample of the evaluation dataset for A/B testing versions.
-        ds = load_dataset("ai4privacy/pii-masking-openpii-1.5m", split=split, streaming=True)
-        ds = ds.shuffle(seed=42)
+        ds = load_dataset(
+            DATASET_NAME, split=split, streaming=True, revision=dataset_revision
+        ).shuffle(seed=SHUFFLE_SEED)
 
     from pseudonymize.memory.bloom import BloomFilter
 
@@ -192,6 +231,7 @@ def evaluate(
         for detector in DEFAULT_DETECTORS
     )
     engine = Pseudonymizer(detectors=detectors, bloom_filter=bloom_filter)
+    model_hashes: dict[str, str] = {}
     if use_ml:
         # We need the model downloaded. The test suite uses the multilang-pii-ner model.
         # Let's assume it's already cached or we can fetch it.
@@ -211,6 +251,11 @@ def evaluate(
             tokenizer_path=tokenizer_path,
             config_path=config_path,
         )
+        model_hashes = {
+            "model": _sha256(onnx_model_path),
+            "tokenizer": _sha256(tokenizer_path),
+            "config": _sha256(config_path),
+        }
         engine = Pseudonymizer(backends=[*engine.backends, backend], bloom_filter=bloom_filter)
 
     true_positives = 0
@@ -345,6 +390,49 @@ def evaluate(
             f"{et_precision:.4f}    | {et_recall:.4f} | {et_f1:.4f}"
         )
 
+    per_entity = {
+        entity_type.value: {
+            "true_positives": tp_per_type[entity_type],
+            "false_positives": fp_per_type[entity_type],
+            "false_negatives": fn_per_type[entity_type],
+        }
+        for entity_type in EntityType
+        if tp_per_type[entity_type] or fp_per_type[entity_type] or fn_per_type[entity_type]
+    }
+    return {
+        "package_version": version("pseudonymize"),
+        "package_commit": _git_commit(),
+        "policy_configuration": {
+            "entity_types": sorted(e.value for e in engine.policy.entity_types),
+            "network_policy": engine.policy.network_policy.name,
+            "backends": [b.name for b in engine.backends],
+            "allow_unverified_checksums": allow_unverified_checksums,
+            "strict_labels": strict_labels,
+        },
+        "dataset": DATASET_NAME if file_path is None else None,
+        "dataset_revision": dataset_revision,
+        "file": str(file_path) if file_path is not None else None,
+        "file_sha256": _sha256(file_path) if file_path is not None else None,
+        "split": split,
+        "shuffle_seed": SHUFFLE_SEED,
+        "samples": count,
+        "strict_labels": strict_labels,
+        "allow_unverified_checksums": allow_unverified_checksums,
+        "use_ml": use_ml,
+        "python": sys.version,
+        "platform": platform.platform(),
+        "processor": platform.processor(),
+        "model_sha256": model_hashes,
+        "counts": {
+            "true_positives": true_positives,
+            "false_positives": false_positives,
+            "false_negatives": false_negatives,
+            "out_of_scope": out_of_scope,
+        },
+        "metrics": {"precision": precision, "recall": recall, "f1": f1},
+        "per_entity": per_entity,
+    }
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -354,6 +442,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--file", type=str, default=None, help="Path to local JSONL evaluation file."
     )
+    parser.add_argument(
+        "--dataset-revision",
+        help="Immutable dataset revision required when --file is not supplied.",
+    )
+    parser.add_argument("--output", type=Path, help="Write the result record as JSON.")
     parser.add_argument(
         "--ml", action="store_true", help="Include the ONNX ML backend in evaluation."
     )
@@ -381,7 +474,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     file_path = Path(args.file) if args.file is not None else None
-    evaluate(
+    if file_path is None and args.dataset_revision is None:
+        parser.error("--dataset-revision is required when --file is not supplied")
+    result = evaluate(
         args.samples,
         args.ml,
         strict_labels=not args.span_only,
@@ -389,4 +484,9 @@ if __name__ == "__main__":
         explain=args.explain,
         file_path=file_path,
         allow_unverified_checksums=args.allow_unverified_checksums,
+        dataset_revision=args.dataset_revision,
     )
+    if args.output is not None:
+        args.output.write_text(
+            json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )

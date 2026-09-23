@@ -1,0 +1,45 @@
+name: Quality Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: "Number of validation samples to evaluate"
+        required: false
+        default: "1000"
+        type: string
+  schedule:
+    - cron: "0 3 * * 1" # Weekly Monday 03:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --extra ml --with datasets --frozen
+
+      - name: Cache or download ONNX ML test model
+        run: uv run pytest tests/unit/backends/test_onnx.py -k test_onnx_initialization
+
+      - name: Run quality benchmark against immutable dataset revision
+        run: |
+          SAMPLES="${{ inputs.samples || '1000' }}"
+          uv run python benchmarks/evaluate_quality.py \
+            --samples "$SAMPLES" \
+            --ml \
+            --dataset-revision a785eb528e28be2693c3718a27e066970de5dadb \
+            --output quality-result.json
+
+      - name: Upload benchmark result artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: quality-benchmark-record
+          path: quality-result.json

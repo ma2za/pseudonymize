@@ -271,7 +271,8 @@ are true:
 
 An API key alone never enables network access. The optional `remote` extra includes
 `HTTPRemoteBackend`; when explicitly enabled, it sends each configured content block to the
-caller-selected endpoint.
+caller-selected HTTPS endpoint without following redirects. Callers are responsible for bounding
+content block sizes and configuring transport timeouts appropriate for the target provider.
 
 ## Reversible mappings
 

@@ -17,7 +17,20 @@ FORBIDDEN_IMPORTS = {
     "pypdf",
     "pytesseract",
 }
-EXPECTED_BASE_REQUIREMENTS = frozenset()
+EXPECTED_BASE_REQUIREMENTS: frozenset[str] = frozenset()
+EXTRA_CHECKS: dict[str, tuple[str, frozenset[str]]] = {
+    "remote": ("pseudonymize.backends.remote", frozenset({"httpx"})),
+    "html": ("pseudonymize.html_xml", frozenset()),
+    "office": ("pseudonymize.inspection.office", frozenset({"docx", "openpyxl"})),
+    "pdf": ("pseudonymize.inspection.pdf", frozenset()),
+    "ocr": ("pseudonymize.inspection.image", frozenset({"pytesseract"})),
+    "ml": ("pseudonymize.backends.ml.onnx", frozenset({"onnxruntime"})),
+}
+
+
+class _BlockedSocket(socket.socket):
+    def __init__(self, *arguments: object, **keywords: object) -> None:
+        raise RuntimeError("network access during import")
 
 
 def _blocked_network(*arguments: object, **keywords: object) -> None:
@@ -27,6 +40,12 @@ def _blocked_network(*arguments: object, **keywords: object) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", required=False)
+    parser.add_argument(
+        "--extra",
+        required=False,
+        choices=sorted(EXTRA_CHECKS.keys()),
+        help="Audit a specific installed extra instead of the base package",
+    )
     arguments = parser.parse_args()
 
     expected_version = arguments.version
@@ -52,18 +71,43 @@ def main() -> None:
     if not any(path.endswith(".dist-info/licenses/LICENSE") for path in files):
         raise RuntimeError("installed package is missing its licence")
 
-    socket.socket = _blocked_network  # type: ignore[misc,assignment]
+    socket.socket = _BlockedSocket  # type: ignore[misc]
     socket.create_connection = _blocked_network  # type: ignore[assignment]
     tracemalloc.start()
     started = time.perf_counter()
     importlib.import_module("pseudonymize")
+
+    extra = arguments.extra
+    if extra:
+        target_module, allowed = EXTRA_CHECKS[extra]
+        has_extra_reqs = any(
+            f'extra == "{extra}"' in req or f"extra == '{extra}'" in req
+            for req in installed.requires or ()
+        )
+        if not has_extra_reqs:
+            raise RuntimeError(
+                f"installed distribution does not declare requirements for extra {extra}"
+            )
+        importlib.import_module(target_module)
+        forbidden_for_extra = FORBIDDEN_IMPORTS - allowed
+    else:
+        forbidden_for_extra = FORBIDDEN_IMPORTS
+
     elapsed_ms = (time.perf_counter() - started) * 1_000
     peak_bytes = tracemalloc.get_traced_memory()[1]
     loaded = {name.partition(".")[0] for name in sys.modules}
-    forbidden = FORBIDDEN_IMPORTS.intersection(loaded)
+    forbidden = forbidden_for_extra.intersection(loaded)
     if forbidden:
-        raise RuntimeError(f"optional imports loaded: {', '.join(sorted(forbidden))}")
-    print(json.dumps({"import_ms": round(elapsed_ms, 3), "peak_bytes": peak_bytes}))
+        raise RuntimeError(f"unauthorized imports loaded: {', '.join(sorted(forbidden))}")
+    print(
+        json.dumps(
+            {
+                "extra": extra,
+                "import_ms": round(elapsed_ms, 3),
+                "peak_bytes": peak_bytes,
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

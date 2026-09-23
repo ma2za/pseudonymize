@@ -4,15 +4,21 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- Comprehensive security regression corpus (`tests/integration/test_security_regression_corpus.py`) verifying Unicode controls and zero-width characters (ZWNJ, soft hyphen, ZWSP, word joiners, bidi overrides/isolates), deeply nested structured payloads, streaming chunk splits, JSON/CSV boundary escapes and formula injections, document metadata isolation, and hostile remote responses (out-of-bounds offsets, inverted spans, server error sanitization, redirect blocking).
+- Policy defaults and network egress isolation audit (`tests/unit/test_policy_defaults_audit.py`) verifying all 12 declared entity types across default and strict policies, and proving denied remote paths never touch sockets or DNS.
+- Independent clean-wheel installation and import auditing for each documented extra (`html`, `ml`, `ocr`, `office`, `pdf`, `remote`) via `scripts/audit_extras.py` and `scripts/audit_install.py --extra`.
+- Reproducible evaluator metadata: evaluation records now capture exact package git commit, full policy configuration, corpus hashes, and model hashes.
+- Trusted quality benchmark workflow (`.github/workflows/quality-benchmark.yml`) targeting the pinned immutable dataset revision `a785eb528e28be2693c3718a27e066970de5dadb`.
+
 ### Changed
+- Reconciled remote backend contract and caller responsibility across documentation: clarified redirect denial, transport error sanitization, and caller responsibility for content-block bounding and timeouts.
+- Enforced declared extras verification in `scripts/verify_release.py`.
 - Removed the ambient `SYNTHETIC_BENCHMARK` checksum bypass. Synthetic benchmark diagnostics now
   use an explicit benchmark-only configuration, while normal library processing always validates
   checksums.
-
-## [1.26.0] - 2026-09-19
-
-### Added
-- Started development of Enterprise DLP Broker & Active Policy Sync.
+- Continued `1.26.0` development with dependency-contract verification, remote-backend hardening,
+  and release-metadata validation.
 
 ## [1.25.0] - 2026-09-18
 

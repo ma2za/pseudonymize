@@ -12,6 +12,17 @@ from pseudonymize.result import Detection, EntityType
 
 
 class HTTPRemoteBackend(DetectionBackend):
+    """Optional HTTP-based remote detection backend.
+
+    Sends configured content blocks and requested entity types to a caller-selected
+    HTTPS endpoint. Redirects are not followed, transport errors are sanitized to
+    prevent secret or plaintext leakage, and invocation requires explicit dual consent
+    via NetworkPolicy and allow_remote_processing=True.
+
+    Callers and applications are responsible for bounding content block sizes and
+    configuring transport timeouts appropriate for the chosen provider.
+    """
+
     def __init__(
         self,
         name: str,
@@ -21,6 +32,16 @@ class HTTPRemoteBackend(DetectionBackend):
         timeout: float = 5.0,
         max_retries: int = 2,
     ) -> None:
+        """Initialize the HTTP remote backend.
+
+        Args:
+            name: Identifier for this backend instance in reports.
+            endpoint: Remote HTTPS endpoint URL.
+            entity_types: Supported entity types declared by this backend.
+            auth_token: Optional Bearer token for HTTP Authorization header.
+            timeout: Request timeout in seconds (must be positive).
+            max_retries: Maximum number of transport retry attempts (must not be negative).
+        """
         parsed_endpoint = urlsplit(endpoint)
         if parsed_endpoint.scheme != "https" or not parsed_endpoint.netloc:
             raise ValueError("remote endpoint must be an HTTPS URL")

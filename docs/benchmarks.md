@@ -6,15 +6,18 @@ ship; timing is reviewed rather than gated.
 ## Detection quality
 
 ```console
-uv run --extra ml --with datasets python benchmarks/evaluate_quality.py --samples 1000 --ml
+uv run --extra ml --with datasets python benchmarks/evaluate_quality.py \
+  --samples 1000 --ml --dataset-revision a785eb528e28be2693c3718a27e066970de5dadb --output result.json
 ```
 
 `--allow-unverified-checksums` is available only for synthetic-corpus diagnostics where invalid
 checksum-shaped values are intentional. It is not enabled by default, does not alter normal library
 processing, and results produced with it must not be compared to the strict published baseline.
 
-Scored against the `ai4privacy/pii-masking-openpii-1.5m` validation split, English rows,
+Scored against the `ai4privacy/pii-masking-openpii-1.5m` validation split (revision `a785eb528e28be2693c3718a27e066970de5dadb`), English rows,
 shuffled with a fixed seed.
+The revision is required and the JSON result records its inputs, corpus or model SHA-256 values,
+environment, aggregate counts, per-entity counts, and metrics.
 
 How a number is produced matters as much as the number:
 

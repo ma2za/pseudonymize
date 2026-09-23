@@ -37,8 +37,11 @@ The optional `remote` extra supplies `HTTPRemoteBackend`. It sends the complete 
 block and requested entity-type names to the caller-selected HTTPS endpoint. Use it only with both
 backend consent and a matching `NetworkPolicy`; the default policy denies it. Redirects are not
 followed, requests use a bounded timeout and retry count, and transport diagnostics are sanitized.
-Restrict network egress to the intended provider, choose the smallest processable blocks, and
-verify that provider-side retries, logs, and diagnostics cannot retain plaintext.
+Pseudonymize does not enforce an arbitrary payload-size ceiling because provider constraints vary;
+callers and applications are responsible for bounding content block sizes, selecting appropriate
+transport timeouts, restricting network egress to the intended provider, choosing the smallest
+processable blocks, and verifying that provider-side retries, logs, and diagnostics cannot retain
+plaintext.
 
 ## Operational checklist
 
