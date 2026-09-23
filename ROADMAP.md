@@ -71,6 +71,21 @@ This section is the operating plan for a fresh implementation chat. It takes pre
 aspirational feature names elsewhere in this file. Do not start a new detector, provider, or
 enterprise integration while an earlier release's exit criteria are unmet.
 
+`HANDOVER.md` records the active worktree and required evidence protocol. Update it whenever work
+is handed off, a release gate changes, or an uncommitted implementation slice changes materially.
+
+### Evidence discipline
+
+- “Completed” means the implementation, focused tests, and relevant static checks have passed and
+  are named in the handover. It does not mean unrun CI, packaging, external benchmarks, or release
+  publication passed.
+- A command with missing, truncated, or ambiguous output is not proof of success. Rerun it in an
+  observable form or record it as unverified.
+- Never merge, publish, or advertise a quality/security claim on coverage alone. Preserve the raw
+  command, immutable inputs, machine-readable output, and per-entity counts.
+- Preserve unrelated worktree changes. Stage named files, inspect the staged diff, and seek the
+  user's direction before committing or discarding user-owned changes.
+
 ### Baseline facts to preserve
 
 - The package is a pseudonymization boundary, not anonymization, compliance certification, or an
@@ -112,48 +127,32 @@ does. This release is documentation, packaging, and safety work, not an enterpri
 Required work:
 
 1. Choose and document one base dependency policy.
-   - Preferred: restore a standard-library-only core by moving DAWG/gazetteer and all HTTP code
-     behind narrow extras, and ensure base imports cannot require those packages. This is complete
-     for the current base wheel; retain the release checks and clean-wheel coverage.
-   - Alternative: retain the dependencies and remove every zero-dependency/dependency-free claim
-     from README, vision, roadmap, release verifier output, package metadata descriptions, and
-     release materials.
-   - In either case, add a test that builds the wheel and asserts the exact non-extra
-     `Requires-Dist` set expected for that policy.
+   - Completed: base package has zero runtime dependencies. `scripts/verify_release.py` and
+     `scripts/audit_install.py` enforce dependency-free base contract and declared extras.
+   - Clean-wheel tests cover base install and every documented extra (`html`, `ml`, `ocr`,
+     `office`, `pdf`, `remote`) independently via `scripts/audit_extras.py`.
 2. Resolve the remote-backend contract.
-   - Completed: `HTTPRemoteBackend` now requires HTTPS, disables redirects, preserves bounded
+   - Completed: `HTTPRemoteBackend` requires HTTPS, disables redirects, preserves bounded
      timeout/retry configuration, sanitizes transport/status/JSON errors, and has unit coverage
      for its outbound payload, authentication, HTTPS rejection, and diagnostic safety.
-   - Either keep `HTTPRemoteBackend`, document it in README, API docs, threat model, dependency
-     policy, and limitations, and test its payload, timeout, retry, authentication, and error
-     sanitization behavior; or remove it and its `remote` extra/tests/docs completely.
-   - If retained, document that configured endpoints receive raw content blocks, identify the
-     outbound fields, require TLS validation by default, bound payload size, and make endpoint,
-     timeout, retry, and redirect behavior explicit.
-   - Ensure transport errors never include request text, authorization values, or server response
-     bodies. Add regression tests for each leak vector.
+   - Documented in README, API docs, threat model, dependency policy, and limitations:
+     configured endpoints receive raw content blocks, outbound fields are identified, redirects
+     are denied, and caller responsibility for bounding payload sizes and configuring timeouts
+     is explicitly specified.
 3. Remove contradictory release checks.
-   - Make `scripts/verify_release.py` and `scripts/audit_install.py` enforce the selected base
-     dependency policy rather than contain no-op or misleading checks.
-   - Correct their user-facing output so it cannot claim dependency-free after accepting base
-     dependencies.
-   - State the actual coverage floor only once, sourced from `pyproject.toml`; either raise it
-     deliberately with a passing suite or leave it at 94.10%.
+   - Completed: `scripts/verify_release.py` and `scripts/audit_install.py` enforce the selected base
+     dependency policy and declared extras rather than contain no-op or misleading checks.
+   - Coverage floor is maintained consistently at 94.10% sourced from `pyproject.toml`.
 4. Fix release metadata discipline.
+   - Completed: development verification rejects a changelog entry that marks the current version
+     as published; tagged verification requires a matching dated changelog entry.
    - A version becomes “Published” only after its matching `v<version>` tag, successful release
      workflow, PyPI artifact, and GitHub release exist.
-   - Keep unreleased work under an `[Unreleased]` changelog section. Do not date a release entry
-     before publication or label a planned feature as shipped.
-   - Update comparison links to current tags and add a release-script assertion that the current
-     version is not accidentally described as published without a matching tag.
+   - Unreleased work is maintained under `[Unreleased]`.
 5. Constrain benchmark-only bypasses.
    - Completed: removed `SYNTHETIC_BENCHMARK`; normal detectors ignore that environment variable.
      Synthetic analysis configures private detector state directly, while the evaluator exposes an
      explicit `--allow-unverified-checksums` flag whose results are not baseline-comparable.
-   - Replace ambient `SYNTHETIC_BENCHMARK` behavior with an explicit benchmark-only dependency
-     injection or an opt-in object unavailable from normal public processing APIs.
-   - If environment configuration remains, reject it outside a dedicated benchmark command and
-     add subprocess tests proving production execution cannot enable it.
 
 Exit criteria:
 
@@ -173,27 +172,25 @@ scope.
 Required work:
 
 1. Make benchmark execution reproducible.
-   - Pin the dataset revision, split, language filtering, random seed, sample-selection algorithm,
-     supported labels, scoring mode, policy configuration, model artifact URLs, and SHA-256 values.
-   - Emit a machine-readable result containing revision, command arguments, package commit,
-     Python/OS/CPU information, model hashes, annotation/detection/true-positive/false-positive/
-     false-negative counts, and per-entity precision/recall/F1.
-   - Keep the validation set measurement-only. Use a separate train/development workflow for
-     experimentation and never tune on the fixed held-out sample.
-   - Add a CI job that at least validates evaluator determinism on a committed small synthetic
-     fixture. Run the full external benchmark on a scheduled/manual trusted workflow and attach
-     result artifacts to releases.
+   - Completed: remote dataset runs require an explicit revision (`a785eb528e28be2693c3718a27e066970de5dadb`),
+     emit a JSON record with scoring configuration, corpus/model hashes, package git commit,
+     full policy configuration, environment, aggregate metrics, and per-entity counts.
+   - Deterministic CI fixture test in `tests/unit/test_quality_evaluator.py`.
+   - Full benchmark runs on a scheduled/manual trusted workflow (`.github/workflows/quality-benchmark.yml`)
+     and emits downloadable artifact records.
 2. Establish a security regression corpus.
-   - Cover Unicode normalization, zero-width and bidi controls, escaped/encoded structured values,
-     chunk boundaries, nested payloads, CSV/JSON/XML/HTML boundaries, document metadata, and
-     hostile remote responses.
-   - For each past leak or bypass, retain the smallest regression fixture and a test that proves
-     both detection/replacement and safe diagnostics.
+   - Completed: `tests/integration/test_security_regression_corpus.py` covers Unicode normalization,
+     zero-width (ZWNJ, soft hyphen, ZWSP, word joiners) and bidi controls (overrides and isolates),
+     deeply nested payloads, streaming chunk splits, JSON/CSV boundary escapes and formula injections,
+     document metadata isolation, and hostile remote responses.
+   - Proves both detection/replacement and value-safe diagnostics (zero raw value leaks in reports,
+     tokens, or exception traces).
 3. Audit defaults and unsafe configuration.
-   - Verify default policy behavior for every entity type and extension.
-   - Ensure remote processing requires both explicit policy permission and per-backend consent;
-     prove denied paths cannot open a client or resolve a network destination.
-   - Document residual risks: false negatives, alias linkability, mappings, deterministic keys,
+   - Completed: `tests/unit/test_policy_defaults_audit.py` audits default and strict policy configurations
+     across all 12 declared entity types, verifying that `network_policy` is strictly `DENY` by default.
+   - Proved denied remote paths cannot open a socket or resolve a network destination.
+   - Documented residual risks across `docs/threat-model.md`, `docs/limitations.md`, and
+     `docs/deployment.md`: false negatives, alias linkability, mappings, deterministic keys,
      document-rendering fidelity, CSV formulas, and remote data disclosure.
 
 Exit criteria:

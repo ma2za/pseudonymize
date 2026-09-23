@@ -13,3 +13,11 @@ dialects.
 CSV formulas are preserved as cell content. Pseudonymize does not evaluate or neutralize formulas,
 so applications exporting files for spreadsheet software remain responsible for formula-injection
 controls.
+
+## Remote detection and payload sizing
+
+Remote backends send complete configured content blocks over HTTPS to external endpoints.
+Pseudonymize does not impose an arbitrary general payload size ceiling because provider constraints
+vary widely; applications are responsible for sizing and bounding content blocks before remote
+invocation, configuring transport timeouts, and verifying provider compliance.
+

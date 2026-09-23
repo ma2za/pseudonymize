@@ -2,6 +2,7 @@ import argparse
 import email.message
 import email.parser
 import os
+import re
 import tarfile
 import tomllib
 import zipfile
@@ -20,7 +21,8 @@ EXPECTED_PYTHON_CLASSIFIERS = {
     f"Programming Language :: Python :: {version}" for version in ("3.11", "3.12", "3.13", "3.14")
 }
 EXPECTED_DEVELOPMENT_CLASSIFIER = "Development Status :: 5 - Production/Stable"
-EXPECTED_BASE_REQUIREMENTS = frozenset()
+EXPECTED_BASE_REQUIREMENTS: frozenset[str] = frozenset()
+EXPECTED_EXTRAS: frozenset[str] = frozenset({"ml", "office", "pdf", "ocr", "remote", "html"})
 REQUIRED_SDIST_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -42,6 +44,7 @@ REQUIRED_SDIST_FILES = frozenset(
         "docs/releases/0.1.0.md",
         "examples/llm_gateway.py",
         "pyproject.toml",
+        "scripts/audit_extras.py",
         "scripts/audit_install.py",
         "src/pseudonymize/py.typed",
         "tests/corpus/files.json",
@@ -58,6 +61,16 @@ def project_version(project_file: Path) -> str:
 def verify_tag(version: str, tag: str | None) -> None:
     if tag and tag.removeprefix("v") != version:
         raise ValueError(f"tag {tag!r} does not match project version {version!r}")
+
+
+def verify_changelog(version: str, changelog: Path, tag: str | None) -> None:
+    released = re.search(
+        rf"^## \[{re.escape(version)}\] - ", changelog.read_text(encoding="utf-8"), re.M
+    )
+    if tag and released is None:
+        raise ValueError("changelog does not contain the tagged release version")
+    if tag is None and released is not None:
+        raise ValueError("development version is marked as published in the changelog")
 
 
 def base_requirements(metadata: email.message.Message) -> frozenset[str]:
@@ -85,6 +98,12 @@ def verify_wheel(path: Path, version: str, project_root: Path) -> None:
             raise ValueError("wheel Python requirement is invalid")
         if base_requirements(metadata) != EXPECTED_BASE_REQUIREMENTS:
             raise ValueError("wheel base dependencies do not match the release contract")
+        wheel_extras = frozenset(metadata.get_all("Provides-Extra", failobj=[]))
+        if wheel_extras != EXPECTED_EXTRAS:
+            raise ValueError(
+                f"wheel extras {sorted(wheel_extras)} do not match "
+                f"release contract {sorted(EXPECTED_EXTRAS)}"
+            )
         project_urls = dict(
             value.split(", ", 1) for value in metadata.get_all("Project-URL", failobj=[])
         )
@@ -137,6 +156,7 @@ def verify_sdist(path: Path, version: str) -> None:
 def verify_release(project_root: Path, distribution_directory: Path, tag: str | None) -> None:
     version = project_version(project_root / "pyproject.toml")
     verify_tag(version, tag)
+    verify_changelog(version, project_root / "CHANGELOG.md", tag)
     wheels = tuple(distribution_directory.glob("*.whl"))
     source_distributions = tuple(distribution_directory.glob("*.tar.gz"))
     if len(wheels) != 1 or len(source_distributions) != 1:
@@ -162,6 +182,7 @@ def main() -> int:
     if arguments.check_tag_only:
         version = project_version(arguments.project_root / "pyproject.toml")
         verify_tag(version, arguments.tag)
+        verify_changelog(version, arguments.project_root / "CHANGELOG.md", arguments.tag)
         print(f"verified tag for pseudonymize {version}")
         return 0
     verify_release(arguments.project_root, arguments.dist, arguments.tag)

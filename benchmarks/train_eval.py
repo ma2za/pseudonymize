@@ -27,6 +27,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Score any overlap as a hit, ignoring whether the entity type matches.",
     )
+    parser.add_argument("--dataset-revision", required=True, help="Immutable dataset revision.")
     args = parser.parse_args()
 
     evaluate(
@@ -35,4 +36,5 @@ if __name__ == "__main__":
         strict_labels=not args.span_only,
         split="train",
         explain=True,
+        dataset_revision=args.dataset_revision,
     )

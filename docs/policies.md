@@ -26,4 +26,6 @@ policy = Policy(
 ```
 
 The base package provides no remote backend or HTTP dependency. Install the `remote` extra to use
-`HTTPRemoteBackend`; it sends the selected content block to a caller-configured HTTPS endpoint.
+`HTTPRemoteBackend`; it sends the selected content block to a caller-configured HTTPS endpoint
+without following redirects. Callers are responsible for bounding content block sizes and setting
+transport timeouts.

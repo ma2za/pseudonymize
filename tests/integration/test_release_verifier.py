@@ -8,20 +8,24 @@ import pytest
 from scripts.verify_release import (
     EXPECTED_BASE_REQUIREMENTS,
     EXPECTED_DEVELOPMENT_CLASSIFIER,
+    EXPECTED_EXTRAS,
     EXPECTED_PROJECT_URLS,
     EXPECTED_PYTHON_CLASSIFIERS,
     REQUIRED_SDIST_FILES,
     project_version,
+    verify_changelog,
     verify_release,
     verify_tag,
 )
 
 
-def _write_project(root: Path, version: str = "0.1.0") -> None:
+def _write_project(root: Path, version: str = "0.1.0", released: bool = False) -> None:
     (root / "pyproject.toml").write_text(
         f'[project]\nname = "pseudonymize"\nversion = "{version}"\n', encoding="utf-8"
     )
     (root / "LICENSE").write_text("licence", encoding="utf-8")
+    heading = f"## [{version}] - 2026-01-01" if released else "## [Unreleased]"
+    (root / "CHANGELOG.md").write_text(f"# Changelog\n\n{heading}\n", encoding="utf-8")
     package = root / "src" / "pseudonymize"
     package.mkdir(parents=True)
     (package / "py.typed").write_text("", encoding="utf-8")
@@ -32,6 +36,7 @@ def _write_wheel(
     version: str = "0.1.0",
     requirements: tuple[str, ...] = tuple(EXPECTED_BASE_REQUIREMENTS),
     development_classifier: str = EXPECTED_DEVELOPMENT_CLASSIFIER,
+    extras: tuple[str, ...] = tuple(EXPECTED_EXTRAS),
 ) -> None:
     metadata = email.message.Message()
     metadata["Name"] = "pseudonymize"
@@ -43,6 +48,8 @@ def _write_wheel(
         metadata["Project-URL"] = f"{label}, {url}"
     for classifier in EXPECTED_PYTHON_CLASSIFIERS:
         metadata["Classifier"] = classifier
+    for extra in extras:
+        metadata["Provides-Extra"] = extra
     for requirement in requirements:
         metadata["Requires-Dist"] = requirement
     path = directory / f"pseudonymize-{version}-py3-none-any.whl"
@@ -71,7 +78,7 @@ def _write_sdist(directory: Path, version: str = "0.1.0") -> None:
 
 
 def test_release_artifacts_and_tag(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    _write_project(tmp_path)
+    _write_project(tmp_path, released=True)
     distribution_directory = tmp_path / "dist"
     distribution_directory.mkdir()
     _write_wheel(distribution_directory)
@@ -84,6 +91,18 @@ def test_release_artifacts_and_tag(tmp_path: Path, capsys: pytest.CaptureFixture
 def test_release_rejects_mismatched_tag() -> None:
     with pytest.raises(ValueError, match="does not match"):
         verify_tag("0.1.0", "v0.1.0rc1")
+
+
+def test_release_rejects_published_development_version(tmp_path: Path) -> None:
+    _write_project(tmp_path, released=True)
+    with pytest.raises(ValueError, match="marked as published"):
+        verify_changelog("0.1.0", tmp_path / "CHANGELOG.md", None)
+
+
+def test_release_requires_matching_changelog_entry(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+    with pytest.raises(ValueError, match="does not contain"):
+        verify_changelog("0.1.0", tmp_path / "CHANGELOG.md", "v0.1.0")
 
 
 @pytest.mark.parametrize(
@@ -112,4 +131,17 @@ def test_release_rejects_prerelease_classifier(tmp_path: Path) -> None:
     )
     _write_sdist(distribution_directory)
     with pytest.raises(ValueError, match="development-status classifier"):
+        verify_release(tmp_path, distribution_directory, None)
+
+
+def test_release_rejects_extra_mismatch(tmp_path: Path) -> None:
+    _write_project(tmp_path)
+    distribution_directory = tmp_path / "dist"
+    distribution_directory.mkdir()
+    _write_wheel(
+        distribution_directory,
+        extras=("ml", "office"),  # missing pdf, ocr, remote, html
+    )
+    _write_sdist(distribution_directory)
+    with pytest.raises(ValueError, match="wheel extras"):
         verify_release(tmp_path, distribution_directory, None)
