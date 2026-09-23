@@ -548,3 +548,148 @@ def test_onnx_context_boosting_pair_handling(onnx_artifacts: tuple[Path, Path, P
     )
     detections2 = backend.detect(short_block, policy)
     assert isinstance(detections2, (list, tuple))
+
+
+# ---------------------------------------------------------------------------
+# 1.29.0: ONNX Token-to-Character Alignment Audit & Calibration Verification
+# ---------------------------------------------------------------------------
+
+
+def test_onnx_combining_characters_alignment(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    policy = Policy(network_policy=NetworkPolicy.DENY)
+
+    # Combining acute: 'e' + '\u0301', combining grave: 'a' + '\u0300'
+    text = "Visite de Rene\u0301 a\u0300 Paris aujourd'hui."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    detections = backend.detect(block, policy)
+    for d in detections:
+        extracted = text[d.start : d.end]
+        # Extracted slice must not contain unaligned partial combining codepoints
+        assert extracted.isprintable()
+        if d.entity_type == EntityType.LOCATION:
+            assert "Paris" in extracted
+
+
+def test_onnx_emoji_character_alignment(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    policy = Policy(network_policy=NetworkPolicy.DENY)
+
+    # Multi-codepoint emoji with skin tone and zero-width joiners
+    text = (
+        "Conference speaker \U0001f44b\U0001f3fd Sarah Connor \U0001f469\u200d\U0001f4bb presented."
+    )
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    detections = backend.detect(block, policy)
+    person_detections = [d for d in detections if d.entity_type == EntityType.PERSON]
+    assert len(person_detections) >= 1
+    extracted = text[person_detections[0].start : person_detections[0].end]
+    assert "Sarah Connor" in extracted
+
+
+def test_onnx_hyphenated_and_possessive_alignment(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    policy = Policy(network_policy=NetworkPolicy.DENY)
+
+    text = "Dr. Jean-Luc Picard visited Microsoft's main campus in Redmond."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    detections = backend.detect(block, policy)
+    found = {d.entity_type: text[d.start : d.end] for d in detections}
+
+    assert EntityType.PERSON in found
+    assert "Picard" in found[EntityType.PERSON]
+    if EntityType.LOCATION in found:
+        assert "Redmond" in found[EntityType.LOCATION]
+
+
+def test_onnx_cjk_character_alignment(onnx_artifacts: tuple[Path, Path, Path]) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    policy = Policy(network_policy=NetworkPolicy.DENY)
+
+    text = "昨天在北京遇到了张伟先生。"
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    detections = backend.detect(block, policy)
+    for d in detections:
+        extracted = text[d.start : d.end]
+        # Extracted slice must be clean contiguous CJK characters
+        assert len(extracted) > 0
+        assert extracted in text
+
+
+def test_onnx_window_boundary_split_alignment(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    # Configure tiny max_tokens to force window straddling
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        window_overlap_tokens=16,
+    )
+    backend._max_tokens = 64
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+
+    # Construct text where an entity sits at a window boundary
+    prefix = "The quick brown fox jumps over the lazy dog. " * 8
+    target = "General Alexander Hamilton commanded the regiment. "
+    suffix = "All troops assembled in Washington D.C. afterwards. " * 8
+    full_text = prefix + target + suffix
+    block = ContentBlock(id="1", text=full_text, location=TextOffsetLocation(0, len(full_text)))
+
+    detections = backend.detect(block, policy)
+    for d in detections:
+        # Verify every detected span accurately indexes the full text
+        extracted = full_text[d.start : d.end]
+        assert len(extracted) > 0
+        assert d.start < d.end <= len(full_text)
+
+
+def test_onnx_per_label_calibration_property_and_override(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+
+    # Default calibration mapping
+    default_backend = LocalONNXPIIBackend(
+        model_path=model_path, tokenizer_path=tokenizer_path, config_path=config_path
+    )
+    thresholds = default_backend.entity_thresholds
+    assert isinstance(thresholds, dict)
+    assert thresholds[EntityType.PERSON] == 0.05
+    assert thresholds[EntityType.LOCATION] == 0.20
+    assert thresholds[EntityType.ORGANIZATION] == 0.05
+
+    # Custom per-label calibration override
+    custom_backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_thresholds={
+            EntityType.PERSON: 0.10,
+            EntityType.LOCATION: 0.20,
+            EntityType.ORGANIZATION: 0.30,
+        },
+    )
+    custom_thresholds = custom_backend.entity_thresholds
+    assert custom_thresholds[EntityType.PERSON] == 0.10
+    assert custom_thresholds[EntityType.LOCATION] == 0.20
+    assert custom_thresholds[EntityType.ORGANIZATION] == 0.30

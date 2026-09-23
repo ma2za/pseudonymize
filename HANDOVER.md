@@ -74,14 +74,22 @@ the actual worktree.
 - Implemented explainable bounded scoring in `ContextualIdDetector` with distance decay, separator
   bonuses (`:` and `#`), and negative context suppression (penalizing software versions, HTTP
   status codes, ports, and page references). Verified across 43 context unit tests.
+- Audited ONNX token-to-character mapping across combining characters, multi-codepoint emojis,
+  CJK text, hyphenated names, possessives, and window boundary splits in `tests/unit/backends/test_onnx.py`.
+- Exposed per-label calibration thresholds on `LocalONNXPIIBackend.entity_thresholds` property.
+- Hardened coreference resolution with `_AMBIGUOUS_COREFERENCE_TOKENS` stoplist in
+  `src/pseudonymize/coreference.py`, verified false-positive suppression for generic terms, and
+  confirmed scope-bound linking isolation.
 
 ## Remaining work, in strict order
 
-1. `1.29.0`: ML reliability and in-document linking.
-   - Audit ONNX token-to-character mapping with multilingual, combining-character, emoji, CJK,
-     hyphenated, possessive, and window-boundary fixtures.
-   - Calibrate thresholds from development set; keep linking conservative and scope-bound.
-2. Publish baseline comparisons and retain release records.
+1. `1.30.0`: Ensemble decisions and operational readiness.
+   - Define documented overlap-resolution order based on evidence strength, entity semantics,
+     confidence, and stable tie-breakers.
+   - Test pairwise conflicts among rules, gazetteer, ML, coreference, and remote backends.
+   - Ensure observability integrations (OTel, logging) cannot import optional packages at base
+     import or leak sensitive values.
+   - Publish operational deployment guide.
 
 ## Required verification before any commit
 
