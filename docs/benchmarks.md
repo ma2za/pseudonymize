@@ -52,6 +52,7 @@ validation rows with the ONNX backend enabled.
 | `1.0.0` | Strict boundary and label adherence (1000 rows) | 0.9141 | 0.5465 | 0.6840 |
 | `1.10.0` | Strict boundary and label adherence (1000 rows) | 0.8425 | 0.6293 | 0.7205 |
 | `1.20.0` | Strict boundary and label adherence (1000 rows) | 0.8587 | 0.8016 | 0.8292 |
+| `1.26.0` | Strict boundary and label adherence (1000 rows) | 0.8611 | 0.8026 | 0.8308 |
 | `0.19.0` | Corrected, `--span-only` | 0.9317 | 0.7542 | 0.8336 |
 | `0.19.0` | Corrected, entity types compared | 0.8097 | 0.6549 | 0.7241 |
 

@@ -5,6 +5,10 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- Documented deterministic ensemble overlap resolution (`src/pseudonymize/spans.py`, `docs/architecture.md`) based on domain evidence weighting (checksums 1.0, credentials 0.95, emails/IPs 0.90, secrets 0.80, ML 0.85, phone 0.70, context 0.60, gazetteer 0.55, heuristics 0.50, coreference 0.45) with deterministic tie-breaking and adjacent same-type span merging.
+- Comprehensive pairwise backend conflict and permutation invariance suite (`tests/unit/test_spans.py`) verifying conflict resolution across rules, gazetteer, ML, coreference, and remote backends.
+- Observability dependency isolation and attribute sanitization suite (`tests/unit/test_otel.py`): verified in an isolated subprocess that `OTelRedactionSpanProcessor` and `DlpLoggingFilter` load zero external dependencies at base import, and verified fail-closed sanitization across immutable containers, nested collections, and formatting arguments.
+- Comprehensive operational deployment guide (`docs/deployment.md`) detailing blue/green key rotation, mapping lifecycle/KMS envelope encryption, policy review/drift monitoring, and fail-closed incident response break-glass procedures.
 - ONNX token-to-character mapping alignment suite (`tests/unit/backends/test_onnx.py`): verified character-exact offsets across Unicode combining characters, multi-codepoint emojis with skin tone modifiers, CJK unsegmented text, hyphenated names, possessives, and window boundary splits.
 - Exposed per-label calibration thresholds on `LocalONNXPIIBackend.entity_thresholds` supporting custom development calibration overrides.
 - Hardened coreference resolution (`src/pseudonymize/coreference.py`): added `_AMBIGUOUS_COREFERENCE_TOKENS` stoplist preventing single generic words (month names, honorific titles, corporate/institutional suffixes) from propagating as standalone entity links, and verified strict scope isolation across independent processing calls.
@@ -34,7 +38,7 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ## [1.24.0] - 2026-09-18
 
 ### Added
-- **Zero-Overhead OpenTelemetry & Logging Integration:** Added a lightweight, duck-typed `OTelRedactionSpanProcessor` and standard `DlpLoggingFilter` to natively redact PII from logging output and trace span attributes with zero hard dependencies and a `<1ms` hot-path latency footprint.
+- **OpenTelemetry & Logging Integration:** Added a lightweight, duck-typed `OTelRedactionSpanProcessor` and standard `DlpLoggingFilter` to natively redact PII from logging output and trace span attributes with zero hard dependencies.
 
 ## [1.23.0] - 2026-09-18
 

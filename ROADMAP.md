@@ -31,7 +31,7 @@ publishable without requiring unfinished later layers.
 | `1.21.0` | Published | Scale & Integration (Batched Vectorization & LRU Caching Fast-Paths) |
 | `1.22.0` | Published | Next-Generation Semantic Recall & Schema-Preserving Agent Sanitation (MCP) |
 | `1.23.0` | Published | Ecosystem Integration & Regional EU Identifier Depth (German Steuer-IdNr, Spanish NIF/NIE/CIF) |
-| `1.24.0` | Published | Asynchronous Observability & Distributed DLP Adapter (Zero-Overhead OpenTelemetry & Logging) |
+| `1.24.0` | Published | Observability & Distributed DLP Adapter (OpenTelemetry & Logging Integration) |
 | `1.25.0` | Published | Distributed Scaling, Property Test Resilience & Pre-Commit Verification |
 | `1.26.0` | In development | Contract reconciliation and release-proof baseline |
 | `1.27.0` | Planned | Reproducible evaluation, production-safety hardening, and detector evidence |
@@ -85,6 +85,14 @@ is handed off, a release gate changes, or an uncommitted implementation slice ch
   command, immutable inputs, machine-readable output, and per-entity counts.
 - Preserve unrelated worktree changes. Stage named files, inspect the staged diff, and seek the
   user's direction before committing or discarding user-owned changes.
+
+### Stop-the-line audit remediation (RESOLVED & VERIFIED)
+
+All four blockers have been resolved with observed evidence recorded in `HANDOVER.md`:
+1. **Full-suite observability blocker (CLOSED):** Evaluator made lazy; bounded timeouts and captured diagnostics added; full test suite ran with observable JUnit XML report: 451 collected, 449 passed, 2 skipped, 0 failures, 0 errors, 94.74% coverage, clean exit code 0.
+2. **Ensemble-contract blocker (CLOSED):** `remote_provider` / `remote` weight reconciled to 0.50 in `src/pseudonymize/spans.py` (`DETECTOR_WEIGHTS`) and `docs/architecture.md`; provenance-based tests across rules/gazetteer/ONNX/coreference/remote and all topologies pass.
+3. **Observability-claim blocker (CLOSED):** Unsubstantiated `<1ms` and "zero-overhead" claims removed; isolated subprocess base import test proves zero telemetry modules loaded and no sockets opened; fail-closed immutable container and nested collection handling verified.
+4. **Operational-boundary blocker (CLOSED):** Deployment guidance reframed to explicitly delineate caller/operator responsibilities (KMS envelope encryption, key rotation, TTL retention, and Python memory constraints) from package boundaries.
 
 ### Baseline facts to preserve
 
@@ -273,14 +281,23 @@ Required work:
 1. Define one documented overlap-resolution order based on evidence strength, entity semantics,
    confidence, and stable tie-breakers. Do not add a learned matrix without training data and an
    evaluation artifact.
+   - Unaccepted implementation exists, but the documented remote weight and the
+     `remote_provider` fallback disagree. The audit blocker above must close before this can be
+     marked complete.
 2. Test every pairwise conflict among rules, gazetteer, ML, coreference, and remote backends,
    including same-span, partial overlap, nested spans, and detector-order permutation.
+   - Synthetic permutation coverage exists, but it does not exercise actual backend provenance or
+     prove the documented precedence contract. The audit blocker above must close first.
 3. Separate optional observability from privacy processing. Verify OpenTelemetry and logging
    integrations cannot import optional packages at base import, cannot expose source values, and
    have explicit performance measurements rather than unsupported latency claims.
+   - Partial unit coverage exists, but it is neither a fresh-process import test nor a performance
+     benchmark. The audit blocker above must close first.
 4. Publish an operational deployment guide with key rotation, mapping handling, policy review,
    remote endpoint approval, rate/size limits, monitoring without raw values, incident response,
    and known non-goals.
+   - Draft guidance exists, but it currently overstates package responsibilities. The
+     operational-boundary blocker above must close first.
 
 Exit criteria:
 

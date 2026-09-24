@@ -1,9 +1,10 @@
 import bisect
 from collections.abc import Iterable
+from types import MappingProxyType
 
 from pseudonymize.result import Detection
 
-_DETECTOR_WEIGHT = {
+_DETECTOR_WEIGHT: dict[str, float] = {
     # Tabular Layout / Column Headers (Absolute Highest)
     "tabular": 1.0,
     # Checksums / Deterministic structures - Highest priority (1.0)
@@ -23,8 +24,13 @@ _DETECTOR_WEIGHT = {
     "gazetteer": 0.55,
     "location": 0.50,
     "organization": 0.50,
+    "remote_provider": 0.50,
+    "remote": 0.50,
+    "coreference": 0.45,
     "ensemble": 0.40,
 }
+
+DETECTOR_WEIGHTS: MappingProxyType[str, float] = MappingProxyType(_DETECTOR_WEIGHT)
 
 
 def resolve_overlaps(
@@ -71,7 +77,7 @@ def resolve_overlaps(
     sorted_selected = sorted(selected, key=lambda detection: (detection.start, detection.end))
 
     # Merge adjacent spans of the same entity type to prevent fragmentation.
-    # Allow merging if the gap is just structural/whitespace (<= 2 chars).
+    # Merging is strictly limited to contiguous spans with zero gap (det.start == last.end).
     merged: list[Detection] = []
     for det in sorted_selected:
         if not merged:

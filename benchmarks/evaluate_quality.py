@@ -13,13 +13,6 @@ from dataclasses import replace
 from importlib.metadata import version
 from pathlib import Path
 
-try:
-    from datasets import load_dataset
-except ImportError:
-    print("Error: 'datasets' library not found.")
-    print("Run: uv run --with datasets python benchmarks/evaluate_quality.py")
-    sys.exit(1)
-
 from pseudonymize.backends.ml.onnx import LocalONNXPIIBackend
 from pseudonymize.detectors import DEFAULT_DETECTORS, Detector
 from pseudonymize.detectors.checksums import AlgorithmicChecksumDetector
@@ -206,6 +199,12 @@ def evaluate(
     else:
         if dataset_revision is None:
             raise ValueError("dataset_revision is required when evaluating a remote dataset")
+        try:
+            from datasets import load_dataset
+        except ImportError:
+            print("Error: 'datasets' library not found.")
+            print("Run: uv run --with datasets python benchmarks/evaluate_quality.py")
+            sys.exit(1)
         logger.info(f"Loading {DATASET_NAME}@{dataset_revision} ({split} split, English subset)...")
         # We shuffle with a fixed seed to ensure a consistent, reproducible
         # pseudo-random sample of the evaluation dataset for A/B testing versions.

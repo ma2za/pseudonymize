@@ -5,9 +5,11 @@ from pseudonymize.engine import Pseudonymizer
 
 
 class DlpLoggingFilter(logging.Filter):
-    """
-    A lightweight, zero-overhead standard logging Filter that redacts PII
-    from log messages and string arguments on the fly before they are emitted.
+    """A standard logging Filter that redacts PII from log records.
+
+    Redacts the primary log message string and string values in arguments
+    (tuples, lists, dicts, and nested collections) before records are emitted.
+    Preserves non-string arguments and numerical values untouched.
     """
 
     def __init__(self, engine: Pseudonymizer | None = None, name: str = ""):
@@ -15,28 +17,38 @@ class DlpLoggingFilter(logging.Filter):
         self.engine = engine or Pseudonymizer()
 
     def filter(self, record: logging.LogRecord) -> bool:
-        # Redact the core log message string if it is formatted
         if isinstance(record.msg, str):
             record.msg = self.engine.process(record.msg).text
 
-        # Redact any string arguments passed to the log formatting
         if record.args:
-            new_args: list[Any] = []
-            for arg in record.args:
-                if isinstance(arg, str):
-                    new_args.append(self.engine.process(arg).text)
-                else:
-                    new_args.append(arg)
-            record.args = tuple(new_args)
+            if isinstance(record.args, dict):
+                record.args = {k: self._redact_value(v) for k, v in record.args.items()}
+            elif isinstance(record.args, (list, tuple)):
+                record.args = tuple(self._redact_value(arg) for arg in record.args)
 
         return True
 
+    def _redact_value(self, val: Any) -> Any:
+        if isinstance(val, str):
+            return self.engine.process(val).text
+        if isinstance(val, (list, tuple)):
+            return type(val)(self._redact_value(item) for item in val)
+        if isinstance(val, dict):
+            return {k: self._redact_value(v) for k, v in val.items()}
+        return val
+
 
 class OTelRedactionSpanProcessor:
-    """
-    A zero-overhead, duck-typed OpenTelemetry SpanProcessor that seamlessly
-    redacts PII from span attributes during span lifecycle events (on_start and on_end).
-    Operates with <1ms overhead on string attributes, requiring zero hard dependencies.
+    """A duck-typed OpenTelemetry SpanProcessor that redacts PII from span attributes.
+
+    Sanitizes string attributes and collections (lists, tuples, nested mappings)
+    during span lifecycle events (on_start and on_end) without requiring OpenTelemetry
+    packages to be installed at base import.
+
+    If an attribute container is immutable or rejects in-place item assignment,
+    the processor attempts to reassign the attributes mapping. If mutation is
+    impossible, it fails closed by raising a RuntimeError rather than silently
+    leaking unsanitized attributes.
     """
 
     def __init__(self, engine: Pseudonymizer | None = None):
@@ -57,25 +69,28 @@ class OTelRedactionSpanProcessor:
         """Conforms to the OpenTelemetry SpanProcessor force_flush contract."""
         return True
 
+    def _redact_value(self, val: Any) -> Any:
+        if isinstance(val, str):
+            return self.engine.process(val).text
+        if isinstance(val, (list, tuple)):
+            return type(val)(self._redact_value(item) for item in val)
+        if isinstance(val, dict):
+            return {k: self._redact_value(v) for k, v in val.items()}
+        return val
+
     def _redact_span_attributes(self, span: Any) -> None:
         if not hasattr(span, "attributes") or not span.attributes:
             return
 
-        # OpenTelemetry attributes are dict-like. Iterate and redact string values.
-        # We wrap in list() to avoid dictionary mutation size changes if needed,
-        # and safely update values in-place.
         try:
             for key, val in list(span.attributes.items()):
-                if isinstance(val, str):
-                    span.attributes[key] = self.engine.process(val).text
-                elif isinstance(val, (list, tuple)):
-                    new_val = []
-                    for item in val:
-                        if isinstance(item, str):
-                            new_val.append(self.engine.process(item).text)
-                        else:
-                            new_val.append(item)
-                    span.attributes[key] = type(val)(new_val)
-        except Exception:  # noqa: S110
-            # Shield the hot path from any runtime attribute mutation errors
-            pass
+                new_val = self._redact_value(val)
+                if new_val is not val:
+                    span.attributes[key] = new_val
+        except (TypeError, AttributeError):
+            # Attribute container is immutable; attempt to replace mapping on span
+            try:
+                new_attrs = {k: self._redact_value(v) for k, v in span.attributes.items()}
+                span.attributes = new_attrs
+            except Exception as exc:
+                raise RuntimeError("Failed to redact immutable span attributes safely") from exc
