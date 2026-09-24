@@ -222,9 +222,9 @@ licenses, and datasets again because those external facts can change.
 
 ## Current release state
 
-`1.26.0` is published and evidenced. It reconciled evidence contracts, eliminated unmeasured
-observability claims, delineated operational boundaries, and froze the 1,000-row baseline artifact.
-The active priority is the `1.31.0` benchmark integrity and causal error atlas program.
+`1.26.0` is published and tagged (`v1.26.0`).
+`1.27.0` is the active development version. The immediate priority is the `1.31.0` benchmark
+integrity and causal error atlas program.
 
 Before this roadmap/handover update, `main` was clean at `71513da` and matched `origin/main`.
 Relevant integrated commits are:
