@@ -26,18 +26,22 @@ publishable without requiring unfinished later layers.
 | `0.16.0` | Published | Advanced OCR degradation handling |
 | `0.17.0` | Published | Contextual identifier and sub-word boundary robustness |
 | `0.18.0` | Published | Contextual Heuristic Augmentation |
-| `1.0.0`  | Published | Mature compatibility commitment & strict 1-to-1 boundary matching |
+| `1.0.0`  | Published | Mature compatibility commitment and type-aware 1-to-1 overlap scoring |
 | `1.20.0` | Published | Stable evaluation baseline achievement (0.8292 F1) |
 | `1.21.0` | Published | Scale & Integration (Batched Vectorization & LRU Caching Fast-Paths) |
 | `1.22.0` | Published | Next-Generation Semantic Recall & Schema-Preserving Agent Sanitation (MCP) |
 | `1.23.0` | Published | Ecosystem Integration & Regional EU Identifier Depth (German Steuer-IdNr, Spanish NIF/NIE/CIF) |
 | `1.24.0` | Published | Observability & Distributed DLP Adapter (OpenTelemetry & Logging Integration) |
 | `1.25.0` | Published | Distributed Scaling, Property Test Resilience & Pre-Commit Verification |
-| `1.26.0` | In development | Contract reconciliation and release-proof baseline |
+| `1.26.0` | Published | Contract reconciliation and release-proof baseline |
 | `1.27.0` | Planned | Reproducible evaluation, production-safety hardening, and detector evidence |
 | `1.28.0` | Planned | Measured multilingual contextual recall improvements |
 | `1.29.0` | Planned | ML calibration, entity linking, and robust boundary alignment |
 | `1.30.0` | Planned | Ensemble conflict resolution only if it improves held-out metrics |
+| `1.31.0` | Next priority | Benchmark integrity, error atlas, and contamination controls |
+| `1.32.0` | Planned | Development-only calibration and constrained span decoding |
+| `1.33.0` | Planned | Reproducible model and hybrid-ensemble bake-off |
+| `1.34.0` | Planned | Independent generalization proof and quality release gate |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
@@ -98,9 +102,10 @@ All four blockers have been resolved with observed evidence recorded in `HANDOVE
 
 - The package is a pseudonymization boundary, not anonymization, compliance certification, or an
   enterprise DLP system.
-- The published strict quality baseline is 0.8292 F1 (precision 0.8587, recall 0.8016) on 1,000
-  sampled validation rows of `ai4privacy/pii-masking-openpii-1.5m`, with one-to-one matching,
-  exact entity types, and strict boundaries. It is a point-in-time measurement, not a guarantee.
+- The published quality baseline is 0.8292 F1 (precision 0.8587, recall 0.8016) on 1,000 sampled
+  validation rows of `ai4privacy/pii-masking-openpii-1.5m`, with one-to-one matching, exact entity
+  types, and any positive boundary overlap. It is a point-in-time measurement, not an exact-boundary
+  result or a guarantee.
 - The base distribution declares no runtime dependencies. Optional remote support declares
   `httpx`; the base package remains dependency-free, while the project still ships an optional
   HTTP provider.
@@ -281,29 +286,237 @@ Required work:
 1. Define one documented overlap-resolution order based on evidence strength, entity semantics,
    confidence, and stable tie-breakers. Do not add a learned matrix without training data and an
    evaluation artifact.
-   - Unaccepted implementation exists, but the documented remote weight and the
-     `remote_provider` fallback disagree. The audit blocker above must close before this can be
-     marked complete.
+   - Completed and audited: `remote_provider` and `remote` use weight `0.50` in code and docs;
+     `DETECTOR_WEIGHTS` is the immutable implementation source.
 2. Test every pairwise conflict among rules, gazetteer, ML, coreference, and remote backends,
    including same-span, partial overlap, nested spans, and detector-order permutation.
-   - Synthetic permutation coverage exists, but it does not exercise actual backend provenance or
-     prove the documented precedence contract. The audit blocker above must close first.
+   - Completed and audited: provenance-based conflict, topology, priority, adjacency, and
+     permutation tests pass.
 3. Separate optional observability from privacy processing. Verify OpenTelemetry and logging
    integrations cannot import optional packages at base import, cannot expose source values, and
    have explicit performance measurements rather than unsupported latency claims.
-   - Partial unit coverage exists, but it is neither a fresh-process import test nor a performance
-     benchmark. The audit blocker above must close first.
+   - Completed and audited: fresh-process import isolation, socket isolation, nested-value
+     redaction, and immutable-container fail-closed behavior are covered. Unsupported latency
+     claims were removed.
 4. Publish an operational deployment guide with key rotation, mapping handling, policy review,
    remote endpoint approval, rate/size limits, monitoring without raw values, incident response,
    and known non-goals.
-   - Draft guidance exists, but it currently overstates package responsibilities. The
-     operational-boundary blocker above must close first.
+   - Completed and audited: application and operator responsibilities are explicitly separated
+     from package behavior, including the absence of package-managed storage or zeroization.
 
 Exit criteria:
 
 - Results are deterministic across backend order and supported Python versions.
 - Each claimed enterprise/operational capability has an end-to-end test, documentation, and a
   clearly named responsible configuration boundary.
+
+### Benchmark improvement program: `1.31.0` to `1.34.0` (NEXT PRIORITY)
+
+The objective is better real-world PII detection, not a cosmetically higher number on one familiar
+sample. This program takes priority over new providers, file formats, enterprise integrations, and
+speculative detector features after the current release candidate is made reproducible.
+
+#### Facts that constrain the work
+
+- The current strict result is `0.8308` F1, `0.8611` precision, and `0.8026` recall on 1,000 fixed
+  English validation rows. The change from the `1.20.0` result (`0.8292` F1) is `+0.0016`; without a
+  paired confidence interval, it must not be described as a meaningful improvement.
+- The active `onnx-community/multilang-pii-ner-ONNX` model card says it was trained on
+  `ai4privacy/open-pii-masking-500k-ai4privacy`. The headline evaluation uses
+  `ai4privacy/pii-masking-openpii-1.5m`. They are related corpus families, so dataset lineage and
+  near-duplicate overlap must be audited before treating the result as generalization evidence.
+- The fixed validation sample has been used repeatedly for release decisions. It remains valuable
+  as a frozen regression set, but it is no longer an untouched lockbox and must never be used to
+  choose thresholds, patterns, decoder behavior, model candidates, or ensemble weights.
+- The evaluator reports aggregate and per-entity counts but does not retain enough privacy-safe,
+  row-level information for paired significance testing or causal error decomposition. The
+  published `1.26.0` table also lacks a committed machine-readable result artifact.
+- The ONNX adapter contains hand-selected per-entity thresholds, runner-up promotion when `O` wins,
+  context-dependent threshold halving, piecewise confidence remapping, punctuation-tolerant span
+  merging, and post-hoc word expansion. Each may help, hurt, or cancel another; none should be
+  tuned further until its contribution is measured by ablation on development data.
+
+#### Non-negotiable experimental protocol
+
+1. Use only the pinned training split for diagnosis, threshold selection, feature design, and
+   ablation. Create immutable `development`, `calibration`, and internal-test manifests grouped by
+   normalized template/source lineage, not random rows, so near-duplicate forms cannot cross splits.
+2. Hash and record dataset revision, row identifiers, grouping algorithm, manifests, model files,
+   tokenizer, config, package commit, policy, supported labels, scorer version, and random seeds.
+3. Never emit source text or annotated values into committed artifacts, CI logs, exceptions, or
+   traces. Error records may contain row hashes, entity class, span lengths, error category,
+   detector provenance, and confidence bins. Raw examples remain local and disposable.
+4. Pre-register the experiment before running a release lockbox: hypothesis, affected error class,
+   primary metric, safety metrics, candidate set, threshold grid, maximum number of comparisons,
+   regression tolerances, and rejection criteria.
+5. Compare candidates on exactly the same rows with paired document-level bootstrap resampling.
+   Publish the F1 delta and 95% confidence interval. A point estimate alone cannot pass a gate.
+6. Report strict exact-label/exact-boundary micro F1 as the primary metric. Also report precision,
+   recall, macro F1, per-entity counts, boundary-only errors, label confusions, character-level
+   masking recall, and results by language/source/template family. Span-only F1 is diagnostic only.
+7. Keep the 1,000-row historical sample frozen for regression continuity. Add a larger final
+   evaluation manifest, preferably all eligible pinned English validation rows or at least 5,000
+   grouped rows, and an independent multi-source corpus. Never replace the old sample to hide a
+   regression.
+8. Permit one final lockbox run per release candidate after code, configuration, and acceptance
+   thresholds are frozen. A failed candidate returns to development; its lockbox result may not be
+   mined for the next patch.
+
+#### `1.31.0`: measurement integrity and causal error atlas
+
+Goal: determine where the `0.8308` ceiling comes from before changing detection behavior.
+
+Required work:
+
+1. Locate and verify the original `1.26.0` JSON result or rerun the exact pinned command. Commit a
+   sanitized aggregate artifact containing counts, per-entity metrics, hashes, environment, and
+   configuration. Documentation summaries are not substitutes for the artifact.
+2. Extend the evaluator to emit privacy-safe per-row sufficient statistics for paired comparison:
+   row hash, TP/FP/FN counts by entity, out-of-scope count, source family, language, length bucket,
+   and error categories. Do not store source text, matched values, or raw spans.
+3. Add a candidate lifecycle trace usable only by benchmark tooling: backend candidate emitted,
+   backend threshold rejection, policy rejection, overlap-resolution rejection, final detection.
+   Aggregate it into five mutually exclusive error classes: missing candidate, threshold/policy
+   suppression, label confusion, boundary mismatch, and ensemble conflict.
+4. Implement paired bootstrap confidence intervals over rows and deterministic A/B comparison of
+   two artifacts. Unit-test resampling determinism, degenerate inputs, unequal manifests, and the
+   rule that unmatched experiment metadata invalidates a comparison.
+5. Build grouped development/calibration/internal-test manifests from the pinned training split.
+   Deduplicate by normalized templates and value-masked structure, record collision statistics,
+   and audit overlap with the validation manifests and known model-training corpus lineage.
+6. Establish an external generalization track using a pinned, license-compatible multi-source
+   benchmark such as PIIMB. Keep its label-agnostic character metric separate from this project's
+   strict typed metric; never average incompatible scores into one headline number.
+7. Run an ablation matrix on development data: rules only, ML only, rules plus ML, each contextual
+   boost, runner-up promotion, confidence remapping, span repair, coreference, gazetteer/Bloom veto,
+   and ensemble resolution. Rank work by recoverable FN/FP counts, not intuition.
+
+Exit criteria:
+
+- The baseline is reproducible from a committed sanitized artifact.
+- Every aggregate delta can be paired by identical row manifest and accompanied by a 95% interval.
+- The error atlas identifies the top three causes by recoverable error count and entity type.
+- No detector behavior changes in this release unless required to make measurement correct.
+
+#### `1.32.0`: calibrated token decisions and constrained span decoding
+
+Goal: improve the dominant measured ML errors using development-only fitting.
+
+Required work:
+
+1. Preserve raw logits/probabilities in private benchmark traces and measure reliability diagrams,
+   expected calibration error, Brier score, and negative log-likelihood by entity and confidence
+   bucket. The public `Detection.confidence` must retain one documented meaning.
+2. Replace hand-authored confidence remapping with a fitted calibration candidate. Start with one
+   global temperature; permit per-entity temperatures only where predeclared minimum support and
+   grouped cross-validation show stable benefit. Store calibration parameters and input hashes.
+3. Select emission thresholds on the calibration partition under a predeclared constrained
+   objective, such as maximum strict F1 subject to no material precision regression and minimum
+   recall floors for high-risk identifiers. Never optimize a threshold on validation results.
+4. Implement a decoder candidate that respects the model's BIO/BILOU transition rules instead of
+   joining tokens solely because their coarse entity type matches. Compare greedy, constrained,
+   and existing decoding on exact-boundary errors, punctuation, adjacent entities, subwords,
+   Unicode, and window overlap.
+5. Replace `max(token_confidence)` span scoring with evaluated candidates such as minimum, mean, or
+   geometric mean only if calibration data proves a stable choice. Do not choose the aggregator
+   from the release lockbox.
+6. Turn context into explicit evidence features rather than unconditional threshold halving. Test
+   positive and negative contexts symmetrically and require out-of-domain precision protection.
+7. Remove any legacy heuristic whose grouped ablation shows no benefit or a confidence interval
+   spanning material harm. Simpler decoding is preferable when quality is statistically tied.
+
+Exit criteria:
+
+- The selected calibration and decoder win on grouped internal test with a positive paired F1
+  interval and satisfy the predeclared precision/recall constraints.
+- Gains reproduce on at least one external source family not used for fitting.
+- Calibration artifacts, model hashes, and configuration are versioned; no validation-derived
+  constants enter source code.
+
+#### `1.33.0`: model and evidence-fusion bake-off
+
+Goal: determine whether the model, rather than post-processing, is the limiting component.
+
+Required work:
+
+1. Define a candidate manifest for every model: exact repository revision, artifact hashes,
+   architecture, tokenizer, label map, training-data lineage, license and redistribution terms,
+   supported languages, maximum sequence length, ONNX export/quantization procedure, size, memory,
+   and CPU latency. Unknown lineage or incompatible licensing disqualifies a default backend.
+2. Compare the current XLM-R ONNX model with at least one independent-training-lineage token model
+   and one span-oriented/generalist candidate such as GLiNER, if each can be pinned and legally
+   redistributed or downloaded by the user. Candidate mention is not an adoption decision.
+3. Run all models through the same block splitting, manifests, scorer, hardware protocol, and
+   policy. Separate model quality from adapter/decoder quality with oracle-label and oracle-boundary
+   diagnostics.
+4. Measure quantization damage by comparing source precision with candidate ONNX precisions on the
+   same rows. Reject a smaller artifact if its quality loss exceeds the predeclared tolerance.
+5. Evaluate learned evidence fusion only after candidate calibration. If used, train a small,
+   inspectable model on development features such as calibrated probability, detector provenance,
+   checksum validity, context polarity, span length, and backend agreement. Preserve hard safety
+   precedence for mathematically validated identifiers and keep a deterministic fallback.
+6. Reject an ensemble that gains only on AI4Privacy-family data, depends on validation-tuned
+   weights, degrades an external corpus, or violates optional-dependency, memory, latency, or
+   offline-processing contracts.
+
+Exit criteria:
+
+- A decision record explains retain/replace/ensemble with paired quality intervals and operational
+  costs, including negative results.
+- The chosen path improves at least two independent evaluation families and does not silently
+  expand the base installation.
+
+#### `1.34.0`: blind generalization proof and quality gate
+
+Goal: ship only a repeatable improvement that survives outside the development distribution.
+
+Required work:
+
+1. Freeze code, model/config hashes, manifests, scorer, and acceptance criteria before the final
+   runs. Record every final run and do not patch against its examples.
+2. Run the historical 1,000-row regression sample, the larger grouped AI4Privacy validation
+   manifest, the independent multi-source benchmark, multilingual slices for every claimed
+   language, the adversarial precision corpus, and performance/memory benchmarks.
+3. Require a positive lower bound for the paired 95% F1-delta interval on the primary strict set;
+   no statistically clear precision regression; no material recall regression for identifiers,
+   credentials, payment cards, or contact data; and no external-family regression beyond the
+   predeclared tolerance.
+4. Publish machine-readable aggregate artifacts and a concise model card: data lineage, supported
+   languages/entities, known failure modes, exact metrics, confidence intervals, latency/memory,
+   and results that failed as well as passed.
+5. If the candidate misses a gate, ship measurement/tooling improvements without the behavior
+   change. Never lower a gate, relabel an entity, change the sample, enable unverified checksums, or
+   quote span-only scores to manufacture a win.
+
+Exit criteria:
+
+- Another maintainer can reproduce every published number from pinned inputs.
+- The improvement is statistically supported and visible outside the corpus family used for model
+  training and development.
+- The handover records remaining weaknesses and the next highest-value error class.
+
+#### Research basis for this program
+
+- [OpenPII 1.5M dataset card](https://huggingface.co/datasets/ai4privacy/pii-masking-openpii-1.5m)
+  documents a synthetic 30-language, 19-label corpus and its train/validation structure.
+- [Current ONNX model card](https://huggingface.co/onnx-community/multilang-pii-ner-ONNX)
+  identifies the older AI4Privacy 500k corpus as training data, which is why lineage and external
+  validation are mandatory.
+- [PIIMB dataset card](https://huggingface.co/datasets/piimb/pii-masking-benchmark) provides a
+  multi-source, multilingual, character-level zero-shot masking benchmark. It complements rather
+  than replaces strict typed evaluation.
+- [Presidio Analyzer documentation](https://microsoft.github.io/presidio/analyzer/) supports the
+  use of recognizer-specific validation/invalidation, contextual evidence, and inspectable decision
+  traces rather than undifferentiated confidence boosts.
+- [On Calibration of Modern Neural Networks](https://proceedings.mlr.press/v70/guo17a.html)
+  motivates development-set temperature scaling and explicit calibration measurement.
+- [Boundary Smoothing for Named Entity Recognition](https://aclanthology.org/2022.acl-long.490/)
+  shows that boundary treatment and calibration are linked; its training-time method is a future
+  model candidate, not justification for hand-editing release spans.
+- [GLiNER](https://arxiv.org/abs/2311.08526) is a compact span-oriented generalist NER approach
+  worth evaluating under the same local/offline constraints, not assuming superiority in advance.
+- [Paired bootstrap significance testing](https://aclanthology.org/W04-3250/) supplies the
+  experimental basis for deciding whether a small paired metric delta is credible.
 
 ## `0.1.0`: dependency-free core and machine-readable content
 
@@ -386,15 +599,22 @@ Exit criteria:
 Stable local processing for text, nested Python data, and plain or machine-readable files, with a
 documented compatibility policy and zero base runtime dependencies.
 
-## The Road to 90% (Strict Evaluation Baseline)
+## The Road to 90% (historical aspiration, not a release gate)
 
-Following the `1.0.0` realization that strict 1-to-1 boundary and label matching drops our baseline to ~0.70 F1, the next releases are singularly focused on legitimately bridging this gap.
+At `1.0.0`, correcting the scorer to one-to-one, type-aware overlap matching reduced the reported
+baseline to roughly 0.70 F1. That scorer still accepts any positive span overlap; it is not an
+exact-boundary metric. The 90% figure remains an aspiration and must not drive validation tuning.
 
-*Result (v1.20.0 Completion):* On a random, non-overfitted sample of 1000 validation records from `ai4privacy`, the engine achieved a strict **F1 Score of 0.8292** (Precision: **0.8587**, Recall: **0.8016**), proving a massive and secure baseline improvement without dataset cheating or overfitting.
+*Recorded `1.20.0` result:* On the fixed 1,000-row AI4Privacy validation sample, the engine measured
+`0.8292` F1 (precision `0.8587`, recall `0.8016`). Repeated use of this sample means it is now a
+regression set; the number does not prove independence, statistical significance, or real-world
+generalization.
 
 ### `1.1.0` to `1.20.0`: The Road to 82% F1 (Achieved)
 
-Between versions 1.1.0 and 1.20.0, the engine underwent a massive architectural overhaul to achieve state-of-the-art local PII detection, culminating in a verified **0.8292 F1 Score** (Precision: 0.8587, Recall: 0.8016) against the strict `ai4privacy` holdout validation dataset.
+Between versions `1.1.0` and `1.20.0`, the engine added local ONNX inference and algorithmic
+heuristics, culminating in the recorded `0.8292` F1 result. Do not call this state of the art or an
+untouched holdout result without independent comparative evidence.
 
 Key structural achievements included:
 - **Algorithmic Heuristics**: Integrated Mod-10/11 checksums, Bloom Filter false-positive vetoes, and high-density Gazetteer DAWGs for zero-shot accuracy.
@@ -402,30 +622,13 @@ Key structural achievements included:
 - **Structural Parsing**: Multi-lingual address topologies, corporate suffix FSMs, intra-document coreference propagation, and dynamic detector-aware conflict matrices.
 - **Artifact & Performance**: Stripped all heavy NLP dependencies (like Llama/Torch), focusing entirely on lightning-fast ONNX quantized inference and pure-Python heuristics.
 
-### `1.27.0` to `1.31.0`: Legitimate Quality & Benchmark Optimization (Planned)
+### `1.27.0` onward: evidence before a 90% target
 
-To legitimately bridge the gap to a 90% F1 score without overfitting or cheating on the `ai4privacy` dataset, the following staged releases focus on robust ML engineering, structural heuristics, and contextual calibration:
-
-#### `1.27.0`: Multi-Lingual Contextual Proximity & Cross-Entropy Boosting
-- **Soft-Matching Windowed Context Vectorizer**: Replace rigid regex-based context triggers with a soft-matching multi-lingual keyword similarity matrix (covering German, Spanish, French, Italian, and English TIN/SSN/VAT variants).
-- **Context-Proximity Decay**: Implement an exponential distance decay scorer, boosting candidate confidence if a verified context keyword is nearby (decaying smoothly up to an 80-character window).
-- **Negative-Evidence Vetoes**: Add rules that instantly veto candidates if surrounding negative context is found (e.g., preceded by "vversion", "revision", "page", or "HTTP").
-
-#### `1.28.0`: Semantic Coreference Propagation & Entity-Component Linker
-- **Component-Level Dynamic Gazetteers**: Register individual parts of high-confidence full names (e.g., "Jonathan" from "Jonathan Miller") into an in-memory session DAWG to propagate and detect subsequent partial mentions.
-- **Fuzzy Sequence Alignment**: Match and link typographical variations, nicknames, or misspelled occurrences of the same name within a single document session to ensure consistent mapping and avoid boundary errors.
-
-#### `1.29.0`: Contrastive Subword Alignment & Bayesian ML Calibration
-- **Contrastive Subword Aligner (CSA)**: Analyze character-level morphology around boundaries to snap raw model token index offsets to the nearest valid Unicode word boundaries or strip trailing word-pieces (e.g., `##son`).
-- **Bayesian Calibration Layer**: Calibrate raw confidence scores using token-level attributes (token length, capitalization ratio, vocabulary frequency, and position) to replace static thresholds with adaptive decision boundaries.
-
-#### `1.30.0`: Graph-Based Entity Disambiguation & Gazetteer-Veto Tries
-- **Bipartite Entity Disambiguation Graph**: Disambiguate entities (e.g., "Washington" as `PERSON` if near "George" or `LOCATION` if near "street") by building dynamic co-occurrence relationships.
-- **Compact Prose Veto DAWG**: Map standard dictionary words using an optimized trie to veto low-confidence NER predictions that fall onto common prose words (like "Hope" or "May") unless strong local context is present.
-
-#### `1.31.0`: Multi-Pass Ensemble Fusion & Adaptive Conflict-Resolution Matrices
-- **Adaptive Conflict-Resolution Matrix**: Replace simple priority ranking with type-specific conditional probabilities where rules (like checksummed `IBAN`) can veto ML, but high-confidence ML `PERSON` overrides generic rules.
-- **Two-Pass Attention Consolidator**: Extract high-confidence structural anchors in Pass 1, then inject them as localized attention/mask hints back to the ONNX model in Pass 2 to guide prediction of complex surrounding entities.
+The old feature-by-feature plan for reaching 90% has been superseded by the `1.31.0` to `1.34.0`
+benchmark improvement program above. A target score is not a design method. Context, coreference,
+boundary repair, calibration, gazetteer vetoes, multi-pass inference, or learned fusion may proceed
+only when the error atlas identifies the corresponding failure mode and grouped development,
+independent-corpus evaluation, and paired uncertainty show a real benefit.
 
 ## Optional dependency policy
 
