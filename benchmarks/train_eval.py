@@ -12,7 +12,7 @@ same thing there.
 
 import argparse
 
-from evaluate_quality import evaluate
+from benchmarks.evaluate_quality import evaluate
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

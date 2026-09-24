@@ -19,11 +19,63 @@ access, so review them as privileged code.
 
 ## Keys and mappings
 
-Load deterministic keys from the deployment's secret manager and pass bytes directly to the
-process. Separate tenants with different keys or namespaces, rotate keys under an application-level
-version, and never log keys. Reversible mappings contain the original values. Keep them disabled
-unless restoration is required, then encrypt them, restrict access, and apply a short retention
-period outside this package.
+Pseudonymize is a stateless, in-memory transformation library. The package neither stores,
+decrypts, rotates, encrypts, zeroizes, nor retains mappings in persistent storage or external
+key-management systems.
+
+When deterministic pseudonymization is configured, the calling application loads secret keys from
+its secret manager and supplies them as raw bytes to the engine. Tenants should be separated with
+distinct keys or namespaces. When `include_mapping=True` is explicitly requested, the reversible
+mapping dictionary is returned directly to the caller. Callers and system operators are entirely
+responsible for mapping lifecycle, external envelope encryption, access controls, and retention
+outside this package. Note that standard Python runtimes cannot guarantee memory zeroization for
+arbitrary immutable strings or dictionary allocations.
+
+## Key rotation architectures (Application responsibility)
+
+Key rotation is an operational concern managed by the calling application:
+
+1. **Namespace versioning:** Applications can deploy dual keys using explicit namespaces (e.g.
+   `namespace="v1"` and `namespace="v2"`). Inbound verification can accept both versions, while
+   outbound pseudonymization signs with the active version (`v2`).
+2. **Re-pseudonymization migrations:** When migrating persisted deterministic records, the calling
+   service reads records under `v1`, resolves the entity, and re-pseudonymizes under `v2`.
+3. **Revocation:** If a key compromise occurs, operators decommission the affected key version
+   in their external secret manager and purge application-level caches.
+
+## Mapping lifecycle & external storage (Application responsibility)
+
+Reversible mappings (`include_mapping=True`) expose plaintext associations and must be handled
+with strict operational care by the integrating service:
+
+- **Ephemeral request scope:** Discard mapping dictionaries immediately when the request
+  terminates. Avoid writing raw in-memory mappings to persistent disk or unencrypted caches.
+- **Envelope encryption for persistence:** If regulatory or customer requirements require
+  persisting mapping associations, the integrating application must encrypt the mapping payload
+  with an external KMS envelope key before writing to storage.
+- **Retention policies:** Define organization-specific retention windows after which persisted
+  mapping records and ciphertext are purged according to data-governance requirements.
+
+## Drift monitoring & safe telemetry
+
+Callers can inspect the structured `Report` object returned by `process_with_report` or file
+inspection APIs:
+
+- Monitor detection counts, block counts, and warning codes (`ProcessingWarning`) in safe reports.
+- Track distribution shifts across entity types to detect changes in incoming schema formats or
+  adversarial evasion attempts.
+- Safe reports expose matched entity types, character/record locations, and counts without
+  exposing raw matched values.
+
+## Incident response considerations (Operational guidance)
+
+- **Suspected leakage:** If unredacted PII is suspected downstream, inspect safe report statistics
+  and audit logs. Verify that output files carry `<stem>.safe<suffix>` and that `overwrite=True`
+  was not abused to bypass file isolation.
+- **Fail-closed pipeline design:** In an outage or unhandled exception scenario, applications
+  must fail-closed rather than transmitting unredacted plaintext as a fallback.
+- **Key revocation:** On confirmed compromise of a tenant key, decommission the key in the secret
+  manager and invalidate active application session caches.
 
 ## Logging and failure handling
 

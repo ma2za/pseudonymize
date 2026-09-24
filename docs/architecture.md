@@ -72,6 +72,35 @@ Backends declare capabilities and provenance. They do not transform content, wri
 matched text, or silently perform network calls. Local ML and OCR are optional backends with
 explicit model paths and no import-time or first-inference downloads.
 
+## Overlap and ensemble resolution
+
+Multi-backend detection candidates are resolved through a deterministic, explainable ranking
+function without an opaque learned matrix:
+
+1. **Evidence weighting:** Detector candidates receive a domain evidence weight reflecting their
+   mathematical certainty:
+   - Structured tabular headers and deterministic checksums (`payment_card`, `iban`,
+     `italian_fiscal_code`, `italian_vat`, `checksum`): `1.0`
+   - URL credentials (passwords outranking emails in basic auth strings): `0.95`
+   - Email and IPv4/IPv6 addresses: `0.90`
+   - API secrets and keys: `0.80`
+   - High-confidence ML predictions ($\ge 0.95$ confidence): `0.85`
+   - Phone numbers: `0.70`
+   - Contextual identifier rules (`context_id`): `0.60`
+   - Gazetteer lookups: `0.55`
+   - Standard location and organization heuristics: `0.50`
+   - Remote backend responses (`remote_provider`, `remote`): `0.50`
+   - Coreference links: `0.45`
+2. **Resolution score:** Computed as `base_weight * confidence`. Overwhelmingly confident ML
+   ($\ge 0.95$) scores `0.85`, outranking generic heuristics while yielding to mathematically
+   verified checksums.
+3. **Deterministic tie-breaking:** Candidates are sorted strictly by resolution score,
+   caller-defined `detector_priority`, longest span length (`end - start`), confidence, start
+   offset, end offset, detector name, and backend name. This guarantees identical output
+   regardless of detector evaluation order.
+4. **Adjacent span merging:** Disjoint contiguous spans of identical entity type separated by zero
+   gap are merged into a unified ensemble detection to prevent sub-word fragmentation.
+
 ## Policy and transformation
 
 Policies choose entity types, confidence thresholds, detector priorities, paths, permitted blocks,
