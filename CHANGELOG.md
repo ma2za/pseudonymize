@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- **Measurement Integrity & Statistical Comparator (`benchmarks/compare_quality.py`):** Deterministic evaluation artifact comparator with paired document-level bootstrap resampling (computing 95% confidence intervals for F1 and exact-boundary F1 deltas), per-entity shifts, and causal error category tracking.
+- **Privacy-Safe Evaluator Instrumentation (`benchmarks/evaluate_quality.py`):** Extended quality evaluator with per-row sufficient statistics (SHA-256 row hash, length/language buckets, exact boundary metrics, character-level masking recall), manifest filtering (`--manifest`), and candidate lifecycle tracking across 5 causal error classes (`missing_candidate`, `threshold_suppression`, `label_confusion`, `boundary_mismatch`, `conflict_loss`).
+- **Grouped Manifest Generator (`benchmarks/build_manifests.py`):** Partitions training documents into development, calibration, and internal-test splits grouped by normalized value-masked templates to prevent near-duplicate leakage across partitions.
+
 ## [1.26.0] - 2026-09-24
 
 ### Added

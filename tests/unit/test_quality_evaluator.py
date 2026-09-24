@@ -45,6 +45,21 @@ def test_in_process_evaluation_records_reproducibility_inputs(tmp_path: Path) ->
     assert result["per_entity"] == {
         "EMAIL": {"true_positives": 1, "false_positives": 0, "false_negatives": 0}
     }
+    # 1.31.0 Measurement & Error Atlas fields
+    assert "exact_metrics" in result
+    assert "macro_f1" in result
+    assert "character_masking" in result
+    assert "error_categories" in result
+    assert "by_length_bucket" in result
+    assert "by_language" in result
+    assert "rows" in result
+    rows = result["rows"]
+    assert isinstance(rows, list)
+    assert len(rows) == 1
+    assert "row_hash" in rows[0]
+    assert "error_categories" in rows[0]
+    assert "char_masking" in rows[0]
+    assert rows[0]["char_masking"]["masked_true_chars"] == 6  # "a@b.co" is 6 chars
 
 
 def test_local_evaluation_records_reproducibility_inputs(tmp_path: Path) -> None:
