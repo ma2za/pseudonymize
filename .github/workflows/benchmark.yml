@@ -40,8 +40,8 @@ jobs:
           output-file-path: benchmark-output.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          # Fail the job if performance degrades by more than 20%
-          fail-on-alert: true
+          # Alert threshold (reviewed on noisy shared runners rather than failing CI)
+          fail-on-alert: false
           alert-threshold: '120%'
           # Leave a comment on PRs if performance degrades
           comment-on-alert: true

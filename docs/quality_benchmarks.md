@@ -62,7 +62,7 @@ Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split
 
 ## `1.0.0` (Strict Evaluation Baseline)
 
-Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows). This incorporates all ML and contextual heuristic enhancements. *Note: Earlier releases reported scores >90%, but those were generated under an obsolete, permissive overlap scoring method. This is the honest baseline under strict 1-to-1 boundary and label matching.*
+Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows). This incorporates all ML and contextual heuristic enhancements. *Note: Earlier releases reported scores >90%, but those were generated under an obsolete scorer. This baseline uses one-to-one matching and exact entity types, while still crediting any positive span overlap; it is not exact-boundary scoring.*
 
 **Results:**
 
@@ -95,5 +95,19 @@ Evaluated on the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split
 | Precision | 0.8587 |
 | Recall | 0.8016 |
 | F1 Score | 0.8292 |
+
+## `1.26.0` (One-to-One Overlap & Entity-Type Match)
+
+Evaluated on the English validation subset of `ai4privacy/pii-masking-openpii-1.5m` (pinned revision `a785eb528e28be2693c3718a27e066970de5dadb`, 1000 rows, seed 42) with ONNX ML and rules backends. Incorporates audited ensemble resolution, fail-closed observability, and verified evaluator reproducibility. Machine-readable record committed in `benchmarks/results/1.26.0_ai4privacy_validation_1000.json`.
+
+**Results:**
+
+| Metric | Score |
+| --- | --- |
+| Precision | 0.8611 |
+| Recall | 0.8026 |
+| F1 Score | 0.8308 |
+
+**Counts:** True Positives: 4155, False Positives: 670, False Negatives: 1022, Out-of-Scope: 250.
 
 

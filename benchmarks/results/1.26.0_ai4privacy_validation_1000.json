@@ -1,0 +1,103 @@
+{
+  "allow_unverified_checksums": false,
+  "counts": {
+    "false_negatives": 1022,
+    "false_positives": 670,
+    "out_of_scope": 250,
+    "true_positives": 4155
+  },
+  "dataset": "ai4privacy/pii-masking-openpii-1.5m",
+  "dataset_revision": "a785eb528e28be2693c3718a27e066970de5dadb",
+  "file": null,
+  "file_sha256": null,
+  "metrics": {
+    "f1": 0.8308338332333534,
+    "precision": 0.861139896373057,
+    "recall": 0.8025883716438091
+  },
+  "model_sha256": {
+    "config": "3503fb27021640b315b1e7636933f7df9c209746251cae4975bdef46be4e8158",
+    "model": "1d02f3829ad90d95dea5e64d35f5528f96d7b223c1e056a96075c6229a484356",
+    "tokenizer": "8373f9cd3d27591e1924426bcc1c8799bc5a9affc4fc857982c5d66668dd1f41"
+  },
+  "package_commit": "1b093b3b3335a9244d735d874abd5bdc740e52e2",
+  "package_version": "1.26.0",
+  "per_entity": {
+    "EMAIL": {
+      "false_negatives": 0,
+      "false_positives": 2,
+      "true_positives": 555
+    },
+    "LOCATION": {
+      "false_negatives": 207,
+      "false_positives": 249,
+      "true_positives": 1022
+    },
+    "NATIONAL_ID": {
+      "false_negatives": 23,
+      "false_positives": 202,
+      "true_positives": 787
+    },
+    "ORGANIZATION": {
+      "false_negatives": 0,
+      "false_positives": 1,
+      "true_positives": 1
+    },
+    "PAYMENT_CARD": {
+      "false_negatives": 9,
+      "false_positives": 4,
+      "true_positives": 248
+    },
+    "PERSON": {
+      "false_negatives": 582,
+      "false_positives": 196,
+      "true_positives": 1106
+    },
+    "PHONE": {
+      "false_negatives": 12,
+      "false_positives": 2,
+      "true_positives": 424
+    },
+    "SECRET": {
+      "false_negatives": 0,
+      "false_positives": 1,
+      "true_positives": 0
+    },
+    "TAX_ID": {
+      "false_negatives": 189,
+      "false_positives": 13,
+      "true_positives": 12
+    }
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "policy_configuration": {
+    "allow_unverified_checksums": false,
+    "backends": [
+      "rules",
+      "local_onnx_pii"
+    ],
+    "entity_types": [
+      "EMAIL",
+      "IBAN",
+      "IP_ADDRESS",
+      "LOCATION",
+      "NATIONAL_ID",
+      "ORGANIZATION",
+      "PAYMENT_CARD",
+      "PERSON",
+      "PHONE",
+      "SECRET",
+      "TAX_ID",
+      "URL_CREDENTIAL"
+    ],
+    "network_policy": "DENY",
+    "strict_labels": true
+  },
+  "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+  "python": "3.12.13 (main, Apr 14 2026, 14:31:26) [MSC v.1944 64 bit (AMD64)]",
+  "samples": 1000,
+  "shuffle_seed": 42,
+  "split": "validation",
+  "strict_labels": true,
+  "use_ml": true
+}

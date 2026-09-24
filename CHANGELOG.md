@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-09-24
+
 ### Added
 - Documented deterministic ensemble overlap resolution (`src/pseudonymize/spans.py`, `docs/architecture.md`) based on domain evidence weighting (checksums 1.0, credentials 0.95, emails/IPs 0.90, secrets 0.80, ML 0.85, phone 0.70, context 0.60, gazetteer 0.55, heuristics 0.50, coreference 0.45) with deterministic tie-breaking and adjacent same-type span merging.
 - Comprehensive pairwise backend conflict and permutation invariance suite (`tests/unit/test_spans.py`) verifying conflict resolution across rules, gazetteer, ML, coreference, and remote backends.

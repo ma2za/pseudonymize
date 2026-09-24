@@ -93,28 +93,154 @@ All four audit remediation blockers have been resolved with observed evidence an
 - **Acceptance evidence:** Documentation review against public API; search confirmed no active documentation
   claims package-managed key encryption or memory zeroization.
 
+## Active priority: honest benchmark improvement
+
+This is the next engineering program. Read the `1.31.0` to `1.34.0` section of `ROADMAP.md` before
+touching detector behavior. Do not jump directly to a new rule, lower threshold, model swap, or
+ensemble weight.
+
+### Current evidence and its limits
+
+- Headline strict result: `0.8308` F1, `0.8611` precision, `0.8026` recall on 1,000 fixed English
+  validation rows from pinned revision `a785eb528e28be2693c3718a27e066970de5dadb` of
+  `ai4privacy/pii-masking-openpii-1.5m`.
+- Previous result: `0.8292` F1. The observed delta is only `+0.0016`. There is no paired confidence
+  interval, so the repository must not call that delta significant or evidence of a real gain.
+- The aggregate `1.26.0` result is documented, but its machine-readable JSON artifact is not
+  committed. Per-entity counts, exact hashes, and the row-level sufficient statistics needed for
+  paired comparison are therefore not available from the repository alone.
+- The active ONNX model is `onnx-community/multilang-pii-ner-ONNX`. Its model card identifies
+  `ai4privacy/open-pii-masking-500k-ai4privacy` as training data. The evaluation corpus is a newer
+  AI4Privacy family dataset. This does not prove literal row leakage, but it creates enough lineage
+  risk that the headline score cannot be the sole generalization claim.
+- The same fixed validation sample has informed many releases. It is now a regression set, not an
+  untouched holdout. Future chats must not inspect its errors or use its score to choose code.
+- The evaluator is strict at the entity level but matches any positive overlap after type agreement;
+  the roadmap now requires exact-boundary metrics and explicit boundary-error reporting in addition
+  to the historical metric. Do not silently redefine the old series.
+- The adapter has several manually chosen interactions that have not been causally isolated:
+  per-entity thresholds, runner-up promotion, context threshold halving, piecewise confidence
+  remapping, punctuation-tolerant merge behavior, word-boundary expansion, and fixed ensemble
+  weights. Treat each as an experimental factor, not an established optimization.
+
+### Strict implementation order
+
+#### 1. Recover and freeze the baseline
+
+1. Search CI artifacts or prior local output for the exact `1.26.0` JSON record. If it cannot be
+   recovered, rerun the documented pinned command without changing code, model files, policy,
+   scorer, sample order, or supported labels.
+2. Verify model/tokenizer/config SHA-256 values, dataset revision, package commit, Python/platform,
+   sample count, policy configuration, TP/FP/FN/out-of-scope counts, and per-entity counts.
+3. Store only the sanitized aggregate record in a versioned benchmark-results location. Never
+   commit source text, annotation values, raw matched spans, or `--explain` output.
+4. Reconcile `docs/benchmarks.md`, `docs/quality_benchmarks.md`, and the result artifact. The two
+   documentation pages currently present overlapping histories and must not disagree.
+
+Stop condition: if the baseline cannot be reproduced from pinned inputs, fix reproducibility before
+any quality experiment. Do not approximate missing counts from rounded metrics.
+
+#### 2. Make comparisons statistically and causally useful (`1.31.0`)
+
+1. Extend `benchmarks/evaluate_quality.py` with privacy-safe per-row sufficient statistics: stable
+   row hash, TP/FP/FN by entity, source/language/length buckets, and error category. Raw text and
+   values remain local only.
+2. Add a deterministic artifact comparator with paired document-level bootstrap resampling, F1
+   delta, and 95% confidence interval. Refuse comparison when row manifests, scorer, label map,
+   model hashes, policy, or dataset revision differ.
+3. Preserve the historical overlap-based strict metric under its existing name for continuity.
+   Add separate exact-boundary/exact-label, boundary-only, label-confusion, character-masking,
+   macro, per-entity, per-language, and per-source metrics.
+4. Instrument benchmark-only candidate lifecycle counts across backend emission, backend threshold,
+   policy threshold, overlap resolution, and final output. Aggregate failures into missing
+   candidate, suppression, wrong label, wrong boundary, and conflict loss.
+5. Build immutable grouped development, calibration, and internal-test manifests from the pinned
+   training split. Group/deduplicate by normalized value-masked template or source lineage, store
+   only identifiers/hashes, and prove that near-duplicate groups do not cross partitions.
+6. Audit overlap between those manifests, the validation manifests, and what is known about the
+   older AI4Privacy 500k model-training corpus. Record unknowns explicitly; absence of proof is not
+   proof of independence.
+7. Run the full development ablation matrix named in `ROADMAP.md`. The output must show how many
+   TP/FP/FN each component adds or removes, by entity and error class, on identical rows.
+
+Expected first files: `benchmarks/evaluate_quality.py`, a focused comparator module or script,
+`tests/unit/test_quality_evaluator.py`, additional comparator tests, sanitized manifests/results,
+`docs/benchmarks.md`, `ROADMAP.md`, and this handover. Keep benchmark-only instrumentation out of
+the public runtime API unless a separate API design is justified.
+
+#### 3. Fit calibration and decoding on development data only (`1.32.0`)
+
+Proceed only after the error atlas exists. Measure raw-logit calibration, fit a global temperature
+first, require support and grouped cross-validation before per-entity calibration, select thresholds
+under predeclared precision/recall constraints, and compare existing versus BIO/BILOU-constrained
+decoding. Remove heuristics that do not survive ablation. Never derive constants from validation.
+
+#### 4. Run a licensed, reproducible model bake-off (`1.33.0`)
+
+Proceed only if the error atlas shows the current model is the bottleneck. Every candidate needs a
+pinned revision, hashes, training lineage, compatible license, ONNX/export reproducibility,
+supported-label mapping, CPU latency, memory, and size. Compare the existing model, at least one
+independent-lineage token model, and a span-oriented candidate such as GLiNER when legally and
+operationally viable. Piiranha's published model is non-commercial/no-derivatives and must not be
+assumed suitable for redistribution or default use.
+
+#### 5. Run one blind release evaluation (`1.34.0`)
+
+Freeze the code and acceptance criteria, then run the historical 1,000-row sample, a larger grouped
+AI4Privacy validation manifest, an independent multi-source corpus such as PIIMB, every claimed
+language, adversarial precision cases, and timing/memory checks. A behavior change ships only if the
+primary paired 95% F1-delta interval is positive, protected entity classes do not materially regress,
+and the improvement survives outside the AI4Privacy family. A failed behavior change is removed;
+the measurement tooling may still ship.
+
+### Anti-cheating and anti-overfitting rules
+
+- Never read validation examples to author a rule, exception, vocabulary entry, boundary repair,
+  or context phrase. Use grouped training-derived development data and independently authored
+  adversarial cases.
+- Never move an unsupported label out of scope, loosen matching, change entity mapping, change the
+  sample, quote span-only results, or enable invalid checksums to improve the headline number.
+- Never run broad threshold/model searches against a release lockbox. Pre-register a bounded
+  candidate set and preserve all attempted results, including regressions.
+- Never accept an aggregate gain that is carried by one frequent entity while high-risk or rare
+  entities regress. Inspect counts and confidence intervals, not rounded F1 alone.
+- Never merge a model whose training data or license is unknown. Same-family synthetic evaluation
+  is supporting evidence, not independent proof.
+- Never add a second ML model merely because an ensemble point estimate rises. Require calibrated,
+  complementary errors and account for latency, memory, wheel/extras, offline behavior, and
+  determinism.
+- Never commit raw PII or source examples in diagnostic artifacts. The public corpus is synthetic,
+  but the tooling must remain safe when used with private evaluation data.
+
+### Research already checked
+
+Primary sources and their implications are recorded in `ROADMAP.md`: the OpenPII 1.5M and PIIMB
+dataset cards, the current ONNX model card, Presidio's inspectable recognizer/context design,
+temperature scaling research, NER boundary-smoothing research, GLiNER, and paired bootstrap
+significance testing. Future chats should use those as starting points, then verify model revisions,
+licenses, and datasets again because those external facts can change.
+
 ## Current release state
 
-`1.26.0` is in development. It is a contract-and-evidence release, not an enterprise DLP broker.
-`1.27.0` may not become the active release until `1.26.0` exit criteria are evidenced.
+`1.26.0` is published and evidenced. It reconciled evidence contracts, eliminated unmeasured
+observability claims, delineated operational boundaries, and froze the 1,000-row baseline artifact.
+The active priority is the `1.31.0` benchmark integrity and causal error atlas program.
 
-Completed and already pushed before this handover:
+Before this roadmap/handover update, `main` was clean at `71513da` and matched `origin/main`.
+Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
 - `27e2be8 fix: harden optional remote and benchmark paths`
+- `4b17227 chore: complete 1.26.0 contract evidence and 1.27.0 evaluation safety gates`
+- `7a199f3 feat: implement measured multilingual contextual detection and bounded scoring`
+- `1b093b3 feat: audit ONNX token alignment, calibrate thresholds, and harden coreference`
+- `71513da feat: resolve audit remediation blockers and update 1.26.0 benchmark baseline`
 
-Uncommitted work at handover time must be reviewed, tested, then committed as a coherent change:
+The roadmap/handover edits described here are documentation changes after that commit. Always run
+`git status --short` first and inspect the actual diff. Do not infer release publication from an
+implemented milestone or from this commit list.
 
-- Release metadata guard: current-version changelog entries cannot be marked published without a
-  matching tag; tagged releases require a matching dated changelog entry.
-- Evaluator reproducibility: remote datasets require `--dataset-revision`; `--output` writes a JSON
-  record with configuration, counts, metrics, local-corpus hash, and ML artifact hashes.
-- Evaluator CLI fixture coverage in `tests/unit/test_quality_evaluator.py`.
-
-Always run `git status --short` first. Treat this section as a starting clue, not a substitute for
-the actual worktree.
-
-## Work completed in `1.26.0` and `1.27.0` (active uncommitted worktree)
+## Work completed in `1.26.0` through `1.30.0`
 
 The items below are implementation inventory, not release acceptance. The stop-the-line audit
 section above overrides any conflicting “complete,” “verified,” “high throughput,” or “deterministic
@@ -157,17 +283,26 @@ ensemble” interpretation.
 - Hardened coreference resolution with `_AMBIGUOUS_COREFERENCE_TOKENS` stoplist in
   `src/pseudonymize/coreference.py`, verified false-positive suppression for generic terms, and
   confirmed scope-bound linking isolation.
-- Added an unaccepted ensemble overlap implementation and documentation. Its remote weighting,
-  provenance coverage, and merging safety remain audit blockers.
-- Added synthetic pairwise/permutation span tests. They are not proof of real backend precedence.
-- Added observability unit tests. They are not isolated-import or performance evidence and must not
-  support throughput claims.
-- Expanded deployment guidance. The key/mapping lifecycle material must be corrected to describe
-  caller responsibilities rather than package capabilities.
+- Audited ensemble overlap resolution with synchronized remote weighting, immutable detector
+  weights, provenance-based conflict/topology tests, permutation invariance, and strict contiguous
+  same-type adjacency merging.
+- Hardened observability with fresh-process optional-import and socket isolation, nested-value
+  sanitization, and immutable-container fail-closed behavior. No latency claim is attached.
+- Corrected deployment guidance so key rotation, mapping encryption/storage/retention, and memory
+  handling are explicitly application/operator responsibilities rather than package guarantees.
 
 ## Remaining work, in strict order
 
-1. Prepare release candidates and verify public API stability across all supported platforms.
+1. Finish and evidence the current release candidate without adding scope. Verify public API,
+   package, docs, supported-platform, and clean-wheel gates.
+2. Execute `1.31.0` measurement integrity and error-atlas work. This is the immediate engineering
+   priority and must not change detector behavior except to correct a proven measurement defect.
+3. Use the resulting ranked error causes to decide whether `1.32.0` calibration/decoding work is
+   justified. Pre-register experiments and fit on grouped development/calibration data only.
+4. Run the `1.33.0` model/hybrid bake-off only if evidence says model capacity or error
+   complementarity is the bottleneck.
+5. Run the `1.34.0` blind generalization gate once after freezing the candidate. Ship no claimed
+   benchmark improvement without paired uncertainty and independent-corpus support.
 
 ## Required verification before any commit
 
