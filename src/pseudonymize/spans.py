@@ -2,7 +2,7 @@ import bisect
 from collections.abc import Iterable
 from types import MappingProxyType
 
-from pseudonymize.result import Detection
+from pseudonymize.result import Detection, EntityType
 
 _DETECTOR_WEIGHT: dict[str, float] = {
     # Tabular Layout / Column Headers (Absolute Highest)
@@ -44,6 +44,11 @@ def resolve_overlaps(
 
     def resolution_score(detection: Detection) -> float:
         base_weight = _DETECTOR_WEIGHT.get(detection.detector, 0.3)
+        if detection.detector == "context_id" and detection.entity_type in (
+            EntityType.TAX_ID,
+            EntityType.NATIONAL_ID,
+        ):
+            base_weight = 0.88
         if detection.backend == "local_onnx_pii" and detection.confidence >= 0.95:
             # Overwhelmingly confident ML overrides generic heuristics,
             # but stays below valid deterministic checksums.

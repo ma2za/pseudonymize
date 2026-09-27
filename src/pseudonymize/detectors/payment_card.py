@@ -22,6 +22,9 @@ def _valid_luhn(value: str) -> bool:
 
 
 _HAS_DIGIT = re.compile(r"\d")
+_TAX_CONTEXT_RX = re.compile(
+    r"(?i)\b(?:tax\s*(?:id|no\.?|number|reference|code)?|tin|vat\s*(?:no\.?|number|id)?|pajak|thuế|fiscal|steuernummer|steuer-id|nif|cif|npwp|rfc|nit|rut|siren|siret|税号)\b"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +46,12 @@ class PaymentCardDetector:
             # If there's a '+' right before the match, it's definitely a phone number
             if match.start() > 0 and text[match.start() - 1] == "+":
                 continue
+
+            # Disambiguation: Preceding tax or fiscal markers explicitly identify tax/fiscal numbers
+            if match.start() > 0:
+                preceding = text[max(0, match.start() - 35) : match.start()]
+                if _TAX_CONTEXT_RX.search(preceding):
+                    continue
 
             if self._accept_unverified or _valid_luhn(val):
                 detections.append(

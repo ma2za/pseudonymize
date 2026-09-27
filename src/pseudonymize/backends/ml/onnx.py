@@ -84,15 +84,27 @@ _DEFAULT_ENTITY_THRESHOLDS: dict[EntityType, float] = {
 
 _CONTEXT_BOOSTS: tuple[tuple[re.Pattern[str], EntityType, int], ...] = (
     (
-        re.compile(r"(?i)\b(?:mr|ms|mrs|dr|prof|sir|ceo|name is|named)\b\.?\s*"),
+        re.compile(
+            r"(?i)\b(?:"
+            r"mr|ms|mrs|miss|dr|prof|sir|madam|madame|mme|monsieur|herr|frau|"
+            r"señor|señora|sr|sra|signor|signora|sig|bapak|ibu|pak|sdri|sdr|"
+            r"ông|bà|cô|anh|chị|군|양|name is|named|họ và tên"
+            r")\b\.?\s*"
+        ),
         EntityType.PERSON,
-        20,
+        25,
     ),
     (
         re.compile(r"(?i)\b(?:in|at|from|city of|visit|street|road|address)\b\.?\s*"),
         EntityType.LOCATION,
         20,
     ),
+)
+
+_TRAILING_PERSON_BOOST = (
+    re.compile(r"[様さん君ちゃん氏님씨]"),
+    EntityType.PERSON,
+    20,
 )
 
 
@@ -428,6 +440,12 @@ class LocalONNXPIIBackend(DetectionBackend):
                     end = start + boost_len
                     boosted_ranges[boost_entity_type].append((start, end))
 
+            t_pattern, t_entity_type, t_len = _TRAILING_PERSON_BOOST
+            for match in t_pattern.finditer(text):
+                end = match.start()
+                start = max(0, end - t_len)
+                boosted_ranges[t_entity_type].append((start, end))
+
         predictions = []
         confidences = []
         o_label_id = next((k for k, v in (self._id2label or {}).items() if v == "O"), 0)
@@ -576,12 +594,23 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                 if can_merge:
                     previous_confs.append(conf)
-                    spans[-1] = (previous_type, previous_start, end, previous_confs, curr_tag)
+                    merged_tag = (
+                        curr_tag
+                        if previous_tag in ("B-BUILDINGNUM", "I-BUILDINGNUM")
+                        else previous_tag
+                    )
+                    spans[-1] = (previous_type, previous_start, end, previous_confs, merged_tag)
                     continue
             spans.append((entity_type, start, end, [conf], curr_tag))
 
         results = []
         for entity_type, start, end, token_confs, _tag in spans:
+            # Standalone building numbers (e.g. "370", "18", "11번") are numeric components
+            # of addresses, not standalone locations. They are only valid locations when
+            # contiguous with and merged into a street or city span.
+            if _tag in ("B-BUILDINGNUM", "I-BUILDINGNUM"):
+                continue
+
             confidence = _aggregate_confidences(token_confs, self._span_aggregator)
 
             # Token-to-Character Alignment Optimization
@@ -730,6 +759,12 @@ class LocalONNXPIIBackend(DetectionBackend):
                         end = start + boost_len
                         boosted_ranges[boost_entity_type].append((start, end))
 
+                t_pattern, t_entity_type, t_len = _TRAILING_PERSON_BOOST
+                for match in t_pattern.finditer(text):
+                    end = match.start()
+                    start = max(0, end - t_len)
+                    boosted_ranges[t_entity_type].append((start, end))
+
             predictions = []
             confidences = []
             o_label_id = next((k for k, v in (self._id2label or {}).items() if v == "O"), 0)
@@ -863,12 +898,23 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                     if can_merge:
                         previous_confs.append(conf)
-                        spans[-1] = (previous_type, previous_start, end, previous_confs, curr_tag)
+                        merged_tag = (
+                            curr_tag
+                            if previous_tag in ("B-BUILDINGNUM", "I-BUILDINGNUM")
+                            else previous_tag
+                        )
+                        spans[-1] = (previous_type, previous_start, end, previous_confs, merged_tag)
                         continue
                 spans.append((entity_type, start, end, [conf], curr_tag))
 
             results = []
             for entity_type, start, end, token_confs, _tag in spans:
+                # Standalone building numbers (e.g. "370", "18", "11번") are numeric components
+                # of addresses, not standalone locations. They are only valid locations when
+                # contiguous with and merged into a street or city span.
+                if _tag in ("B-BUILDINGNUM", "I-BUILDINGNUM"):
+                    continue
+
                 confidence = _aggregate_confidences(token_confs, self._span_aggregator)
 
                 if self._enable_word_expansion:

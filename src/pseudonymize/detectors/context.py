@@ -100,19 +100,20 @@ _CONTEXT_RULES: tuple[ContextRule, ...] = (
     # Tax and VAT identifiers across multiple locales
     ContextRule(
         name="tax_id_context",
-        languages=("en", "es", "fr", "it", "de", "vi", "id", "zh"),
+        languages=("en", "es", "fr", "it", "de", "vi", "id", "zh", "ja"),
         entity_type=EntityType.TAX_ID,
         trigger_regex=re.compile(
             r"(?i)(?<![a-z0-9_])(?:"
-            r"tax\s*(?:no\.?|number|reference|identifier|id|record)|tin"
-            r"|vat\s*(?:no\.?|number|id)|numéro\s*(?:fiscal|de\s*tva)|mã\s*số\s*thuế|nomor\s*pajak|税号|纳税人识别号"
-            r"|steuernummer|steuer-id|steuer-identifikationsnummer|ust-idnr|npwp"
-            r"|rfc|nit|rut|cif|siren|siret"
+            r"tax\s*(?:no\.?|number|reference|identifier|id|record|code|payer)?|tin"
+            r"|vat\s*(?:no\.?|number|id|code)?|numéro\s*(?:fiscal|de\s*tva)|n°\s*fiscal|mã\s*số\s*thuế|nomor\s*pajak|no\.?\s*pajak|税号|纳税人识别号"
+            r"|steuernummer|steuer-id|steuer-identifikationsnummer|steuer-nr|ust-idnr|npwp"
+            r"|rfc|nit|rut|cif|nif|nipc|siren|siret|partita\s*iva|p\.?\s*iva"
+            r"|マイナンバー|法人番号"
             r")(?![a-z0-9_])"
         ),
         value_regex=re.compile(r"^[A-Z0-9-]{6,20}$", re.IGNORECASE),
         window_length=60,
-        base_confidence=0.88,
+        base_confidence=0.92,
         rationale=(
             "Matches tax, VAT, and fiscal registry headers followed by registered "
             "business or personal tax tokens."
