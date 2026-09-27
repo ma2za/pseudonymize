@@ -107,11 +107,11 @@ class GazetteerDetector:
 
                     if self.location_dawg is not None and p in self.location_dawg:
                         detections.append(
-                            Detection(EntityType.LOCATION, p_start, p_end, 0.65, self.name)
+                            Detection(EntityType.LOCATION, p_start, p_end, 0.80, self.name)
                         )
                     elif self.person_dawg is not None and p in self.person_dawg:
                         detections.append(
-                            Detection(EntityType.PERSON, p_start, p_end, 0.65, self.name)
+                            Detection(EntityType.PERSON, p_start, p_end, 0.80, self.name)
                         )
 
         return detections

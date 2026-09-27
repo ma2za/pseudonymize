@@ -107,6 +107,14 @@ _TRAILING_PERSON_BOOST = (
     20,
 )
 
+_ADDRESS_CONTEXT_RX = re.compile(
+    r"(?i)\b(?:"
+    r"street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|way|court|ct|"
+    r"rue|via|viale|corso|piazza|calle|paseo|avenida|av|strasse|str|weg|platz|"
+    r"allee|damm|số|số\s*nhà|nhà|phố|haus|building|bldg|apt|apartment|suite|floor|fl|block|blk"
+    r")\b"
+)
+
 
 def _aggregate_confidences(token_confs: list[float], mode: str) -> float:
     if not token_confs:
@@ -607,9 +615,11 @@ class LocalONNXPIIBackend(DetectionBackend):
         for entity_type, start, end, token_confs, _tag in spans:
             # Standalone building numbers (e.g. "370", "18", "11번") are numeric components
             # of addresses, not standalone locations. They are only valid locations when
-            # contiguous with and merged into a street or city span.
+            # contiguous with an address/street span or surrounded by address context.
             if _tag in ("B-BUILDINGNUM", "I-BUILDINGNUM"):
-                continue
+                ctx = text[max(0, start - 35) : min(len(text), end + 35)]
+                if not _ADDRESS_CONTEXT_RX.search(ctx):
+                    continue
 
             confidence = _aggregate_confidences(token_confs, self._span_aggregator)
 
@@ -911,9 +921,11 @@ class LocalONNXPIIBackend(DetectionBackend):
             for entity_type, start, end, token_confs, _tag in spans:
                 # Standalone building numbers (e.g. "370", "18", "11번") are numeric components
                 # of addresses, not standalone locations. They are only valid locations when
-                # contiguous with and merged into a street or city span.
+                # contiguous with an address/street span or surrounded by address context.
                 if _tag in ("B-BUILDINGNUM", "I-BUILDINGNUM"):
-                    continue
+                    ctx = text[max(0, start - 35) : min(len(text), end + 35)]
+                    if not _ADDRESS_CONTEXT_RX.search(ctx):
+                        continue
 
                 confidence = _aggregate_confidences(token_confs, self._span_aggregator)
 
