@@ -133,6 +133,14 @@ def test_validators_reject_repeated_or_malformed_values() -> None:
     assert not _valid_luhn("0000 0000 0000 0000")
     assert not _valid_luhn("123")
     assert not _valid_mod97("GB82")
+
+
+def test_payment_card_disambiguation_with_tax_context() -> None:
+    detector = PaymentCardDetector()
+    assert detector.detect("nomor pajak 4111 1111 1111 1111") == []
+    assert detector.detect("tax id: 4111 1111 1111 1111") == []
+    assert detector.detect("mã số thuế 4111 1111 1111 1111") == []
+    assert len(detector.detect("Card: 4111 1111 1111 1111")) == 1
     assert _valid_luhn("5555555555554444")
     assert _valid_fiscal_code("TSTTST90A01Z999M")
     assert not _valid_fiscal_code("TSTTST90A00Z999M")

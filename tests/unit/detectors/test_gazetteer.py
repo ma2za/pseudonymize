@@ -41,3 +41,15 @@ def test_gazetteer_detector_handles_empty() -> None:
     detector = GazetteerDetector(person_dawg=None, location_dawg=None)
     detections = detector.detect("Hello World")
     assert len(detections) == 0
+
+
+def test_gazetteer_detector_vetoes_honorific_titles() -> None:
+    person_dawg = DAWG.from_words(["Mister", "Jonathan", "Doe", "Madame", "Dr"])
+    detector = GazetteerDetector(person_dawg=person_dawg, veto_filter=None)
+    text = "Dear Mister Jonathan Doe and Madame Dr Brown."
+    detections = detector.detect(text)
+    detected_words = [text[d.start : d.end] for d in detections]
+    assert "Mister" not in detected_words
+    assert "Madame" not in detected_words
+    assert "Dr" not in detected_words
+    assert any("Jonathan" in w for w in detected_words)

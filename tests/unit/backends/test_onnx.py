@@ -679,3 +679,20 @@ def test_onnx_ablation_flags(
     )
     detections = backend.detect(block, policy)
     assert isinstance(detections, tuple)
+
+
+def test_onnx_multilingual_honorific_boosting(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    from pseudonymize.backends.ml.onnx import _CONTEXT_BOOSTS, _TRAILING_PERSON_BOOST
+
+    # Verify multilingual patterns match expected honorifics
+    person_pat, p_type, _ = _CONTEXT_BOOSTS[0]
+    assert p_type == EntityType.PERSON
+    for title in ("Sdri.", "Ông", "Herr", "Monsieur", "Madame", "Señor", "Bapak"):
+        assert person_pat.search(f"{title} Test") is not None
+
+    trailing_pat, t_type, _ = _TRAILING_PERSON_BOOST
+    assert t_type == EntityType.PERSON
+    for mark in ("様", "さん", "君", "ちゃん", "氏", "님", "씨"):
+        assert trailing_pat.search(f"田中{mark}") is not None

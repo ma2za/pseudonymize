@@ -32,10 +32,30 @@ def _load_bloom(filename: str) -> BloomFilter | None:
         return None
 
 
+_TITLES_AND_HONORIFICS = frozenset(
+    {
+        "mister",
+        "mr",
+        "ms",
+        "mrs",
+        "miss",
+        "madam",
+        "madame",
+        "dr",
+        "prof",
+        "lord",
+        "lady",
+        "sir",
+        "dame",
+        "hon",
+        "rev",
+    }
+)
+
+
 @dataclass(frozen=True, slots=True)
 class GazetteerDetector:
     name: str = "gazetteer"
-
     person_dawg: DAWG | None = field(default_factory=lambda: _load_dawg("names.txt"))
     location_dawg: DAWG | None = field(default_factory=lambda: _load_dawg("locations.txt"))
     veto_filter: BloomFilter | None = field(default_factory=lambda: _load_bloom("common_words.txt"))
@@ -49,6 +69,9 @@ class GazetteerDetector:
         detections = []
         for match in self._CAPITALIZED_RX.finditer(text):
             word = match.group(0)
+
+            if word.lower() in _TITLES_AND_HONORIFICS:
+                continue
 
             if self.veto_filter is not None and word.lower() in self.veto_filter:
                 continue
@@ -76,16 +99,19 @@ class GazetteerDetector:
                     p_end = p_start + len(p)
                     current_start = p_end
 
+                    if p.lower() in _TITLES_AND_HONORIFICS:
+                        continue
+
                     if self.veto_filter is not None and p.lower() in self.veto_filter:
                         continue
 
                     if self.location_dawg is not None and p in self.location_dawg:
                         detections.append(
-                            Detection(EntityType.LOCATION, p_start, p_end, 0.90, self.name)
+                            Detection(EntityType.LOCATION, p_start, p_end, 0.65, self.name)
                         )
                     elif self.person_dawg is not None and p in self.person_dawg:
                         detections.append(
-                            Detection(EntityType.PERSON, p_start, p_end, 0.90, self.name)
+                            Detection(EntityType.PERSON, p_start, p_end, 0.65, self.name)
                         )
 
         return detections

@@ -42,6 +42,8 @@ def test_context_detector_ignores_prose_without_an_identifier(text: str) -> None
         ),
         ("Driver's licence no AB1234567 expires soon.", "AB1234567", EntityType.NATIONAL_ID),
         ("Mã số thuế 0101243150 đã đăng ký.", "0101243150", EntityType.TAX_ID),
+        ("Nomor pajak 6621826002159997 terdaftar.", "6621826002159997", EntityType.TAX_ID),
+        ("Steuernummer 12345678901 ist gültig.", "12345678901", EntityType.TAX_ID),
         ("护照号 E12345678 已过期。", "E12345678", EntityType.NATIONAL_ID),
     ],
 )
