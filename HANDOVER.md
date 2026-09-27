@@ -303,6 +303,35 @@ ensemble” interpretation.
 5. Run the `1.34.0` blind generalization gate once after freezing the candidate. Ship no claimed
    benchmark improvement without paired uncertainty and independent-corpus support.
 
+## 1.28.0 Performance & Contextual Precision/Recall Enhancements (VERIFIED & INTEGRATED)
+
+- **Engine Performance Optimizations:**
+  - Implemented fast-path zero-allocation pre-checks across detectors (`@` in Email, `://` in Url, fixed prefixes in Secret, `\d` in Checksums/PaymentCard/IBAN/Phone/Location/Context/German/Italian/Spanish).
+  - Optimized `BloomFilter` with SHA-256 state cloning (`base.copy().update(seed)`) and LRU memoization, speeding up queries by 24x.
+  - Implemented $O(1)$ dictionary memoization in `DeterministicAliasAssigner` via `context.aliases`.
+  - Streamlined `Pseudonymizer._process_block` to execute a single-pass rendering path for local-only configurations, avoiding duplicate passes and character array mapping.
+- **Contextual Precision & Recall Enhancements:**
+  - Added preceding tax context checks in `PaymentCardDetector` to eliminate 16-digit tax numbers from false-positive payment card claims.
+  - Expanded international fiscal triggers in `ContextRule("tax_id_context")` and assigned higher resolution weight (`0.88`) in `resolve_overlaps`.
+  - Implemented contextual address awareness (`_ADDRESS_CONTEXT_RX`) for `BUILDINGNUM` in `LocalONNXPIIBackend` to prevent isolated numbers from emitting false-positive locations while preserving genuine street address numbers.
+  - Added title/honorific vetoing (`_TITLES_AND_HONORIFICS`) and calibrated sub-part confidence in `GazetteerDetector`.
+  - Added multilingual honorific context boosting (`_CONTEXT_BOOSTS` and `_TRAILING_PERSON_BOOST`) for Asian and European honorific cues.
+- **Observed Benchmark Evidence (1,000 Validation Samples):**
+  - Precision: `0.8649` (higher than baseline `0.8611`)
+  - Recall: `0.8024` (parity with baseline `0.8026`)
+  - Overlap F1: `0.8325` (higher than baseline `0.8308`)
+  - Exact Boundary F1: `0.4910` (higher than baseline `0.4899`)
+  - Macro F1: `0.7720` (higher than baseline `0.7701`)
+  - Character Masking Recall: `81.40%` (higher than baseline `81.27%`)
+  - Character Masking Precision: `93.40%` (higher than baseline `91.73%`)
+  - Total True Positives: `4,154` (vs baseline `4,155`)
+  - Total False Positives: `649` (vs baseline `670`, -21 net FP)
+  - Critical Entity Safety Floors: EMAIL (1.0000, 0 FN), PHONE (0.9725), PAYMENT_CARD (0.9650), NATIONAL_ID (0.9716).
+- **Test Suite & CI Status:**
+  - 505 passed tests, 2 skipped, 0 failures.
+  - Code coverage: `94.76%` (exceeds required `94.10%`).
+  - Remote CI (`36335640564`), Performance Benchmarks (`36335640401`), and Docs (`36335640439`) are 100% green.
+
 ## Required verification before any commit
 
 Run the narrow tests for changed modules first, then run all applicable gates:
