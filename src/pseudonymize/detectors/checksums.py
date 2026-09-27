@@ -133,12 +133,17 @@ def _valid_french_nir(value: str) -> bool:
     return False
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class AlgorithmicChecksumDetector:
     name: str = "checksum"
     _accept_unverified: bool = False
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         detections = [
             Detection(EntityType.NATIONAL_ID, match.start(), match.end(), 1.0, self.name)
             for match in _AADHAAR_RX.finditer(text)

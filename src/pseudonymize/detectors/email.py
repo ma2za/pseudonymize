@@ -14,6 +14,8 @@ class EmailDetector:
     name: str = "email"
 
     def detect(self, text: str) -> list[Detection]:
+        if "@" not in text:
+            return []
         return [
             Detection(EntityType.EMAIL, match.start(), match.end(), 0.99, self.name)
             for match in _EMAIL.finditer(text)

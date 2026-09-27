@@ -106,11 +106,16 @@ class ItalianFiscalCodeDetector:
         ]
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class ItalianVATDetector:
     name: str = "italian_vat"
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         spans = {
             match.span("value")
             for pattern in (_VAT_WITH_COUNTRY, _VAT_WITH_LABEL)

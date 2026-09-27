@@ -84,6 +84,31 @@ _PLACEHOLDER = re.compile(
     rf"\[REDACTED(?:_(?:{_ENTITY_NAMES}))?\]"
 )
 
+_CROPPABLE_WORDS = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "in",
+        "at",
+        "from",
+        "on",
+        "to",
+        "with",
+        "by",
+        "of",
+        "for",
+        "and",
+        "or",
+        "is",
+        "was",
+        "were",
+        "are",
+        "about",
+        "through",
+    }
+)
+
 
 class Session:
     def __init__(self, engine: "Pseudonymizer"):
@@ -172,6 +197,7 @@ class Pseudonymizer:
             tuple(backends) if backends is not None else (RulesBackend(configured_detectors),)
         )
         self.backends = leaf_backends(self.backends)
+        self._has_remote = any(backend_capabilities(b).remote for b in self.backends)
         self.resolver = resolver or ExactEntityResolver()
         self.assigner = assigner or _assigner_for(self.mode, key, namespace)
         self.transformer = transformer or _transformer_for(self.mode, typed_redaction)
@@ -236,7 +262,11 @@ class Pseudonymizer:
             coreferences.add_detections(candidates, block.text)
 
         text = block.text
-        protected = tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
+        protected = (
+            tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
+            if ("<" in text or "[" in text)
+            else ()
+        )
 
         def _trim_and_filter() -> typing.Iterator[Detection]:
             for detection in candidates:
@@ -256,37 +286,13 @@ class Pseudonymizer:
                     # Two-Pass Boundary Refinement (v1.9.0)
                     # Pass 1 identified candidate regions.
                     # Pass 2: Apply strict cropping of leading/trailing function words.
-                    croppable_words = {
-                        "the",
-                        "a",
-                        "an",
-                        "in",
-                        "at",
-                        "from",
-                        "on",
-                        "to",
-                        "with",
-                        "by",
-                        "of",
-                        "for",
-                        "and",
-                        "or",
-                        "is",
-                        "was",
-                        "were",
-                        "are",
-                        "about",
-                        "through",
-                    }
-
-                    # Crop leading croppable words
                     while start < end:
                         span_text = text[start:end]
                         words = span_text.split()
                         if not words:
                             break
                         first_word = "".join(c for c in words[0] if c.isalnum()).lower()
-                        if first_word in croppable_words:
+                        if first_word in _CROPPABLE_WORDS:
                             word_len = len(words[0])
                             start += span_text.find(words[0]) + word_len
                         else:
@@ -299,7 +305,7 @@ class Pseudonymizer:
                         if not words:
                             break
                         last_word = "".join(c for c in words[-1] if c.isalnum()).lower()
-                        if last_word in croppable_words:
+                        if last_word in _CROPPABLE_WORDS:
                             word_index = span_text.rfind(words[-1])
                             end = start + word_index
                         else:
@@ -627,6 +633,40 @@ class Pseudonymizer:
             coreferences=coreferences,
             tabular_layout=tabular_layout,
         )
+
+        if not self._has_remote:
+            final_detections = local_detections
+            final_entities = self.resolver.resolve(text, final_detections)
+            final_aliases = tuple(
+                self.assigner.assign(entity, context) for entity in final_entities
+            )
+            final_tokens = tuple(
+                self.transformer.render(entity, alias)
+                for entity, alias in zip(final_entities, final_aliases, strict=True)
+            )
+
+            if not final_entities:
+                output = text
+            else:
+                final_segments: list[str] = []
+                cursor = 0
+                for entity, token in zip(final_entities, final_tokens, strict=True):
+                    detection = entity.detection
+                    final_segments.append(text[cursor : detection.start])
+                    final_segments.append(token)
+                    cursor = detection.end
+                final_segments.append(text[cursor:])
+                output = "".join(final_segments)
+
+            replacements = _replacement_reports(final_entities, final_tokens)
+            reports.extend(_replacement_detection_reports(block, replacements))
+            mapping = (
+                _mapping(text, final_entities, final_aliases, final_tokens)
+                if include_mapping
+                else None
+            )
+            return Result(output, replacements, mapping)
+
         local_entities = self.resolver.resolve(text, local_detections)
         local_aliases = tuple(self.assigner.assign(entity, context) for entity in local_entities)
         local_tokens = tuple(
@@ -645,9 +685,7 @@ class Pseudonymizer:
             # Text before the detection
             segment = text[cursor_orig : detection.start]
             segments.append(segment)
-            for _ in range(len(segment)):
-                new_to_orig.append(cursor_orig)
-                cursor_orig += 1
+            new_to_orig.extend(range(cursor_orig, detection.start))
 
             # The token replacing the detection
             segments.append(token)
@@ -658,11 +696,8 @@ class Pseudonymizer:
         # Text after the last detection
         segment = text[cursor_orig:]
         segments.append(segment)
-        for _ in range(len(segment)):
-            new_to_orig.append(cursor_orig)
-            cursor_orig += 1
+        new_to_orig.extend(range(cursor_orig, len(text) + 1))
 
-        new_to_orig.append(len(text))
         sanitized_text = "".join(segments)
 
         # 3. Remote detection on sanitized text
@@ -705,7 +740,7 @@ class Pseudonymizer:
             for entity, alias in zip(final_entities, final_aliases, strict=True)
         )
 
-        final_segments: list[str] = []
+        final_segments = []
         cursor = 0
         for entity, token in zip(final_entities, final_tokens, strict=True):
             detection = entity.detection

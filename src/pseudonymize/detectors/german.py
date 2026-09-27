@@ -37,11 +37,16 @@ def _valid_german_tin(tin_raw: str) -> bool:
     return checksum == int(tin[10])
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class GermanTINDetector:
     name: str = "german_tin"
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         return [
             Detection(EntityType.TAX_ID, match.start(), match.end(), 1.0, self.name)
             for match in _GERMAN_TIN_RX.finditer(text)

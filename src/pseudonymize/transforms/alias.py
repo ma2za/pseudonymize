@@ -61,6 +61,11 @@ class DeterministicAliasAssigner:
             raise ValueError("namespace must not contain NUL characters")
 
     def assign(self, entity: ResolvedEntity, context: AliasContext) -> Alias:
+        key = (entity.detection.entity_type, entity.normalized_value)
+        existing = context.aliases.get(key)
+        if existing is not None:
+            return existing
+
         payload = b"\0".join(
             (
                 b"PZ2",
@@ -71,4 +76,6 @@ class DeterministicAliasAssigner:
         )
         digest = hmac.new(self.key, payload, hashlib.sha256).digest()
         identifier = base64.b32encode(digest).decode("ascii")[:12]
-        return Alias(entity.detection.entity_type, identifier)
+        alias = Alias(entity.detection.entity_type, identifier)
+        context.aliases[key] = alias
+        return alias

@@ -20,6 +20,8 @@ class UrlDetector:
     name: str = "url"
 
     def detect(self, text: str) -> list[Detection]:
+        if "://" not in text:
+            return []
         detections: list[Detection] = []
         for match in _URL.finditer(text):
             url = match.group().rstrip(".,;:!?)]}")

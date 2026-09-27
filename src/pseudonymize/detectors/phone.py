@@ -14,11 +14,16 @@ def _credible_phone(value: str) -> bool:
     return value.startswith("+") or separators >= 2
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class PhoneDetector:
     name: str = "phone"
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         return [
             Detection(EntityType.PHONE, match.start(), match.end(), 0.86, self.name)
             for match in _PHONE.finditer(text)
