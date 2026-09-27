@@ -219,3 +219,18 @@ def test_mcp_schema_preserving_redaction() -> None:
     assert isinstance(text_arg, str)
     assert "john.smith@example.com" not in text_arg
     assert "+39 333 123 4567" not in text_arg
+
+
+def test_pseudonymizer_ablation_flags() -> None:
+    from pseudonymize.engine import ProcessingScope
+
+    engine = Pseudonymizer()
+    engine._enable_coreference = False
+    engine._enable_adjacent_merge = False
+    assert not engine._enable_coreference
+    assert not engine._enable_adjacent_merge
+    res = engine.process("Contact alice@example.com.")
+    assert "alice@example.com" not in res.text
+
+    scope = ProcessingScope(engine)
+    assert scope._coreferences is None

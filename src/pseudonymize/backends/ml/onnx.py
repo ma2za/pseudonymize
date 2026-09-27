@@ -1,5 +1,6 @@
 import functools
 import json
+import math
 import os
 import re
 import typing
@@ -95,6 +96,21 @@ _CONTEXT_BOOSTS: tuple[tuple[re.Pattern[str], EntityType, int], ...] = (
 )
 
 
+def _aggregate_confidences(token_confs: list[float], mode: str) -> float:
+    if not token_confs:
+        return 0.0
+    if mode == "max":
+        return max(token_confs)
+    if mode == "mean":
+        return float(sum(token_confs) / len(token_confs))
+    if mode == "min":
+        return min(token_confs)
+    if mode == "geometric_mean":
+        log_sum = sum(math.log(max(c, 1e-6)) for c in token_confs)
+        return float(math.exp(log_sum / len(token_confs)))
+    return max(token_confs)
+
+
 class LocalONNXPIIBackend(DetectionBackend):
     def __init__(
         self,
@@ -106,6 +122,15 @@ class LocalONNXPIIBackend(DetectionBackend):
         entity_threshold: float = 0.5,
         window_overlap_tokens: int = 64,
         entity_thresholds: dict[EntityType, float] | None = None,
+        *,
+        enable_context_boost: bool = True,
+        enable_runner_up: bool = True,
+        enable_confidence_remapping: bool = True,
+        enable_subword_repair: bool = True,
+        enable_word_expansion: bool = True,
+        temperature: float = 1.0,
+        decoder_mode: str = "legacy",
+        span_aggregator: str = "max",
     ) -> None:
         if ort is None or Tokenizer is None or np is None:
             raise ImportError(
@@ -121,6 +146,12 @@ class LocalONNXPIIBackend(DetectionBackend):
             raise ValueError("entity_threshold must be between 0 and 1")
         if window_overlap_tokens < 0:
             raise ValueError("window_overlap_tokens must not be negative")
+        if temperature <= 0:
+            raise ValueError("temperature must be positive")
+        if decoder_mode not in ("legacy", "constrained_bio"):
+            raise ValueError(f"Unknown decoder_mode '{decoder_mode}'")
+        if span_aggregator not in ("max", "mean", "min", "geometric_mean"):
+            raise ValueError(f"Unknown span_aggregator '{span_aggregator}'")
 
         self._name = name
         self._entity_threshold = entity_threshold
@@ -128,6 +159,14 @@ class LocalONNXPIIBackend(DetectionBackend):
             entity_thresholds if entity_thresholds is not None else _DEFAULT_ENTITY_THRESHOLDS
         )
         self._window_overlap_tokens = window_overlap_tokens
+        self._enable_context_boost = enable_context_boost
+        self._enable_runner_up = enable_runner_up
+        self._enable_confidence_remapping = enable_confidence_remapping
+        self._enable_subword_repair = enable_subword_repair
+        self._enable_word_expansion = enable_word_expansion
+        self._temperature = float(temperature)
+        self._decoder_mode = decoder_mode
+        self._span_aggregator = span_aggregator
         self._model_path = str(model_path)
         self._tokenizer_path = str(tokenizer_path)
         self._config_path = str(config_path) if config_path else None
@@ -140,6 +179,18 @@ class LocalONNXPIIBackend(DetectionBackend):
 
         # Zero-Copy & LRU Caching Fast-Path (1.21.0)
         self._infer_text_cached = functools.lru_cache(maxsize=1024)(self._infer_batch)
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    @property
+    def decoder_mode(self) -> str:
+        return self._decoder_mode
+
+    @property
+    def span_aggregator(self) -> str:
+        return self._span_aggregator
 
     @property
     def name(self) -> str:
@@ -213,11 +264,12 @@ class LocalONNXPIIBackend(DetectionBackend):
 
             # Calculate explicit global surrounding context (v1.7.0)
             global_context_triggers = []
-            for pattern, _, _ in _CONTEXT_BOOSTS:
-                for match in pattern.finditer(block.text):
-                    trigger_word = match.group().strip().strip(":.-#")
-                    if trigger_word and trigger_word not in global_context_triggers:
-                        global_context_triggers.append(trigger_word)
+            if self._enable_context_boost:
+                for pattern, _, _ in _CONTEXT_BOOSTS:
+                    for match in pattern.finditer(block.text):
+                        trigger_word = match.group().strip().strip(":.-#")
+                        if trigger_word and trigger_word not in global_context_triggers:
+                            global_context_triggers.append(trigger_word)
 
             global_context_str = (
                 " ".join(global_context_triggers) if global_context_triggers else None
@@ -360,7 +412,8 @@ class LocalONNXPIIBackend(DetectionBackend):
         outputs = self._session.run(None, filtered_inputs)
         logits = outputs[0][0]
 
-        exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+        scaled_logits = logits / self._temperature
+        exp_logits = np.exp(scaled_logits - np.max(scaled_logits, axis=-1, keepdims=True))
         probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
 
         # Pre-calculate boosted ranges based on context keywords in window text
@@ -368,11 +421,12 @@ class LocalONNXPIIBackend(DetectionBackend):
             EntityType.PERSON: [],
             EntityType.LOCATION: [],
         }
-        for pattern, boost_entity_type, boost_len in _CONTEXT_BOOSTS:
-            for match in pattern.finditer(text):
-                start = match.end()
-                end = start + boost_len
-                boosted_ranges[boost_entity_type].append((start, end))
+        if self._enable_context_boost:
+            for pattern, boost_entity_type, boost_len in _CONTEXT_BOOSTS:
+                for match in pattern.finditer(text):
+                    start = match.end()
+                    end = start + boost_len
+                    boosted_ranges[boost_entity_type].append((start, end))
 
         predictions = []
         confidences = []
@@ -390,7 +444,7 @@ class LocalONNXPIIBackend(DetectionBackend):
 
             label_str = (self._id2label or {}).get(best_label)
 
-            if label_str == "O" or not label_str:
+            if self._enable_runner_up and (label_str == "O" or not label_str):
                 # A sharp softmax often puts "O" first while still giving a real
                 # entity label substantial mass. The runner-up wins only when it
                 # clears entity_threshold, an absolute probability configured on
@@ -412,15 +466,16 @@ class LocalONNXPIIBackend(DetectionBackend):
                     threshold = self._entity_thresholds.get(second_entity_type, threshold)
 
                     # Apply context boosting: if this token lands in a boosted zone, cut threshold
-                    token_start, _token_end = encoding.offsets[idx]
-                    is_boosted = False
-                    if second_entity_type in boosted_ranges:
-                        for b_start, b_end in boosted_ranges[second_entity_type]:
-                            if b_start <= token_start < b_end:
-                                is_boosted = True
-                                break
-                    if is_boosted:
-                        threshold *= 0.5
+                    if self._enable_context_boost:
+                        token_start, _token_end = encoding.offsets[idx]
+                        is_boosted = False
+                        if second_entity_type in boosted_ranges:
+                            for b_start, b_end in boosted_ranges[second_entity_type]:
+                                if b_start <= token_start < b_end:
+                                    is_boosted = True
+                                    break
+                        if is_boosted:
+                            threshold *= 0.5
 
                 if second_prob >= threshold:
                     best_label = second_best
@@ -430,34 +485,35 @@ class LocalONNXPIIBackend(DetectionBackend):
             confidences.append(best_prob)
 
         # Repair pass for subwords / zero-gap tokens to prevent premature entity truncation
-        for idx in range(1, len(predictions)):
-            label_id = predictions[idx]
-            label_str = (self._id2label or {}).get(int(label_id))
+        if self._enable_subword_repair:
+            for idx in range(1, len(predictions)):
+                label_id = predictions[idx]
+                label_str = (self._id2label or {}).get(int(label_id))
 
-            if not label_str or label_str == "O":
-                prev_label_id = predictions[idx - 1]
-                prev_label_str = (self._id2label or {}).get(int(prev_label_id))
+                if not label_str or label_str == "O":
+                    prev_label_id = predictions[idx - 1]
+                    prev_label_str = (self._id2label or {}).get(int(prev_label_id))
 
-                is_same_seq = True
-                if hasattr(encoding, "sequence_ids"):
-                    is_same_seq = encoding.sequence_ids[idx - 1] == encoding.sequence_ids[idx]
+                    is_same_seq = True
+                    if hasattr(encoding, "sequence_ids"):
+                        is_same_seq = encoding.sequence_ids[idx - 1] == encoding.sequence_ids[idx]
 
-                if prev_label_str and prev_label_str != "O" and is_same_seq:
-                    _prev_start, prev_end = encoding.offsets[idx - 1]
-                    curr_start, curr_end = encoding.offsets[idx]
+                    if prev_label_str and prev_label_str != "O" and is_same_seq:
+                        _prev_start, prev_end = encoding.offsets[idx - 1]
+                        curr_start, curr_end = encoding.offsets[idx]
 
-                    if curr_start == prev_end and not text[curr_start].isspace():
-                        # Only coerce if the token contains alphanumeric content,
-                        # preventing trailing punctuation (.,!?) from being dragged in.
-                        token_text = text[curr_start:curr_end]
-                        if any(c.isalnum() for c in token_text):
-                            predictions[idx] = prev_label_id
-                            confidences[idx] = confidences[idx - 1]
+                        if curr_start == prev_end and not text[curr_start].isspace():
+                            # Only coerce if the token contains alphanumeric content,
+                            # preventing trailing punctuation (.,!?) from being dragged in.
+                            token_text = text[curr_start:curr_end]
+                            if any(c.isalnum() for c in token_text):
+                                predictions[idx] = prev_label_id
+                                confidences[idx] = confidences[idx - 1]
 
         # Token predictions are merged into entity spans: subword continuations
         # (zero gap) and same-type tokens separated by one whitespace character
         # collapse into a single detection so that "John Smith" is one PERSON.
-        spans: list[tuple[EntityType, int, int, list[float]]] = []
+        spans: list[tuple[EntityType, int, int, list[float], str]] = []
 
         for idx, label_id in enumerate(predictions):
             label_str = (self._id2label or {}).get(int(label_id))
@@ -470,6 +526,8 @@ class LocalONNXPIIBackend(DetectionBackend):
             if start >= end:
                 continue
 
+            curr_tag = label_str[2:] if label_str.startswith(("B-", "I-")) else label_str
+
             raw_conf = float(confidences[idx])
             thresh = self._entity_thresholds.get(entity_type, self._entity_threshold)
 
@@ -478,7 +536,7 @@ class LocalONNXPIIBackend(DetectionBackend):
             # ensuring that highly accurate low-probability detections survive policy filtering.
             # Bypassed for extremely permissive development thresholds (less than 0.05)
             # to keep real low confidences.
-            if thresh >= 0.05:
+            if self._enable_confidence_remapping and thresh >= 0.05:
                 if raw_conf >= thresh:
                     conf = 0.80 + 0.20 * (raw_conf - thresh) / max(1.0 - thresh, 1e-5)
                 else:
@@ -487,40 +545,62 @@ class LocalONNXPIIBackend(DetectionBackend):
                 conf = raw_conf
 
             if spans:
-                previous_type, previous_start, previous_end, previous_confs = spans[-1]
+                previous_type, previous_start, previous_end, previous_confs, previous_tag = spans[
+                    -1
+                ]
                 gap = text[previous_end:start]
 
-                # Tolerate whitespace and common structural punctuation between
-                # same-type entities
-                # (e.g., hyphenated names, comma-separated addresses, apostrophes)
-                if entity_type is previous_type and (
-                    not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
-                ):
+                can_merge = False
+                if self._decoder_mode == "constrained_bio":
+                    is_b = label_str.startswith("B-")
+                    if is_b:
+                        # Same exact tag (e.g. B-CITY + B-CITY or B-GIVENNAME + B-GIVENNAME)
+                        # indicates two distinct entities unless zero-gap subword
+                        if curr_tag == previous_tag:
+                            can_merge = (entity_type is previous_type) and (start == previous_end)
+                        else:
+                            # Different tag components of same entity (e.g. GIVENNAME + SURNAME)
+                            can_merge = (entity_type is previous_type) and (
+                                not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                            )
+                    else:
+                        # I- token or continuation
+                        can_merge = (entity_type is previous_type) and (
+                            not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                        )
+                else:
+                    # Legacy: tolerate whitespace and punctuation between same-type entities
+                    can_merge = (entity_type is previous_type) and (
+                        not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                    )
+
+                if can_merge:
                     previous_confs.append(conf)
-                    spans[-1] = (previous_type, previous_start, end, previous_confs)
+                    spans[-1] = (previous_type, previous_start, end, previous_confs, curr_tag)
                     continue
-            spans.append((entity_type, start, end, [conf]))
+            spans.append((entity_type, start, end, [conf], curr_tag))
 
         results = []
-        for entity_type, start, end, token_confs in spans:
-            confidence = max(token_confs)
+        for entity_type, start, end, token_confs, _tag in spans:
+            confidence = _aggregate_confidences(token_confs, self._span_aggregator)
 
             # Token-to-Character Alignment Optimization
             # If an ML span cuts a word in half, expand the boundary to the full word
             # using the tokenizer's exact character offsets to prevent leaking sub-words.
-            if start < len(text):
-                start_word = encoding.char_to_word(start)
-                if start_word is not None:
-                    word_chars = encoding.word_to_chars(start_word)
-                    if word_chars is not None:
-                        start = min(start, word_chars[0])
+            if self._enable_word_expansion:
+                if start < len(text):
+                    start_word = encoding.char_to_word(start)
+                    if start_word is not None:
+                        word_chars = encoding.word_to_chars(start_word)
+                        if word_chars is not None:
+                            start = min(start, word_chars[0])
 
-            if end > 0 and end <= len(text):
-                end_word = encoding.char_to_word(end - 1)
-                if end_word is not None:
-                    word_chars = encoding.word_to_chars(end_word)
-                    if word_chars is not None:
-                        end = max(end, word_chars[1])
+                if end > 0 and end <= len(text):
+                    end_word = encoding.char_to_word(end - 1)
+                    if end_word is not None:
+                        word_chars = encoding.word_to_chars(end_word)
+                        if word_chars is not None:
+                            end = max(end, word_chars[1])
 
             if confidence >= policy.minimum_confidence:
                 results.append(
@@ -635,18 +715,20 @@ class LocalONNXPIIBackend(DetectionBackend):
             text = texts[batch_idx]
             encoding = encodings[batch_idx]
 
-            exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+            scaled_logits = logits / self._temperature
+            exp_logits = np.exp(scaled_logits - np.max(scaled_logits, axis=-1, keepdims=True))
             probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
 
             boosted_ranges: dict[EntityType, list[tuple[int, int]]] = {
                 EntityType.PERSON: [],
                 EntityType.LOCATION: [],
             }
-            for pattern, boost_entity_type, boost_len in _CONTEXT_BOOSTS:
-                for match in pattern.finditer(text):
-                    start = match.end()
-                    end = start + boost_len
-                    boosted_ranges[boost_entity_type].append((start, end))
+            if self._enable_context_boost:
+                for pattern, boost_entity_type, boost_len in _CONTEXT_BOOSTS:
+                    for match in pattern.finditer(text):
+                        start = match.end()
+                        end = start + boost_len
+                        boosted_ranges[boost_entity_type].append((start, end))
 
             predictions = []
             confidences = []
@@ -667,7 +749,7 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                 label_str = (self._id2label or {}).get(best_label)
 
-                if label_str == "O" or not label_str:
+                if self._enable_runner_up and (label_str == "O" or not label_str):
                     runner_up_probs = np.copy(token_probs)
                     runner_up_probs[best_label] = 0.0
                     second_best = int(np.argmax(runner_up_probs))
@@ -684,7 +766,7 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                         token_start, _token_end = encoding.offsets[idx]
                         is_boosted = False
-                        if second_entity_type in boosted_ranges:
+                        if self._enable_context_boost and second_entity_type in boosted_ranges:
                             for b_start, b_end in boosted_ranges[second_entity_type]:
                                 if b_start <= token_start < b_end:
                                     is_boosted = True
@@ -699,29 +781,32 @@ class LocalONNXPIIBackend(DetectionBackend):
                 predictions.append(best_label)
                 confidences.append(best_prob)
 
-            for idx in range(1, len(predictions)):
-                label_id = predictions[idx]
-                label_str = (self._id2label or {}).get(int(label_id))
+            if self._enable_subword_repair:
+                for idx in range(1, len(predictions)):
+                    label_id = predictions[idx]
+                    label_str = (self._id2label or {}).get(int(label_id))
 
-                if not label_str or label_str == "O":
-                    prev_label_id = predictions[idx - 1]
-                    prev_label_str = (self._id2label or {}).get(int(prev_label_id))
+                    if not label_str or label_str == "O":
+                        prev_label_id = predictions[idx - 1]
+                        prev_label_str = (self._id2label or {}).get(int(prev_label_id))
 
-                    is_same_seq = True
-                    if hasattr(encoding, "sequence_ids"):
-                        is_same_seq = encoding.sequence_ids[idx - 1] == encoding.sequence_ids[idx]
+                        is_same_seq = True
+                        if hasattr(encoding, "sequence_ids"):
+                            is_same_seq = (
+                                encoding.sequence_ids[idx - 1] == encoding.sequence_ids[idx]
+                            )
 
-                    if prev_label_str and prev_label_str != "O" and is_same_seq:
-                        _prev_start, prev_end = encoding.offsets[idx - 1]
-                        curr_start, curr_end = encoding.offsets[idx]
+                        if prev_label_str and prev_label_str != "O" and is_same_seq:
+                            _prev_start, prev_end = encoding.offsets[idx - 1]
+                            curr_start, curr_end = encoding.offsets[idx]
 
-                        if curr_start == prev_end and not text[curr_start].isspace():
-                            token_text = text[curr_start:curr_end]
-                            if any(c.isalnum() for c in token_text):
-                                predictions[idx] = prev_label_id
-                                confidences[idx] = confidences[idx - 1]
+                            if curr_start == prev_end and not text[curr_start].isspace():
+                                token_text = text[curr_start:curr_end]
+                                if any(c.isalnum() for c in token_text):
+                                    predictions[idx] = prev_label_id
+                                    confidences[idx] = confidences[idx - 1]
 
-            spans: list[tuple[EntityType, int, int, list[float]]] = []
+            spans: list[tuple[EntityType, int, int, list[float], str]] = []
 
             for idx, label_id in enumerate(predictions):
                 label_str = (self._id2label or {}).get(int(label_id))
@@ -735,10 +820,12 @@ class LocalONNXPIIBackend(DetectionBackend):
                 if start >= end:
                     continue
 
+                curr_tag = label_str[2:] if label_str.startswith(("B-", "I-")) else label_str
+
                 raw_conf = float(confidences[idx])
                 thresh = self._entity_thresholds.get(entity_type, self._entity_threshold)
 
-                if thresh >= 0.05:
+                if self._enable_confidence_remapping and thresh >= 0.05:
                     if raw_conf >= thresh:
                         conf = 0.80 + 0.20 * (raw_conf - thresh) / max(1.0 - thresh, 1e-5)
                     else:
@@ -747,34 +834,57 @@ class LocalONNXPIIBackend(DetectionBackend):
                     conf = raw_conf
 
                 if spans:
-                    previous_type, previous_start, previous_end, previous_confs = spans[-1]
+                    previous_type, previous_start, previous_end, previous_confs, previous_tag = (
+                        spans[-1]
+                    )
                     gap = text[previous_end:start]
 
-                    if entity_type is previous_type and (
-                        not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
-                    ):
+                    can_merge = False
+                    if self._decoder_mode == "constrained_bio":
+                        is_b = label_str.startswith("B-")
+                        if is_b:
+                            if curr_tag == previous_tag:
+                                can_merge = (entity_type is previous_type) and (
+                                    start == previous_end
+                                )
+                            else:
+                                can_merge = (entity_type is previous_type) and (
+                                    not gap.strip()
+                                    or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                                )
+                        else:
+                            can_merge = (entity_type is previous_type) and (
+                                not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                            )
+                    else:
+                        can_merge = (entity_type is previous_type) and (
+                            not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
+                        )
+
+                    if can_merge:
                         previous_confs.append(conf)
-                        spans[-1] = (previous_type, previous_start, end, previous_confs)
+                        spans[-1] = (previous_type, previous_start, end, previous_confs, curr_tag)
                         continue
-                spans.append((entity_type, start, end, [conf]))
+                spans.append((entity_type, start, end, [conf], curr_tag))
 
             results = []
-            for entity_type, start, end, token_confs in spans:
-                confidence = max(token_confs)
+            for entity_type, start, end, token_confs, _tag in spans:
+                confidence = _aggregate_confidences(token_confs, self._span_aggregator)
 
-                if start < len(text):
-                    start_word = encoding.char_to_word(start)
-                    if start_word is not None:
-                        word_chars = encoding.word_to_chars(start_word)
-                        if word_chars is not None:
-                            start = min(start, word_chars[0])
+                if self._enable_word_expansion:
+                    if start < len(text):
+                        start_word = encoding.char_to_word(start)
+                        if start_word is not None:
+                            word_chars = encoding.word_to_chars(start_word)
+                            if word_chars is not None:
+                                start = min(start, word_chars[0])
 
-                if end > 0 and end <= len(text):
-                    end_word = encoding.char_to_word(end - 1)
-                    if end_word is not None:
-                        word_chars = encoding.word_to_chars(end_word)
-                        if word_chars is not None:
-                            end = max(end, word_chars[1])
+                    if end > 0 and end <= len(text):
+                        end_word = encoding.char_to_word(end - 1)
+                        if end_word is not None:
+                            word_chars = encoding.word_to_chars(end_word)
+                            if word_chars is not None:
+                                end = max(end, word_chars[1])
 
                 if confidence >= policy.minimum_confidence:
                     results.append(

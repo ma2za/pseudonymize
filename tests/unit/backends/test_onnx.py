@@ -1,6 +1,4 @@
-import hashlib
 import itertools
-import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -11,47 +9,6 @@ from pseudonymize.document import ContentBlock, TextOffsetLocation
 from pseudonymize.exceptions import BackendExecutionError
 from pseudonymize.policy import NetworkPolicy, Policy
 from pseudonymize.result import EntityType
-
-# Keep downloaded artifacts outside pytest's configured basetemp, which is cleared at startup.
-CACHE_DIR = Path(".cache/pseudonymize-tests/models/multilang-pii-ner-ml")
-MODEL_URL_BASE = "https://huggingface.co/onnx-community/multilang-pii-ner-ONNX/resolve/main/"
-MODEL_FILES = {
-    "config.json": (
-        "config.json",
-        "3503fb27021640b315b1e7636933f7df9c209746251cae4975bdef46be4e8158",
-    ),
-    "tokenizer.json": (
-        "tokenizer.json",
-        "8373f9cd3d27591e1924426bcc1c8799bc5a9affc4fc857982c5d66668dd1f41",
-    ),
-    "model_int8.onnx": (
-        "onnx/model_int8.onnx",
-        "1d02f3829ad90d95dea5e64d35f5528f96d7b223c1e056a96075c6229a484356",
-    ),
-}
-
-
-def download_file(url: str, dest: Path, sha256: str) -> None:
-    if not dest.exists():
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})  # noqa: S310
-        with urllib.request.urlopen(req) as response, open(dest, "wb") as f:  # noqa: S310
-            f.write(response.read())
-    digest = hashlib.sha256(dest.read_bytes()).hexdigest()
-    if digest != sha256:
-        dest.unlink()
-        raise RuntimeError(f"checksum mismatch for {dest.name}: {digest}")
-
-
-@pytest.fixture(scope="session")
-def onnx_artifacts() -> tuple[Path, Path, Path]:
-    paths = []
-    for local_name, (remote_path, sha256) in MODEL_FILES.items():
-        dest = CACHE_DIR / local_name
-        download_file(MODEL_URL_BASE + remote_path, dest, sha256)
-        paths.append(dest)
-    # Returns (config, tokenizer, model)
-    return (paths[0], paths[1], paths[2])
 
 
 def test_ml_backend_capabilities(onnx_artifacts: tuple[Path, Path, Path]) -> None:
@@ -693,3 +650,32 @@ def test_onnx_per_label_calibration_property_and_override(
     assert custom_thresholds[EntityType.PERSON] == 0.10
     assert custom_thresholds[EntityType.LOCATION] == 0.20
     assert custom_thresholds[EntityType.ORGANIZATION] == 0.30
+
+
+def test_onnx_ablation_flags(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        enable_context_boost=False,
+        enable_runner_up=False,
+        enable_confidence_remapping=False,
+        enable_subword_repair=False,
+        enable_word_expansion=False,
+    )
+    assert not backend._enable_context_boost
+    assert not backend._enable_runner_up
+    assert not backend._enable_confidence_remapping
+    assert not backend._enable_subword_repair
+    assert not backend._enable_word_expansion
+
+    policy = Policy.default()
+    block = ContentBlock(
+        "text", "My name is John Smith and I live in Paris.", TextOffsetLocation(0, 42)
+    )
+    detections = backend.detect(block, policy)
+    assert isinstance(detections, tuple)

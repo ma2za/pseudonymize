@@ -110,4 +110,39 @@ Evaluated on the English validation subset of `ai4privacy/pii-masking-openpii-1.
 
 **Counts:** True Positives: 4155, False Positives: 670, False Negatives: 1022, Out-of-Scope: 250.
 
+## `1.34.0` (Quality Release Gate & Error Atlas Integration)
+
+Evaluated against the pinned validation split (`a785eb528e28be2693c3718a27e066970de5dadb`, 1,000 samples) with the automated 5-criteria quality gate (`benchmarks/quality_gate.py`). Incorporates constrained BIO transition decoding, calibrated temperature scaling, and multi-backend evidence fusion.
+
+**Results:**
+
+| Metric | Score | Detail |
+| --- | :---: | --- |
+| **Precision** | `0.8608` | True Positives: 4,155, False Positives: 672 |
+| **Recall** | `0.8026` | False Negatives: 1,022 |
+| **F1 Score** | `0.8307` | Stable baseline match (`1.26.0`: `0.8308`) |
+| **Exact Boundary F1** | `0.4899` | P: `0.5247`, R: `0.4593` (TP: 2,378, FP: 2,154, FN: 2,799) |
+| **Macro F1** | `0.7701` | Average per document across 1,000 samples |
+| **Character Masking** | `0.8136` | **91.73% precision** (56,131 / 68,992 sensitive chars masked) |
+| **Unscored** | `250` | Out-of-scope labels safely ignored |
+
+**Per-Entity Breakdown:**
+- **EMAIL**: F1 `0.9982` (P: `0.9964`, R: `1.0000`, TP: 555, FP: 2, FN: 0)
+- **PHONE**: F1 `0.9838` (P: `0.9953`, R: `0.9725`, TP: 424, FP: 2, FN: 12)
+- **PAYMENT_CARD**: F1 `0.9745` (P: `0.9841`, R: `0.9650`, TP: 248, FP: 4, FN: 9)
+- **NATIONAL_ID**: F1 `0.8749` (P: `0.7958`, R: `0.9716`, TP: 787, FP: 202, FN: 23)
+- **LOCATION**: F1 `0.8176` (P: `0.8041`, R: `0.8316`, TP: 1,022, FP: 249, FN: 207)
+- **PERSON**: F1 `0.7393` (P: `0.8482`, R: `0.6552`, TP: 1,106, FP: 198, FN: 582)
+- **ORGANIZATION**: F1 `0.6667` (P: `0.5000`, R: `1.0000`, TP: 1, FP: 1, FN: 0)
+- **TAX_ID**: F1 `0.1062` (P: `0.4800`, R: `0.0597`, TP: 12, FP: 13, FN: 189)
+
+**Causal Error Distribution:**
+- Boundary Mismatch: 1,777 (dominant error class)
+- Conflict Loss: 850
+- Label Confusion: 137
+- Missing Candidate: 35
+- Threshold Suppression: 0
+
+See also the formal [Model Card](model_card.md) for full architecture specifications and hardware profiles.
+
 

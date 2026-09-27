@@ -223,6 +223,7 @@ def _git_commit() -> str | None:
 def evaluate(
     num_samples: int = 1000,
     use_ml: bool = True,
+    use_rules: bool = True,
     strict_labels: bool = True,
     split: str = "validation",
     explain: bool = False,
@@ -230,6 +231,17 @@ def evaluate(
     allow_unverified_checksums: bool = False,
     dataset_revision: str | None = None,
     manifest_path: Path | None = None,
+    enable_context_boost: bool = True,
+    enable_runner_up: bool = True,
+    enable_confidence_remapping: bool = True,
+    enable_subword_repair: bool = True,
+    enable_word_expansion: bool = True,
+    enable_coreference: bool = True,
+    enable_bloom_filter: bool = True,
+    enable_adjacent_merge: bool = True,
+    temperature: float = 1.0,
+    decoder_mode: str = "legacy",
+    span_aggregator: str = "max",
 ) -> dict[str, object]:
     print(INTEGRITY_NOTICE)
 
@@ -264,20 +276,29 @@ def evaluate(
 
     bloom_path = Path("data/gazetteer/common_words.txt")
     bloom_filter = None
-    if bloom_path.exists():
+    if enable_bloom_filter and bloom_path.exists():
         with open(bloom_path, encoding="utf-8") as f:
             bloom_filter = BloomFilter.from_words(
                 [line.strip().lower() for line in f if line.strip()]
             )
 
-    detectors: tuple[Detector, ...] = tuple(
-        replace(detector, _accept_unverified=True)
-        if allow_unverified_checksums
-        and isinstance(detector, (AlgorithmicChecksumDetector, IbanDetector, PaymentCardDetector))
-        else detector
-        for detector in DEFAULT_DETECTORS
+    detectors: tuple[Detector, ...] = ()
+    if use_rules:
+        detectors = tuple(
+            replace(detector, _accept_unverified=True)
+            if allow_unverified_checksums
+            and isinstance(
+                detector, (AlgorithmicChecksumDetector, IbanDetector, PaymentCardDetector)
+            )
+            else detector
+            for detector in DEFAULT_DETECTORS
+        )
+    engine = Pseudonymizer(
+        detectors=detectors,
+        bloom_filter=bloom_filter,
     )
-    engine = Pseudonymizer(detectors=detectors, bloom_filter=bloom_filter)
+    engine._enable_coreference = enable_coreference
+    engine._enable_adjacent_merge = enable_adjacent_merge
     model_hashes: dict[str, str] = {}
     if use_ml:
         # We need the model downloaded. The test suite uses the multilang-pii-ner model.
@@ -297,13 +318,27 @@ def evaluate(
             model_path=onnx_model_path,
             tokenizer_path=tokenizer_path,
             config_path=config_path,
+            enable_context_boost=enable_context_boost,
+            enable_runner_up=enable_runner_up,
+            enable_confidence_remapping=enable_confidence_remapping,
+            enable_subword_repair=enable_subword_repair,
+            enable_word_expansion=enable_word_expansion,
+            temperature=temperature,
+            decoder_mode=decoder_mode,
+            span_aggregator=span_aggregator,
         )
         model_hashes = {
             "model": _sha256(onnx_model_path),
             "tokenizer": _sha256(tokenizer_path),
             "config": _sha256(config_path),
         }
-        engine = Pseudonymizer(backends=[*engine.backends, backend], bloom_filter=bloom_filter)
+        backends = [backend] if not use_rules else [*engine.backends, backend]
+        engine = Pseudonymizer(
+            backends=backends,
+            bloom_filter=bloom_filter,
+        )
+        engine._enable_coreference = enable_coreference
+        engine._enable_adjacent_merge = enable_adjacent_merge
 
     true_positives = 0
     false_positives = 0

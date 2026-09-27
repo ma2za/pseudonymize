@@ -38,10 +38,10 @@ publishable without requiring unfinished later layers.
 | `1.28.0` | Planned | Measured multilingual contextual recall improvements |
 | `1.29.0` | Planned | ML calibration, entity linking, and robust boundary alignment |
 | `1.30.0` | Planned | Ensemble conflict resolution only if it improves held-out metrics |
-| `1.31.0` | Next priority | Benchmark integrity, error atlas, and contamination controls |
-| `1.32.0` | Planned | Development-only calibration and constrained span decoding |
-| `1.33.0` | Planned | Reproducible model and hybrid-ensemble bake-off |
-| `1.34.0` | Planned | Independent generalization proof and quality release gate |
+| `1.31.0` | Implemented | Benchmark integrity, error atlas, contamination controls, and PIIMB track |
+| `1.32.0` | Implemented | Development-only calibration and constrained span decoding |
+| `1.33.0` | Implemented | Reproducible model and hybrid-ensemble bake-off |
+| `1.34.0` | Implemented | Independent generalization proof and quality release gate |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
