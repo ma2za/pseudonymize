@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-09-27
+
 ### Added
 - **Automated Quality Release Gate (`benchmarks/quality_gate.py`):** Automated verification harness validating candidate releases against 5 strict pre-release criteria: pinned provenance (dataset revisions and model hashes), non-negative paired 95% bootstrap F1-delta intervals, strict precision protection (zero statistically clear regression), high-risk identifier recall floors (zero regression on cards, IBAN, national IDs, credentials, emails, phones), and external multi-source generalization floors.
 - **Model Card & Architecture Transparency Documentation (`docs/model_card.md`):** Formal model card detailing training lineage (AI4Privacy 500k), verified strict-typed metrics, external zero-shot character metrics (PIIMB), CPU latency (85ms/1k chars), memory footprint (420MB), and documented failure modes.
