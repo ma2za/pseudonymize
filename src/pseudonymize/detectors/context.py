@@ -44,6 +44,33 @@ _DEPENDENCY_LINKS = frozenset(
         "by",
         "like",
         "bearing",
+        "reference",
+        "ref",
+        "code",
+        "key",
+        "record",
+        "entry",
+        "registration",
+        "reg",
+        "serial",
+        "account",
+        "acct",
+        "value",
+        "val",
+        "assigned",
+        "allocated",
+        "stands",
+        "reads",
+        "adalah",
+        "là",
+        "lautet",
+        "est",
+        "es",
+        "è",
+        "numero",
+        "numéro",
+        "nummer",
+        "nr",
     }
 )
 
@@ -220,6 +247,7 @@ class ContextualIdDetector:
                 has_separator = False
                 has_negative = bool(_NEGATIVE_CONTEXT.search(window))
 
+                non_digit_words_skipped = 0
                 for token_match in _TOKEN_PATTERN.finditer(window):
                     token = token_match.group()
 
@@ -237,32 +265,45 @@ class ContextualIdDetector:
                     if _VERSION_LIKE.match(token):
                         break
 
-                    # Evaluate candidate token against value criteria
-                    if _HAS_DIGIT.search(token) and rule.value_regex.match(token):
-                        if rule.entity_type is EntityType.PAYMENT_CARD:
-                            stripped_len = sum(1 for c in token if c.isdigit())
-                            if not (13 <= stripped_len <= 19):
-                                break
+                    # If the token contains digits, this is our candidate identifier
+                    if _HAS_DIGIT.search(token):
+                        if rule.value_regex.match(token):
+                            if rule.entity_type is EntityType.PAYMENT_CARD:
+                                stripped_len = sum(1 for c in token if c.isdigit())
+                                if not (13 <= stripped_len <= 19):
+                                    break
 
-                        distance = token_match.start()
-                        score = _calculate_score(rule, distance, has_separator, has_negative)
+                            distance = token_match.start()
+                            score = _calculate_score(rule, distance, has_separator, has_negative)
 
-                        # Enforce bounded threshold for emission
-                        if score >= 0.75:
-                            actual_start = start_search + token_match.start()
-                            actual_end = start_search + token_match.end()
+                            # Enforce bounded threshold for emission
+                            if score >= 0.75:
+                                actual_start = start_search + token_match.start()
+                                actual_end = start_search + token_match.end()
 
-                            detections.append(
-                                Detection(
-                                    rule.entity_type,
-                                    actual_start,
-                                    actual_end,
-                                    score,
-                                    self.name,
+                                detections.append(
+                                    Detection(
+                                        rule.entity_type,
+                                        actual_start,
+                                        actual_end,
+                                        score,
+                                        self.name,
+                                    )
                                 )
-                            )
+                        # Once we evaluate the candidate bearing digits, stop searching forward
+                        break
 
-                    # Once we hit a significant token that is evaluated, stop searching forward
-                    break
+                    # If the token contains no digits, allow skipping up to 3 descriptive words
+                    non_digit_words_skipped += 1
+                    if non_digit_words_skipped > 3:
+                        break
 
-        return detections
+        if len(detections) <= 1:
+            return detections
+
+        best_by_span: dict[tuple[int, int], Detection] = {}
+        for det in detections:
+            span = (det.start, det.end)
+            if span not in best_by_span or det.confidence > best_by_span[span].confidence:
+                best_by_span[span] = det
+        return sorted(best_by_span.values(), key=lambda d: d.start)
