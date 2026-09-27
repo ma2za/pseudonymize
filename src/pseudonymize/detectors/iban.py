@@ -22,12 +22,17 @@ def _valid_mod97(value: str) -> bool:
     return remainder == 1
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class IbanDetector:
     name: str = "iban"
     _accept_unverified: bool = False
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         return [
             Detection(EntityType.IBAN, match.start(), match.end(), 1.0, self.name)
             for match in _IBAN.finditer(text)

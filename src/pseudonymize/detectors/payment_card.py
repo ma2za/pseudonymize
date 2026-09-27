@@ -21,12 +21,17 @@ def _valid_luhn(value: str) -> bool:
     return total % 10 == 0
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class PaymentCardDetector:
     name: str = "payment_card"
     _accept_unverified: bool = False
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         detections = []
         for match in _CARD.finditer(text):
             val = match.group()

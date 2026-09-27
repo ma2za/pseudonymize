@@ -3,8 +3,10 @@ from dataclasses import dataclass
 
 from pseudonymize.result import Detection, EntityType
 
+_HAS_DIGIT = re.compile(r"\d")
+
 _STREET_RX = re.compile(
-    r"(?i)\b\d{1,5}\s+(?:[A-Za-z]+\s*){1,3}"
+    r"(?i)\b\d{1,5}\s+(?:[A-Za-z]+\s+){1,3}"
     r"(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Lane|Ln\.?|"
     r"Drive|Dr\.?|Court|Ct\.?|Plaza|Plz\.?|Square|Sq\.?|Way|Parkway|Pkwy\.?|Terrace|Ter\.?)\b"
 )
@@ -27,6 +29,8 @@ class LocationDetector:
     name: str = "location"
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         detections = [
             Detection(EntityType.LOCATION, match.start(), match.end(), 0.90, self.name)
             for match in _STREET_RX.finditer(text)

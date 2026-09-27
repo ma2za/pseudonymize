@@ -206,6 +206,8 @@ class ContextualIdDetector:
     name: str = "context_id"
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         detections = []
         for rule in _CONTEXT_RULES:
             for match in rule.trigger_regex.finditer(text):
@@ -237,7 +239,7 @@ class ContextualIdDetector:
                     # Evaluate candidate token against value criteria
                     if _HAS_DIGIT.search(token) and rule.value_regex.match(token):
                         if rule.entity_type is EntityType.PAYMENT_CARD:
-                            stripped_len = len("".join(c for c in token if c.isdigit()))
+                            stripped_len = sum(1 for c in token if c.isdigit())
                             if not (13 <= stripped_len <= 19):
                                 break
 

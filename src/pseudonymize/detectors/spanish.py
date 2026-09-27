@@ -63,11 +63,16 @@ def _valid_spanish_cif(first_char: str, digits: str, control: str) -> bool:
     return control == str(control_digit) or control == expected_letter
 
 
+_HAS_DIGIT = re.compile(r"\d")
+
+
 @dataclass(frozen=True, slots=True)
 class SpanishNIFDetector:
     name: str = "spanish_nif"
 
     def detect(self, text: str) -> list[Detection]:
+        if not _HAS_DIGIT.search(text):
+            return []
         detections = []
         for match in _SPANISH_NIF_RX.finditer(text):
             digits, letter = match.groups()
