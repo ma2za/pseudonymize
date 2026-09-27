@@ -28,6 +28,7 @@ nav:
   - Limitations: limitations.md
   - Benchmarks: benchmarks.md
   - Quality Benchmarks: quality_benchmarks.md
+  - Model Card: model_card.md
   - Contributing: contributing.md
   - Decisions:
       - Dependency-free core: adr/0001-dependency-free-core.md

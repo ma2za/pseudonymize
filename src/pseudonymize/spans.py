@@ -34,7 +34,9 @@ DETECTOR_WEIGHTS: MappingProxyType[str, float] = MappingProxyType(_DETECTOR_WEIG
 
 
 def resolve_overlaps(
-    detections: Iterable[Detection], detector_priority: tuple[str, ...] = ()
+    detections: Iterable[Detection],
+    detector_priority: tuple[str, ...] = (),
+    enable_adjacent_merge: bool = True,
 ) -> tuple[Detection, ...]:
     configured = {
         name: len(detector_priority) - index for index, name in enumerate(detector_priority)
@@ -75,6 +77,8 @@ def resolve_overlaps(
         selected.append(detection)
 
     sorted_selected = sorted(selected, key=lambda detection: (detection.start, detection.end))
+    if not enable_adjacent_merge:
+        return tuple(sorted_selected)
 
     # Merge adjacent spans of the same entity type to prevent fragmentation.
     # Merging is strictly limited to contiguous spans with zero gap (det.start == last.end).

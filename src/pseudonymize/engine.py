@@ -165,6 +165,8 @@ class Pseudonymizer:
             raise ValueError("typed_redaction is valid only in redacted mode")
         self.policy = policy or Policy.default()
         self.bloom_filter = bloom_filter
+        self._enable_coreference: bool = True
+        self._enable_adjacent_merge: bool = True
         configured_detectors = DEFAULT_DETECTORS if detectors is None else detectors
         self.backends = (
             tuple(backends) if backends is not None else (RulesBackend(configured_detectors),)
@@ -176,7 +178,10 @@ class Pseudonymizer:
 
     def detect(self, text: str) -> tuple[Detection, ...]:
         block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
-        return self._detect_block(block, _OperationStatistics(), remote=False)
+        coreferences = CoreferenceGraph() if self._enable_coreference else None
+        return self._detect_block(
+            block, _OperationStatistics(), remote=False, coreferences=coreferences
+        )
 
     def _detect_block(
         self,
@@ -416,23 +421,31 @@ class Pseudonymizer:
 
                 yield detection
 
-        return resolve_overlaps(_trim_and_filter(), self.policy.detector_priority)
+        return resolve_overlaps(
+            _trim_and_filter(),
+            self.policy.detector_priority,
+            enable_adjacent_merge=self._enable_adjacent_merge,
+        )
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
-        return self._process(text, AliasContext(), include_mapping)
+        coreferences = CoreferenceGraph() if self._enable_coreference else None
+        return self._process(text, AliasContext(), include_mapping, coreferences=coreferences)
 
     def process_with_report(self, text: str) -> ProcessingResult[str]:
         statistics = _OperationStatistics()
         reports: list[DetectionReport] = []
         block = ContentBlock("text", text, TextOffsetLocation(0, len(text)))
-        result = self._process_block(block, AliasContext(), False, statistics, reports)
+        coreferences = CoreferenceGraph() if self._enable_coreference else None
+        result = self._process_block(
+            block, AliasContext(), False, statistics, reports, coreferences=coreferences
+        )
         return ProcessingResult(result.text, tuple(reports), statistics.finish(reports))
 
     def process_batch(
         self, texts: Sequence[str], *, include_mapping: bool = False
     ) -> tuple[Result, ...]:
         context = AliasContext()
-        coreferences = CoreferenceGraph()
+        coreferences = CoreferenceGraph() if self._enable_coreference else None
         return tuple(
             self._process(text, context, include_mapping, coreferences=coreferences)
             for text in texts
@@ -455,7 +468,7 @@ class Pseudonymizer:
         statistics = _OperationStatistics()
         reports: list[DetectionReport] = []
         context = AliasContext()
-        coreferences = CoreferenceGraph()
+        coreferences = CoreferenceGraph() if self._enable_coreference else None
         tabular_layout = TabularInferenceLayout(document)
         blocks: list[ContentBlock] = []
         for block in document.blocks:
@@ -794,7 +807,7 @@ class ProcessingScope:
     def __init__(self, engine: Pseudonymizer) -> None:
         self._engine = engine
         self._context = AliasContext()
-        self._coreferences = CoreferenceGraph()
+        self._coreferences = CoreferenceGraph() if engine._enable_coreference else None
 
     def process(self, text: str, *, include_mapping: bool = False) -> Result:
         return self._engine._process(

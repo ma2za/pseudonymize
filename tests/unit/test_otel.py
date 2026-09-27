@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 import sys
 from io import StringIO
@@ -110,16 +111,18 @@ def test_otel_observability_isolated_base_import() -> None:
         "print('ISOLATION_OK')\n"
     )
 
+    env = {k: v for k, v in os.environ.items() if not k.startswith("COV")}
     try:
         completed = subprocess.run(  # noqa: S603
             [sys.executable, "-c", code],
             capture_output=True,
             text=True,
             check=False,
-            timeout=15,
+            timeout=30,
+            env=env,
         )
     except subprocess.TimeoutExpired as exc:
-        raise AssertionError("Isolated import verification timed out after 15s") from exc
+        raise AssertionError("Isolated import verification timed out after 30s") from exc
 
     assert completed.returncode == 0, f"STDOUT: {completed.stdout}\nSTDERR: {completed.stderr}"
     assert "ISOLATION_OK" in completed.stdout

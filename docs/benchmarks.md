@@ -53,6 +53,7 @@ validation rows with the ONNX backend enabled.
 | `1.10.0` | One-to-one overlap and entity-type match (1000 rows) | 0.8425 | 0.6293 | 0.7205 |
 | `1.20.0` | One-to-one overlap and entity-type match (1000 rows) | 0.8587 | 0.8016 | 0.8292 |
 | `1.26.0` | One-to-one overlap and entity-type match (1000 rows) | 0.8611 | 0.8026 | 0.8308 |
+| `1.34.0` | One-to-one overlap and entity-type match (1000 rows) | 0.8608 | 0.8026 | 0.8307 |
 | `0.19.0` | Corrected, `--span-only` | 0.9317 | 0.7542 | 0.8336 |
 | `0.19.0` | Corrected, entity types compared | 0.8097 | 0.6549 | 0.7241 |
 

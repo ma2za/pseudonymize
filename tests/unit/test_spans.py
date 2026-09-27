@@ -70,6 +70,15 @@ def test_adjacent_same_type_spans_are_merged() -> None:
     assert len(unmerged) == 2
 
 
+def test_adjacent_same_type_spans_unmerged_when_flag_disabled() -> None:
+    d1 = Detection(EntityType.PERSON, 0, 10, 0.8, "onnx", "local_onnx_pii")
+    d2 = Detection(EntityType.PERSON, 10, 20, 0.9, "onnx", "local_onnx_pii")
+    unmerged = resolve_overlaps([d1, d2], enable_adjacent_merge=False)
+    assert len(unmerged) == 2
+    assert unmerged[0].start == 0 and unmerged[0].end == 10
+    assert unmerged[1].start == 10 and unmerged[1].end == 20
+
+
 # ---------------------------------------------------------------------------
 # 1.26.0 / 1.30.0: Reconciled Ensemble Implementation & Provenance Tests
 # ---------------------------------------------------------------------------
