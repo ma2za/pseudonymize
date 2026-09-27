@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-09-27
+
 ### Added
 - **Engine Throughput & Latency Optimizations:**
   - Added zero-allocation fast-path pre-checks across detectors (`@` for `EmailDetector`, `://` for `UrlDetector`, fixed prefix checks for `SecretDetector`, and ASCII digit pre-checks for `AlgorithmicChecksumDetector`, `PaymentCardDetector`, `IbanDetector`, `PhoneDetector`, `LocationDetector`, `ContextualIdDetector`, `GermanTINDetector`, `ItalianVATDetector`, `SpanishNIFDetector`), delivering up to 371x speedup on individual detector passes.
