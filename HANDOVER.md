@@ -222,7 +222,7 @@ licenses, and datasets again because those external facts can change.
 `1.28.0` is the active development version. The immediate priority is the `1.28.0` measured
 multilingual contextual recall improvements program.
 
-Before this roadmap/handover update, `main` was clean at `71513da` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `e990361` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -231,6 +231,9 @@ Relevant integrated commits are:
 - `7a199f3 feat: implement measured multilingual contextual detection and bounded scoring`
 - `1b093b3 feat: audit ONNX token alignment, calibrate thresholds, and harden coreference`
 - `71513da feat: resolve audit remediation blockers and update 1.26.0 benchmark baseline`
+- `6867b07 feat(benchmarks): implement 1.32-1.34 calibration, constrained decoding, and quality gate`
+- `5ff11c8 chore(release): prepare 1.27.0 release and update changelog`
+- `e990361 chore(release): bump development version to 1.28.0`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
