@@ -34,8 +34,8 @@ publishable without requiring unfinished later layers.
 | `1.24.0` | Published | Observability & Distributed DLP Adapter (OpenTelemetry & Logging Integration) |
 | `1.25.0` | Published | Distributed Scaling, Property Test Resilience & Pre-Commit Verification |
 | `1.26.0` | Published | Contract reconciliation and release-proof baseline |
-| `1.27.0` | Planned | Reproducible evaluation, production-safety hardening, and detector evidence |
-| `1.28.0` | Planned | Measured multilingual contextual recall improvements |
+| `1.27.0` | Published | Reproducible evaluation, production-safety hardening, and detector evidence |
+| `1.28.0` | Next priority | Measured multilingual contextual recall improvements |
 | `1.29.0` | Planned | ML calibration, entity linking, and robust boundary alignment |
 | `1.30.0` | Planned | Ensemble conflict resolution only if it improves held-out metrics |
 | `1.31.0` | Implemented | Benchmark integrity, error atlas, contamination controls, and PIIMB track |

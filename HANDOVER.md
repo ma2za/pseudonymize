@@ -218,9 +218,9 @@ licenses, and datasets again because those external facts can change.
 
 ## Current release state
 
-`1.26.0` is published and tagged (`v1.26.0`).
-`1.27.0` is the active development version. The immediate priority is the `1.31.0` benchmark
-integrity and causal error atlas program.
+`1.27.0` is published and tagged (`v1.27.0`).
+`1.28.0` is the active development version. The immediate priority is the `1.28.0` measured
+multilingual contextual recall improvements program.
 
 Before this roadmap/handover update, `main` was clean at `71513da` and matched `origin/main`.
 Relevant integrated commits are:
