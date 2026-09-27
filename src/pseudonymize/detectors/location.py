@@ -21,7 +21,15 @@ _ROMANCE_STREET_RX = re.compile(
     r"(?:(?:de|la|del|el|los|las|da|do|dos|das|di|dell'?)\s*[A-Za-z\u00C0-\u017F]+\s*){0,3},?\s+\d{1,5}[a-zA-Z]?\b"
 )
 
-_ZIPCODE_RX = re.compile(r"(?i)\b(?:[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2}|\d{5}(?:-\d{4})?)\b")
+_ZIPCODE_RX = re.compile(
+    r"(?i)\b(?:"
+    r"[A-Z]{1,2}\d[A-Z\d]?\s+\d[A-Z]{2}"  # UK
+    r"|[A-Z]\d[A-Z][ -]\d[A-Z]\d"  # Canada
+    r"|\d{4}\s+[A-Z]{2}"  # Netherlands
+    r"|\d{2}-\d{3}"  # Poland / Sweden / Czechia
+    r"|\d{5}(?:-\d{4})?"  # US / Germany / France / Italy / Spain 5-digit
+    r")\b"
+)
 
 
 @dataclass(frozen=True, slots=True)

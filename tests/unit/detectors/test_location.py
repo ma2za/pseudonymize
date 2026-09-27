@@ -20,3 +20,21 @@ def test_location_detector_multilingual() -> None:
         assert len(detections) > 0
         matches = [full_text[det.start : det.end] for det in detections]
         assert any(t in match for match in matches)
+
+
+def test_location_detector_international_postal_codes() -> None:
+    detector = LocationDetector()
+    codes = [
+        "SW1A 1AA",  # UK
+        "K1A 0B1",  # Canada
+        "1012 JS",  # Netherlands
+        "00-001",  # Poland
+        "90210",  # US
+        "75001",  # France
+    ]
+    for code in codes:
+        full_text = f"Send mail to {code}."
+        detections = detector.detect(full_text)
+        assert len(detections) > 0
+        matches = [full_text[det.start : det.end] for det in detections]
+        assert any(code in match for match in matches)

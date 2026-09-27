@@ -153,6 +153,25 @@ def test_payment_card_disambiguation_with_tax_context() -> None:
     assert not _valid_german_tin("12345678901")
 
 
+def test_phone_detector_single_hyphen_area_codes() -> None:
+    detector = PhoneDetector()
+    valid_numbers = [
+        "Call 020-79460912 now.",
+        "Phone: 01634-263569.",
+        "Office: 030-28954321.",
+        "Contact: 212-5551234.",
+    ]
+    for text in valid_numbers:
+        detections = detector.detect(text)
+        assert len(detections) == 1
+        assert detections[0].entity_type == EntityType.PHONE
+
+    # Invalid / non-phone formats rejected
+    assert detector.detect("Serial 12345678-1.") == []
+    assert detector.detect("Version 1-1234567.") == []
+    assert detector.detect("Item 12-34.") == []
+
+
 def test_checksum_bypass_is_explicit() -> None:
     invalid_card = "4111 1111 1111 1112"
     invalid_iban = "GB82 WEST 1234 5698 7654 33"

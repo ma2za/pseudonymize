@@ -44,6 +44,9 @@ def test_context_detector_ignores_prose_without_an_identifier(text: str) -> None
         ("Mã số thuế 0101243150 đã đăng ký.", "0101243150", EntityType.TAX_ID),
         ("Nomor pajak 6621826002159997 terdaftar.", "6621826002159997", EntityType.TAX_ID),
         ("Steuernummer 12345678901 ist gültig.", "12345678901", EntityType.TAX_ID),
+        ("Tax reference: 12345678 in system.", "12345678", EntityType.TAX_ID),
+        ("Tax code: 987654321 registered.", "987654321", EntityType.TAX_ID),
+        ("Nomor pajak adalah: 6621826002159997 valid.", "6621826002159997", EntityType.TAX_ID),
         ("护照号 E12345678 已过期。", "E12345678", EntityType.NATIONAL_ID),
     ],
 )
