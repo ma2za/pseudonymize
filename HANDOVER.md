@@ -219,8 +219,9 @@ licenses, and datasets again because those external facts can change.
 ## Current release state
 
 `1.29.0` is published and tagged (`v1.29.0`).
+`1.30.0` is the active development version.
 
-Before this roadmap/handover update, `main` was clean at `6c8e017` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `0d3d9fb` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -235,6 +236,7 @@ Relevant integrated commits are:
 - `355c935 chore(release): prepare 1.28.0 release and update changelog`
 - `2e513f9 chore(release): bump development version to 1.29.0`
 - `6c8e017 feat(recall): reduce false negatives via area-code phone support, contextual word skipping, and international postal formats`
+- `0d3d9fb chore(release): prepare 1.29.0 release and update changelog`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
