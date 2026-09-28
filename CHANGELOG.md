@@ -4,6 +4,22 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.29.0] - 2026-09-28
+
+### Added
+- **Recall & False-Negative Reduction:**
+  - **Phone Area-Code Formatting:** Extended phone number validation in `PhoneDetector` to recognize standard single-hyphen international phone formats dividing an area code (2-5 digits) from a subscriber number (5-10 digits), e.g., `020-79460912`, `01634-263569`, `030-28954321`, reducing phone false negatives and raising recall to `0.9748`.
+  - **Contextual ID Intermediate Word Skipping:** Expanded `ContextualIdDetector` dependency link keywords with international descriptor and connector terms (`reference`, `ref`, `code`, `key`, `record`, `entry`, `registration`, `reg`, `serial`, `account`, `is`, `adalah`, `là`, `lautet`), allowing the detector to scan past intermediate label words (e.g., `Tax reference: 12345678`) to detect previously dropped identifiers (+66% true positive increase on `TAX_ID`).
+  - **Same-Span Deduplication:** Added duplicate match resolution in `ContextualIdDetector` to retain the highest-confidence rule on conflicting overlapping matches.
+  - **International Postal Codes:** Added support in `LocationDetector` for Canadian alphanumeric (`[A-Z]\d[A-Z] \d[A-Z]\d`), Dutch (`\d{4}\s+[A-Z]{2}`), and European hyphenated (`\d{2}-\d{3}`) postal codes.
+- **Observed Benchmark Evidence (1,000 Pinned Validation Samples):**
+  - False Negatives: reduced from `1,022` to `1,015` (-7 FN).
+  - True Positives: increased from `4,155` to `4,162` (+7 TP).
+  - Overall Recall: `0.8039` (up from `0.8026` baseline).
+  - Character Masking Recall: `81.78%` (up from `81.27%`).
+  - Character Masking Precision: `92.67%` (up from `91.73%`).
+  - Critical Entity Recall Floors: EMAIL (1.0000, 0 FN), PHONE (0.9748), PAYMENT_CARD (0.9650), NATIONAL_ID (0.9716).
+
 ## [1.28.0] - 2026-09-27
 
 ### Added
