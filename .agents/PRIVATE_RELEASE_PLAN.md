@@ -1,11 +1,13 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `1.20.2` (Fixing CI DAWG tests, fully eradicating `llama-cpp-python` dependency).
-- **Current Baseline (1.20.0):** 
-  - Precision: `0.8587`
-  - Recall: `0.8016`
-  - F1 Score: `0.8292`
+- **Just Completed:** `1.29.0` (Phone area-code formats, contextual ID word skipping, and international postal codes false-negative reductions).
+- **Active Development Version:** `1.30.0`
+- **Current Baseline (1.29.0):** 
+  - Precision: `0.8611` (Character Masking Precision: `92.67%`)
+  - Recall: `0.8039` (Character Masking Recall: `81.78%`)
+  - F1 Score: `0.8315`
+  - Critical Entity Recall Floors: EMAIL (`1.0000`, 0 FN), PHONE (`0.9748`), PAYMENT_CARD (`0.9650`), NATIONAL_ID (`0.9716`).
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 1000 samples).*
 
 ## Strategic Imperative: High-Throughput & Semantic Depth

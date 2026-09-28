@@ -8,9 +8,10 @@ def main() -> None:
 
     if sys.platform == "win32":
         print("Detected Windows.")
+        installed = False
         if shutil.which("winget"):
             print(
-                "Running: winget install -e --id UB-Mannheim.TesseractOCR --accept-package-agreements --accept-source-agreements"
+                "Running: winget install -e --id UB-Mannheim.TesseractOCR --source winget --accept-package-agreements --accept-source-agreements"
             )
             result = subprocess.run(
                 [
@@ -19,6 +20,8 @@ def main() -> None:
                     "-e",
                     "--id",
                     "UB-Mannheim.TesseractOCR",
+                    "--source",
+                    "winget",
                     "--accept-package-agreements",
                     "--accept-source-agreements",
                 ],
@@ -26,19 +29,33 @@ def main() -> None:
                 text=True,
             )
             # winget returns a non-zero exit code if it's already installed or no upgrade is available
-            if result.returncode != 0 and "No available upgrade found" not in result.stdout:
+            if result.returncode == 0 or "No available upgrade found" in result.stdout:
+                installed = True
+            else:
                 print(f"winget output: {result.stdout}")
                 print(f"winget error: {result.stderr}")
-                print("Failed to install via winget. Please install manually.")
-                sys.exit(1)
+
+        if not installed and shutil.which("choco"):
+            print("Trying Chocolatey: choco install tesseract --no-progress -y")
+            result = subprocess.run(
+                ["choco", "install", "tesseract", "--no-progress", "-y"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                installed = True
+            else:
+                print(f"choco output: {result.stdout}")
+                print(f"choco error: {result.stderr}")
+
+        if installed:
             print(
                 "Tesseract installed (or already installed) successfully to C:\\Program Files\\Tesseract-OCR\\"
             )
         else:
             print(
-                "winget not found. Please install Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki"
+                "Warning: Tesseract installation failed or package manager unavailable. OCR tests will be skipped."
             )
-            sys.exit(1)
 
     elif sys.platform == "darwin":
         print("Detected macOS.")
