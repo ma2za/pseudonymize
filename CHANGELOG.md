@@ -4,6 +4,20 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.30.0] - 2026-09-28
+
+### Added
+- **Ensemble Decisions & Deterministic Conflict Resolution:**
+  - Standardized immutable detector weights (`DETECTOR_WEIGHTS` in `pseudonymize.spans`) as the single source of truth for overlap resolution across local rules, gazetteer, ML, and remote backends.
+  - Enforced pairwise precedence hierarchy and topological overlap resolution with deterministic tie-breaking.
+  - Implemented strict contiguous adjacent same-type span merging for multi-token entities with zero inter-token gaps.
+  - Verified permutation invariance ensuring detection registration order does not alter resolved spans.
+- **Observability Isolation & Security:**
+  - Hardened OpenTelemetry and logging integrations (`pseudonymize.otel`) ensuring base imports never load optional telemetry packages.
+  - Enforced value-free safe diagnostic attributes and immutable-container fail-closed handling in distributed trace spans.
+- **Operational Readiness Documentation:**
+  - Published comprehensive production deployment guide (`docs/deployment.md`) documenting trust boundaries, request lifecycle, secret key rotation patterns, external mapping encryption/lifecycle responsibilities, rate/payload limits, and incident response runbooks.
+
 ## [1.29.0] - 2026-09-28
 
 ### Added
