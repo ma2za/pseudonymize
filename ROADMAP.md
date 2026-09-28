@@ -37,7 +37,7 @@ publishable without requiring unfinished later layers.
 | `1.27.0` | Published | Reproducible evaluation, production-safety hardening, and detector evidence |
 | `1.28.0` | Published | Measured multilingual contextual recall improvements |
 | `1.29.0` | Published | ML calibration, entity linking, and robust boundary alignment |
-| `1.30.0` | Implemented | Ensemble conflict resolution only if it improves held-out metrics |
+| `1.30.0` | Published | Ensemble conflict resolution only if it improves held-out metrics |
 | `1.31.0` | Implemented | Benchmark integrity, error atlas, contamination controls, and PIIMB track |
 | `1.32.0` | Implemented | Development-only calibration and constrained span decoding |
 | `1.33.0` | Implemented | Reproducible model and hybrid-ensemble bake-off |
