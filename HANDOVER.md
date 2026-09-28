@@ -218,11 +218,9 @@ licenses, and datasets again because those external facts can change.
 
 ## Current release state
 
-`1.27.0` is published and tagged (`v1.27.0`).
-`1.28.0` is the active development version. The immediate priority is the `1.28.0` measured
-multilingual contextual recall improvements program.
+`1.29.0` is published and tagged (`v1.29.0`).
 
-Before this roadmap/handover update, `main` was clean at `e990361` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `6c8e017` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -234,6 +232,9 @@ Relevant integrated commits are:
 - `6867b07 feat(benchmarks): implement 1.32-1.34 calibration, constrained decoding, and quality gate`
 - `5ff11c8 chore(release): prepare 1.27.0 release and update changelog`
 - `e990361 chore(release): bump development version to 1.28.0`
+- `355c935 chore(release): prepare 1.28.0 release and update changelog`
+- `2e513f9 chore(release): bump development version to 1.29.0`
+- `6c8e017 feat(recall): reduce false negatives via area-code phone support, contextual word skipping, and international postal formats`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
