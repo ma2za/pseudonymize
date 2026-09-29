@@ -4,8 +4,20 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.31.0] - 2026-09-28
+
 ### Added
-- **Benchmark Manifest Tooling:** Supported diverse annotation schema formats (`source_text` / `text` and offset or value-based entity matches) in structural template extraction and grouped partitioning.
+- **Measurement Integrity & Deterministic Comparison:**
+  - Extended evaluator to emit privacy-safe per-row sufficient statistics (`row_hash`, per-entity TP/FP/FN, source family, length bucket, and error categories) without storing raw text or matched values.
+  - Added paired bootstrap resampling engine (`benchmarks/compare_quality.py`) computing deterministic 95% confidence intervals on F1 and exact-boundary F1 deltas.
+- **Causal Error Atlas & Component Ablation Matrix:**
+  - Implemented development ablation runner (`benchmarks/run_ablations.py`) measuring 15 distinct architectural component ablations on identical row manifests.
+  - Multi-category causal error atlas classifying detection failures across the 5 canonical failure modes (missing candidate, threshold suppression, label confusion, boundary mismatch, and ensemble conflict).
+- **Contamination Controls & Grouped Manifests:**
+  - Implemented structural template normalization and grouping (`benchmarks/build_manifests.py`) preventing identical templates or form letters from crossing partition boundaries, supporting flexible annotation schemas (`source_text` / `text` and offset/value entities).
+  - Added contamination auditor (`benchmarks/audit_contamination.py`) auditing near-duplicate template leakage across manifests and training lineage.
+- **External Generalization Track:**
+  - Implemented multi-source benchmark evaluation harness (`benchmarks/evaluate_external.py`) for independent evaluation (such as PIIMB) using label-agnostic character-level metrics.
 
 ## [1.30.0] - 2026-09-28
 
