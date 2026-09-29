@@ -374,12 +374,25 @@ def evaluate(
         if row["language"] != "en":
             continue
 
-        text = row["source_text"]
+        text = str(row.get("source_text") or row.get("text", ""))
         row_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
         if manifest_hashes is not None and row_hash not in manifest_hashes:
             continue
 
-        masks = row["privacy_mask"]
+        raw_masks = row.get("privacy_mask") or row.get("entities") or row.get("spans") or []
+        masks: list[dict[str, typing.Any]] = []
+        for m in raw_masks:
+            s = m.get("start")
+            e = m.get("end")
+            if s is None or e is None:
+                val = m.get("value")
+                if val and val in text:
+                    s = text.index(val)
+                    e = s + len(val)
+                else:
+                    continue
+            label = m.get("label") or m.get("type", "MASK")
+            masks.append({"start": s, "end": e, "label": label})
 
         # Annotations we claim to support are the ones scored. The rest are kept
         # aside rather than dropped: a correct detection of a label outside our
