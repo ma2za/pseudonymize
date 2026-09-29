@@ -4,6 +4,9 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- **Benchmark Manifest Tooling:** Supported diverse annotation schema formats (`source_text` / `text` and offset or value-based entity matches) in structural template extraction and grouped partitioning.
+
 ## [1.30.0] - 2026-09-28
 
 ### Added

@@ -136,3 +136,35 @@ def test_remote_evaluation_requires_an_immutable_revision() -> None:
 
     assert completed.returncode == 2
     assert "--dataset-revision is required" in completed.stderr
+
+
+def test_build_manifests_compute_template_and_partitioning() -> None:
+    from typing import Any
+
+    from benchmarks.build_manifests import compute_template, partition_groups
+
+    # Format A: source_text + privacy_mask with start/end
+    source_text_a = "Hello John Doe, contact me at john@example.com."
+    masks_a: list[dict[str, Any]] = [
+        {"start": 6, "end": 14, "label": "PERSON"},
+        {"start": 30, "end": 46, "label": "EMAIL"},
+    ]
+    tpl_a = compute_template(source_text_a, masks_a)
+    assert tpl_a == "Hello <PERSON>, contact me at <EMAIL>."
+
+    # Format B: text + entities with value/type
+    text_b = "Hello Jane Smith, contact me at jane@example.com."
+    entities_b: list[dict[str, Any]] = [
+        {"value": "Jane Smith", "type": "PERSON"},
+        {"value": "jane@example.com", "type": "EMAIL"},
+    ]
+    tpl_b = compute_template(text_b, entities_b)
+    assert tpl_b == "Hello <PERSON>, contact me at <EMAIL>."
+
+    row_a: dict[str, Any] = {"source_text": source_text_a, "privacy_mask": masks_a}
+    row_b: dict[str, Any] = {"text": text_b, "entities": entities_b}
+    partitions, group_counts = partition_groups([row_a, row_b])
+    # Both rows share the identical template, so they must be in the same partition!
+    assert sum(len(p) for p in partitions.values()) == 2
+    active_partition = next(name for name, rows in partitions.items() if len(rows) == 2)
+    assert group_counts[active_partition] == 1

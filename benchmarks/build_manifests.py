@@ -23,7 +23,21 @@ DEFAULT_REVISION = "a785eb528e28be2693c3718a27e066970de5dadb"
 
 def compute_template(text: str, masks: list[dict[str, Any]]) -> str:
     """Replace annotated spans with <LABEL> to form a structural template."""
-    sorted_masks = sorted(masks, key=lambda m: (m["start"], m["end"]), reverse=True)
+    resolved_masks = []
+    for m in masks:
+        s = m.get("start")
+        e = m.get("end")
+        if s is None or e is None:
+            val = m.get("value")
+            if val and val in text:
+                s = text.index(val)
+                e = s + len(val)
+            else:
+                continue
+        label = m.get("label") or m.get("type", "MASK")
+        resolved_masks.append({"start": s, "end": e, "label": label})
+
+    sorted_masks = sorted(resolved_masks, key=lambda m: (m["start"], m["end"]), reverse=True)
     chars = list(text)
     for mask in sorted_masks:
         s = mask["start"]
@@ -46,8 +60,8 @@ def partition_groups(
     """Group rows by template hash and partition deterministically across splits."""
     groups: dict[str, list[str]] = {}
     for r in rows:
-        text = r["source_text"]
-        masks = r.get("privacy_mask", [])
+        text = r.get("source_text") or r.get("text", "")
+        masks = r.get("privacy_mask") or r.get("entities") or r.get("spans") or []
         row_h = hashlib.sha256(text.encode("utf-8")).hexdigest()
         tpl = compute_template(text, masks)
         tpl_h = compute_template_hash(tpl)
