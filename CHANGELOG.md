@@ -4,6 +4,21 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.32.0] - 2026-09-29
+
+### Added
+- **Calibrated Token Decisions & Probability Calibration:**
+  - Implemented Expected Calibration Error (ECE), Brier score, and Negative Log-Likelihood (NLL) measurement in `benchmarks/calibrate_ml.py`.
+  - Added temperature scaling optimization via Golden Section Search NLL minimization on calibration logits.
+  - Added constrained emission threshold optimization on development data subject to strict precision floors and critical entity recall constraints.
+- **Constrained BIO Span Decoding:**
+  - Added `decoder_mode="constrained_bio"` to `LocalONNXPIIBackend` enforcing valid BIO token transitions and preventing invalid O->I transitions.
+  - Distinguished contiguous same-type multi-token components of a single entity from consecutive distinct entities without greedy cross-entity collapsing.
+- **Pluggable Span Confidence Aggregation:**
+  - Introduced configurable span-level confidence aggregation modes (`"max"`, `"mean"`, `"min"`, `"geometric_mean"`).
+- **Benchmark Infrastructure Enhancements:**
+  - Supported flexible annotation schemas (`source_text` / `text` and offset or value-based entity matches) in `benchmarks/evaluate_quality.py`.
+
 ## [1.31.0] - 2026-09-28
 
 ### Added

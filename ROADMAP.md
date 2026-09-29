@@ -39,7 +39,7 @@ publishable without requiring unfinished later layers.
 | `1.29.0` | Published | ML calibration, entity linking, and robust boundary alignment |
 | `1.30.0` | Published | Ensemble conflict resolution only if it improves held-out metrics |
 | `1.31.0` | Published | Benchmark integrity, error atlas, contamination controls, and PIIMB track |
-| `1.32.0` | Implemented | Development-only calibration and constrained span decoding |
+| `1.32.0` | Published | Development-only calibration and constrained span decoding |
 | `1.33.0` | Implemented | Reproducible model and hybrid-ensemble bake-off |
 | `1.34.0` | Implemented | Independent generalization proof and quality release gate |
 
