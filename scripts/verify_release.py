@@ -1,6 +1,7 @@
 import argparse
 import email.message
 import email.parser
+import json
 import os
 import re
 import tarfile
@@ -36,6 +37,7 @@ REQUIRED_SDIST_FILES = frozenset(
         "docs/architecture.md",
         "docs/migration-a2.md",
         "docs/migration-a3.md",
+        "docs/model_card.md",
         "docs/releasing.md",
         "docs/releases/0.1.0a2.md",
         "docs/releases/0.1.0a3.md",
@@ -153,6 +155,17 @@ def verify_sdist(path: Path, version: str) -> None:
         raise ValueError(f"source distribution is missing: {', '.join(sorted(missing))}")
 
 
+def verify_quality_gate_report(report_path: Path) -> None:
+    if not report_path.is_file():
+        raise ValueError(f"quality gate report not found at {report_path}")
+    data = json.loads(report_path.read_text(encoding="utf-8"))
+    if not data.get("passed", False) or data.get("recommendation") != "SHIP":
+        summary = data.get("summary_reasons", ["unspecified failure"])
+        raise ValueError(f"quality gate failed: {summary}")
+    rec = data.get("recommendation")
+    print(f"verified quality gate report: candidate approved for shipment ({rec})")
+
+
 def verify_release(project_root: Path, distribution_directory: Path, tag: str | None) -> None:
     version = project_version(project_root / "pyproject.toml")
     verify_tag(version, tag)
@@ -178,6 +191,7 @@ def main() -> int:
     )
     parser.add_argument("--tag", default=inferred_tag)
     parser.add_argument("--check-tag-only", action="store_true")
+    parser.add_argument("--quality-gate-report", type=Path, default=None)
     arguments = parser.parse_args()
     if arguments.check_tag_only:
         version = project_version(arguments.project_root / "pyproject.toml")
@@ -185,6 +199,8 @@ def main() -> int:
         verify_changelog(version, arguments.project_root / "CHANGELOG.md", arguments.tag)
         print(f"verified tag for pseudonymize {version}")
         return 0
+    if arguments.quality_gate_report is not None:
+        verify_quality_gate_report(arguments.quality_gate_report)
     verify_release(arguments.project_root, arguments.dist, arguments.tag)
     return 0
 
