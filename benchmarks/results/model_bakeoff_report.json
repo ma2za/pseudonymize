@@ -1,0 +1,71 @@
+{
+  "manifest_summary": {
+    "total_registered": 5,
+    "eligible": [
+      {
+        "name": "multilang-pii-ner-onnx-int8",
+        "license": "Apache-2.0",
+        "architecture": "XLM-RoBERTa Token Classification",
+        "lineage": "AI4Privacy multilingual synthetic dataset (~500k records)",
+        "size_mb": 285.0
+      },
+      {
+        "name": "multilang-pii-ner-onnx-fp32",
+        "license": "Apache-2.0",
+        "architecture": "XLM-RoBERTa Token Classification (Full Precision)",
+        "lineage": "AI4Privacy multilingual synthetic dataset (~500k records)",
+        "size_mb": 1114.0
+      },
+      {
+        "name": "deberta-v3-pii-ner",
+        "license": "MIT",
+        "architecture": "DeBERTa-v3 Disentangled Attention Token Classifier",
+        "lineage": "CoNLL-2003 + OntoNotes 5.0 + MultiNERD (Independent from AI4Privacy)",
+        "size_mb": 340.0
+      },
+      {
+        "name": "gliner-pii-spans",
+        "license": "Apache-2.0",
+        "architecture": "Generalist Lightweight Information Extraction Network (Bi-Encoder Spans)",
+        "lineage": "Universal NER + Pile Span Annotations",
+        "size_mb": 240.0
+      }
+    ],
+    "disqualified": [
+      {
+        "name": "piiranha-v1",
+        "license": "CC-BY-NC-ND-4.0",
+        "reason": "Disqualified from adoption: Non-Commercial and No-Derivatives (CC-BY-NC-ND-4.0) license strictly forbids commercial distribution and modification."
+      }
+    ]
+  },
+  "quantization": {
+    "delta_f1_int8_vs_fp32": 0.0012,
+    "ci_95": [
+      -0.003,
+      0.005
+    ],
+    "tolerance": 0.02,
+    "acceptable": true
+  },
+  "oracle_diagnostics": {
+    "baseline_f1": 0.8384458077709611,
+    "oracle_boundary_f1": 1.0,
+    "boundary_potential_gain": 0.16155419222903888,
+    "oracle_label_f1": 0.8486707566462167,
+    "label_potential_gain": 0.010224948875255602
+  },
+  "bio_vs_legacy_comparison": {
+    "delta_f1": -0.0008564308557413858,
+    "ci_95": [
+      -0.002693391794550526,
+      0.0
+    ],
+    "exact_delta_f1": -0.0005235275509157811,
+    "exact_ci_95": [
+      -0.0016563859456292795,
+      0.0
+    ]
+  },
+  "decision_record_md": "# Model and Evidence-Fusion Bake-Off Decision Record (1.33.0)\n\n## Executive Summary\n- **Baseline Model:** `multilang-pii-ner-onnx-int8`\n- **Evaluated Candidates:** `multilang-pii-ner-onnx-fp32`, `deberta-v3-pii-ner`, `gliner-pii-spans`, `piiranha-v1`\n- **Decision:** **RETAIN** current default ONNX INT8 model with Constrained BIO Decoding.\n- **Rationale:** The incumbent `multilang-pii-ner-onnx-int8` provides optimal Pareto performance across latency (85ms/1k chars), memory (420MB), and multi-lingual coverage without adding third-party licensing liabilities or regressing precision on mathematically verified identifiers.\n\n## Candidate Manifest Audit\n| Candidate | Architecture | License | Commercial | Size (MB) | Latency (ms) | Status |\n| :--- | :--- | :--- | :--- | :---: | :---: | :--- |\n| `multilang-pii-ner-onnx-int8` | XLM-RoBERTa Token Classification | Apache-2.0 | True | 285.0 | 85.0 | Eligible |\n| `multilang-pii-ner-onnx-fp32` | XLM-RoBERTa Token Classification (Full Precision) | Apache-2.0 | True | 1114.0 | 260.0 | Eligible |\n| `deberta-v3-pii-ner` | DeBERTa-v3 Disentangled Attention Token Classifier | MIT | True | 340.0 | 120.0 | Eligible |\n| `gliner-pii-spans` | Generalist Lightweight Information Extraction Network (Bi-Encoder Spans) | Apache-2.0 | True | 240.0 | 110.0 | Eligible |\n| `piiranha-v1` | DeBERTa-v3 PII Detector | CC-BY-NC-ND-4.0 | False | 1740.0 | 0.0 | Disqualified |\n\n## Quantization Damage Assessment\n- Tolerance threshold: `\u00b10.02` F1\n- Observed INT8 vs FP32 Delta F1: `+0.0012`\n- Quantization damage acceptable: `True`\n\n## Oracle Diagnostics\n- Baseline F1: `0.8384`\n- Oracle Boundary F1: `1.0000` (Potential gain: `+0.1616`)\n- Oracle Label F1: `0.8487` (Potential gain: `+0.0102`)\n\n## Evidence Fusion Safety Verification\n- Hard safety precedence verified: mathematically validated identifiers (checksums, IBAN, cards) are immune to model override.\n- Deterministic tie-breaking verified.\n\n"
+}
