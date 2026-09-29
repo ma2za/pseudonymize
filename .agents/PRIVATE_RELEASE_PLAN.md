@@ -1,13 +1,13 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `1.32.0` (Calibrated token decisions, temperature scaling, constrained BIO span decoding, and pluggable span confidence aggregators).
-- **Active Development Version:** `1.33.0`
-- **Current Baseline (1.31.0/1.32.0):** 
-  - Precision: `0.8611` (Character Masking Precision: `92.67%`)
-  - Recall: `0.8039` (Character Masking Recall: `81.78%`)
-  - F1 Score: `0.8315`
-  - Critical Entity Recall Floors: EMAIL (`1.0000`, 0 FN), PHONE (`0.9748`), PAYMENT_CARD (`0.9650`), NATIONAL_ID (`0.9716`).
+- **Just Completed:** `1.33.0` (Model and evidence-fusion bake-off, quantization damage assessment, oracle diagnostics, and Decision Record).
+- **Active Development Version:** `1.34.0`
+- **Current Baseline (1.33.0):** 
+  - Precision: `0.8686` (Character Masking Precision: `93.12%`)
+  - Recall: `0.8103` (Character Masking Recall: `83.58%`)
+  - F1 Score: `0.8384`
+  - Critical Entity Recall Floors: EMAIL (`1.0000`, 0 FN), PHONE (`0.9783`), PAYMENT_CARD (`1.0000`, 0 FN), NATIONAL_ID (`0.9716`).
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 1000 samples).*
 
 ## Strategic Imperative: High-Throughput & Semantic Depth
