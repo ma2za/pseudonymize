@@ -1,9 +1,9 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `1.30.0` (Standardized immutable detector weights, pairwise conflict hierarchy, adjacent span merging, and operational readiness guide).
-- **Active Development Version:** `1.31.0`
-- **Current Baseline (1.30.0):** 
+- **Just Completed:** `1.31.0` (Measurement integrity, paired bootstrap resampling, causal error atlas, contamination controls, and PIIMB external track).
+- **Active Development Version:** `1.32.0`
+- **Current Baseline (1.31.0):** 
   - Precision: `0.8611` (Character Masking Precision: `92.67%`)
   - Recall: `0.8039` (Character Masking Recall: `81.78%`)
   - F1 Score: `0.8315`
