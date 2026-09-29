@@ -34,6 +34,8 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("run_bakeoff")
 
+DEFAULT_DATASET_REVISION = "a785eb528e28be2693c3718a27e066970de5dadb"
+
 
 def assess_quantization_damage(
     baseline_int8_result: dict[str, Any],
@@ -171,6 +173,7 @@ def run_bakeoff_suite(
     file_path: Path | None = None,
     samples: int = 200,
     use_ml: bool = True,
+    dataset_revision: str | None = DEFAULT_DATASET_REVISION,
 ) -> dict[str, Any]:
     """Execute model bakeoff and oracle diagnostics on identical development data."""
     logger.info(f"--- Running 1.33.0 Model Bake-off on {samples} rows ---")
@@ -181,6 +184,7 @@ def run_bakeoff_suite(
         use_ml=use_ml,
         file_path=file_path,
         decoder_mode="legacy",
+        dataset_revision=dataset_revision,
     )
 
     # Evaluate Candidate with Constrained BIO decoding
@@ -189,6 +193,7 @@ def run_bakeoff_suite(
         use_ml=use_ml,
         file_path=file_path,
         decoder_mode="constrained_bio",
+        dataset_revision=dataset_revision,
     )
 
     comparison = compare_results(base_result, bio_result, num_resamples=500)
@@ -250,6 +255,11 @@ def main() -> int:
     parser.add_argument("--samples", type=int, default=200, help="Number of samples to evaluate.")
     parser.add_argument("--file", type=Path, help="Optional local JSONL file to evaluate.")
     parser.add_argument(
+        "--dataset-revision",
+        default=DEFAULT_DATASET_REVISION,
+        help="Dataset revision to evaluate.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=Path("benchmarks/results/model_bakeoff_report.json"),
@@ -263,7 +273,11 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    results = run_bakeoff_suite(file_path=args.file, samples=args.samples)
+    results = run_bakeoff_suite(
+        file_path=args.file,
+        samples=args.samples,
+        dataset_revision=args.dataset_revision,
+    )
 
     if args.decision_record is not None:
         args.decision_record.parent.mkdir(parents=True, exist_ok=True)

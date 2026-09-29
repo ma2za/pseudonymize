@@ -35,6 +35,7 @@ nav:
       - Token format: adr/0002-token-format.md
       - No reversible storage: adr/0003-no-reversible-storage.md
       - Optional ML backend: adr/0004-optional-ml-backend.md
+      - Model Bake-Off (1.33.0): decisions/1.33.0_model_bakeoff_record.md
 plugins:
   - search
   - mkdocstrings:
