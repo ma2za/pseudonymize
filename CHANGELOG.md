@@ -4,6 +4,22 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.33.0] - 2026-09-29
+
+### Added
+- **Model and Evidence-Fusion Bake-Off Framework:**
+  - Implemented formal `ModelCandidate` registry and validation in `benchmarks/model_manifests.py` auditing licenses, commercial viability, redistribution, parameter footprints, and inference latency.
+  - Formally disqualified non-commercial and no-derivatives models (e.g. `piiranha-v1` under CC-BY-NC-ND-4.0).
+  - Implemented empirical quantization damage assessment (`assess_quantization_damage`) verifying that INT8 quantization incurs no significant quality loss against FP32 baselines (`+0.0012` Delta F1, well within `±0.02` tolerance).
+  - Added Oracle diagnostics (`compute_oracle_diagnostics`) isolating token label confusion from span boundary misalignment, revealing boundary segmentation as the primary performance lever (`+0.1616` potential F1 gain).
+  - Executed candidate bake-off suite on pinned evaluation data and generated official Decision Record `docs/decisions/1.33.0_model_bakeoff_record.md` confirming retention of the incumbent INT8 ONNX backend.
+- **Evidence-Fusion Conflict Arbitration & Hard Safety Precedence:**
+  - Implemented `arbitrate_conflicts` in `benchmarks/evidence_fusion.py` enforcing absolute precedence for mathematically validated identifiers (IBAN Mod97, Credit Card Luhn, Tax IDs) over unvalidated or high-confidence ML predictions.
+  - Added bounded scoring integrating context polarity, detector provenance weights, and span length.
+- **Release Verification & Quality Gate Integration:**
+  - Enforced `docs/model_card.md` inclusion in `REQUIRED_SDIST_FILES` in `scripts/verify_release.py`.
+  - Added `verify_quality_gate_report` function and `--quality-gate-report` CLI flag in release tooling.
+
 ## [1.32.0] - 2026-09-29
 
 ### Added

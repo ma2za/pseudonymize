@@ -40,8 +40,8 @@ publishable without requiring unfinished later layers.
 | `1.30.0` | Published | Ensemble conflict resolution only if it improves held-out metrics |
 | `1.31.0` | Published | Benchmark integrity, error atlas, contamination controls, and PIIMB track |
 | `1.32.0` | Published | Development-only calibration and constrained span decoding |
-| `1.33.0` | Implemented | Reproducible model and hybrid-ensemble bake-off |
-| `1.34.0` | Implemented | Independent generalization proof and quality release gate |
+| `1.33.0` | Published | Reproducible model and hybrid-ensemble bake-off |
+| `1.34.0` | Published | Independent generalization proof and quality release gate |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
