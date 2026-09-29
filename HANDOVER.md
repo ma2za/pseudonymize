@@ -219,8 +219,9 @@ licenses, and datasets again because those external facts can change.
 ## Current release state
 
 `1.32.0` is published and tagged (`v1.32.0`).
+`1.33.0` is the active development version.
 
-Before this roadmap/handover update, `main` was clean at `988bc88` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `04922ff` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -243,6 +244,7 @@ Relevant integrated commits are:
 - `3656824 chore(release): prepare 1.31.0 release and update changelog`
 - `e359a2f chore(release): bump development version to 1.32.0`
 - `988bc88 feat(benchmarks): support flexible annotation schemas in evaluate_quality`
+- `04922ff chore(release): prepare 1.32.0 release and update changelog`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
