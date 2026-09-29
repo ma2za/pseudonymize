@@ -245,6 +245,8 @@ Relevant integrated commits are:
 - `e359a2f chore(release): bump development version to 1.32.0`
 - `988bc88 feat(benchmarks): support flexible annotation schemas in evaluate_quality`
 - `04922ff chore(release): prepare 1.32.0 release and update changelog`
+- `49de503 chore(release): bump development version to 1.33.0`
+- `5fdee58 feat(benchmarks): complete 1.33.0 model bake-off, evidence fusion tests, and decision record`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
