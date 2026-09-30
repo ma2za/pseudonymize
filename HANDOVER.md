@@ -218,10 +218,9 @@ licenses, and datasets again because those external facts can change.
 
 ## Current release state
 
-`1.33.0` is published and tagged (`v1.33.0`).
-`1.34.0` is the active development version.
+`1.34.0` is published and tagged (`v1.34.0`).
 
-Before this roadmap/handover update, `main` was clean at `60133c2` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `c683f12` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -249,6 +248,7 @@ Relevant integrated commits are:
 - `5fdee58 feat(benchmarks): complete 1.33.0 model bake-off, evidence fusion tests, and decision record`
 - `ee92eba feat(release): integrate 1.34.0 quality gate and model card validation into release verifier`
 - `60133c2 chore(release): prepare 1.33.0 release and update changelog`
+- `c683f12 chore(release): bump development version to 1.34.0`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
@@ -314,9 +314,11 @@ ensemble” interpretation.
 3. Use the resulting ranked error causes to decide whether `1.32.0` calibration/decoding work is
    justified. Pre-register experiments and fit on grouped development/calibration data only.
 4. Run the `1.33.0` model/hybrid bake-off only if evidence says model capacity or error
-   complementarity is the bottleneck.
+   complementarity is the bottleneck (COMPLETED).
 5. Run the `1.34.0` blind generalization gate once after freezing the candidate. Ship no claimed
-   benchmark improvement without paired uncertainty and independent-corpus support.
+   benchmark improvement without paired uncertainty and independent-corpus support (COMPLETED).
+6. Execute the performance and semantic recall initiatives (batch vectorization, zero-copy caching,
+   and subword repair).
 
 ## 1.29.0-dev False Negatives Reduction Program (VERIFIED & INTEGRATED)
 
