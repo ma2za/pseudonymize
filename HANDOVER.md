@@ -219,8 +219,9 @@ licenses, and datasets again because those external facts can change.
 ## Current release state
 
 `1.34.0` is published and tagged (`v1.34.0`).
+`1.35.0` is the active development version.
 
-Before this roadmap/handover update, `main` was clean at `c683f12` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `4536e14` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -249,6 +250,7 @@ Relevant integrated commits are:
 - `ee92eba feat(release): integrate 1.34.0 quality gate and model card validation into release verifier`
 - `60133c2 chore(release): prepare 1.33.0 release and update changelog`
 - `c683f12 chore(release): bump development version to 1.34.0`
+- `4536e14 chore(release): prepare 1.34.0 release and update changelog`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
