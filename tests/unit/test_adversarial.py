@@ -251,3 +251,26 @@ def test_adversarial_whitespace_injection() -> None:
     text = "Email:\u0009\u000bbob@example.com\u000cPhone:\u0009555-555-5555"
     result = engine.process(text)
     assert "bob@example.com" not in result.text
+
+
+def test_adversarial_peripheral_punctuation_preservation() -> None:
+    # Punctuation wrapping identifiers must remain outside the redaction/replacement
+    engine = Pseudonymizer(mode=TransformationMode.REDACTED)
+    text = "Please ping (alice@example.com) and [bob@example.com], or call (+1-555-0100)."
+    result = engine.process(text)
+    assert "([REDACTED])" in result.text
+    assert "[[REDACTED]]" in result.text
+    assert "([REDACTED])." in result.text or "(+[REDACTED])." in result.text
+    assert "alice@example.com" not in result.text
+    assert "bob@example.com" not in result.text
+    assert "+1-555-0100" not in result.text
+
+
+def test_adversarial_compound_name_boundaries() -> None:
+    # Compound names with hyphens and apostrophes
+    engine = Pseudonymizer(mode=TransformationMode.REDACTED)
+    text = "Emails: info@jean-paul.org, contact: admin@o-connor.net."
+    result = engine.process(text)
+    assert "info@jean-paul.org" not in result.text
+    assert "admin@o-connor.net" not in result.text
+    assert result.text.endswith(".")
