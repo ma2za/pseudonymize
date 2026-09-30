@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790753463918,
+  "lastUpdate": 1790758517701,
   "repoUrl": "https://github.com/ma2za/pseudonymize",
   "entries": {
     "Python Benchmark with pytest-benchmark": [
@@ -7552,6 +7552,156 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.0011501102716744566",
             "extra": "mean: 90.09456063636182 msec\nrounds: 11"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mazzapaolo2019@gmail.com",
+            "name": "Paolo Mazza",
+            "username": "ma2za"
+          },
+          "committer": {
+            "email": "mazzapaolo2019@gmail.com",
+            "name": "Paolo Mazza",
+            "username": "ma2za"
+          },
+          "distinct": true,
+          "id": "bc187920609a7557f727bbfcb1906ad977cf01fb",
+          "message": "feat(ml): implement subword repair, compound name bridging, and boundary punctuation alignment",
+          "timestamp": "2026-09-30T10:54:38+02:00",
+          "tree_id": "847b97365dd1a1d764eb30a8070345a925f6dcb0",
+          "url": "https://github.com/ma2za/pseudonymize/commit/bc187920609a7557f727bbfcb1906ad977cf01fb"
+        },
+        "date": 1790758516671,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[email]",
+            "value": 1036766.3249648997,
+            "unit": "iter/sec",
+            "range": "stddev: 1.6243113723186124e-7",
+            "extra": "mean: 964.5375008045863 nsec\nrounds: 170911"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[ip_address]",
+            "value": 631.7190725273243,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00005605393645728704",
+            "extra": "mean: 1.582982125265414 msec\nrounds: 471"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[payment_card]",
+            "value": 2563.5318622265236,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000040841558353897",
+            "extra": "mean: 390.0868230798826 usec\nrounds: 2617"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[iban]",
+            "value": 2604.595820403826,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000009273991732667438",
+            "extra": "mean: 383.93672913325815 usec\nrounds: 2492"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[italian_fiscal_code]",
+            "value": 448.3005336022377,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000027962532583630783",
+            "extra": "mean: 2.2306464638011496 msec\nrounds: 442"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[italian_vat]",
+            "value": 2592.4173095350525,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003088205319481523",
+            "extra": "mean: 385.740365303821 usec\nrounds: 2617"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[spanish_nif]",
+            "value": 2465.9259254125127,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00007681202532683626",
+            "extra": "mean: 405.52718542537525 usec\nrounds: 2621"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[german_tin]",
+            "value": 2473.2008113515462,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00007320218450334116",
+            "extra": "mean: 404.3343328249692 usec\nrounds: 2623"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[context_id]",
+            "value": 2601.779156096692,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000009844317904940675",
+            "extra": "mean: 384.35237581818654 usec\nrounds: 2597"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[checksum]",
+            "value": 2598.500010909347,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00001503249454105495",
+            "extra": "mean: 384.8374045802098 usec\nrounds: 2489"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[phone]",
+            "value": 2605.250319435342,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000008551779136503663",
+            "extra": "mean: 383.84027536238375 usec\nrounds: 2622"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[url]",
+            "value": 15504.422022253435,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000025666464130730822",
+            "extra": "mean: 64.49772836192822 usec\nrounds: 15274"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[secret]",
+            "value": 5139.197765619636,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000003950132514776745",
+            "extra": "mean: 194.58289904502814 usec\nrounds: 5131"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[location]",
+            "value": 2603.9579086908284,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00000809782105809651",
+            "extra": "mean: 384.03078508391184 usec\nrounds: 2266"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[organization]",
+            "value": 1248.2236989598493,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000004648816435439562",
+            "extra": "mean: 801.1384504502715 usec\nrounds: 1221"
+          },
+          {
+            "name": "benchmarks/benchmark_detectors.py::test_detector_nonmatching_input[gazetteer]",
+            "value": 1248.400526119117,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00014426108470674712",
+            "extra": "mean: 801.0249748201278 usec\nrounds: 1112"
+          },
+          {
+            "name": "benchmarks/benchmark_engine.py::test_process_synthetic_messages[4 KiB]",
+            "value": 161.89810080606193,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0007238258031079371",
+            "extra": "mean: 6.176724711538785 msec\nrounds: 156"
+          },
+          {
+            "name": "benchmarks/benchmark_engine.py::test_process_synthetic_messages[64 KiB]",
+            "value": 10.969815007263406,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0019703098904461608",
+            "extra": "mean: 91.15924009091069 msec\nrounds: 11"
           }
         ]
       }
