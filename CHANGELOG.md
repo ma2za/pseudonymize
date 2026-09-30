@@ -4,6 +4,21 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.34.0] - 2026-09-30
+
+### Added
+- **Automated Quality Release Gate:**
+  - Implemented formal 5-criteria quality release gate (`benchmarks/quality_gate.py`) evaluating pinned provenance (dataset revision `a785eb528e28be2693c3718a27e066970de5dadb` and model SHA-256 hashes), non-negative paired 95% bootstrap F1-delta intervals, strict precision protection, zero recall regression on critical identifiers (EMAIL, PHONE, PAYMENT_CARD, NATIONAL_ID), and external generalization floor.
+  - Added fail-closed unit test coverage in `tests/unit/test_quality_gate.py` verifying detection of precision regressions, critical identifier drops, unpinned provenance, and external generalization failures.
+- **Formal Model Card Publication:**
+  - Published comprehensive model card (`docs/model_card.md`) documenting model architecture (XLM-RoBERTa Token Classifier), INT8 dynamic quantization, training lineage (AI4Privacy 500k), verified strict quality metrics, zero-shot character metrics on the PIIMB benchmark, CPU inference latency (85ms/1k chars), memory footprint (420MB RSS), and causal failure mode taxonomy.
+- **Release Verification & CI Integration:**
+  - Integrated `docs/model_card.md` into `REQUIRED_SDIST_FILES` in `scripts/verify_release.py`.
+  - Added `verify_quality_gate_report` function and `--quality-gate-report` CLI flag in release verification tooling.
+  - Added integration test suite in `tests/integration/test_release_verifier.py` validating fail-closed behavior for passing and failing quality gate reports.
+- **Blind Generalization & Causal Error Integration:**
+  - Completed validation across pinned 1,000-sample validation slice with zero raw value exposure in diagnostic logs, traces, or test outputs.
+
 ## [1.33.0] - 2026-09-29
 
 ### Added
