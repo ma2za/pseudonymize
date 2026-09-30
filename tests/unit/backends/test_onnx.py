@@ -696,3 +696,87 @@ def test_onnx_multilingual_honorific_boosting(
     assert t_type == EntityType.PERSON
     for mark in ("様", "さん", "君", "ちゃん", "氏", "님", "씨"):
         assert trailing_pat.search(f"田中{mark}") is not None
+
+
+def test_trim_span_boundaries_comprehensive() -> None:
+    from pseudonymize.backends.ml.onnx import _trim_span_boundaries
+
+    # 1. Standard peripheral brackets and quotes
+    cases = [
+        ("(John)", 0, 6, None, 1, 5, "John"),
+        ("[Paris]", 0, 7, None, 1, 6, "Paris"),
+        ("“Berlin”", 0, 8, None, 1, 7, "Berlin"),
+        ("«Madrid»", 0, 8, None, 1, 7, "Madrid"),
+        ("¿London?", 0, 8, None, 1, 7, "London"),
+        ("Smith,", 0, 6, None, 0, 5, "Smith"),
+        ("Smith.", 0, 6, None, 0, 5, "Smith"),
+        ("...Paris...", 0, 11, None, 3, 8, "Paris"),
+        ("(John Smith).", 0, 13, None, 1, 11, "John Smith"),
+    ]
+    for text, s, e, ent_type, exp_s, exp_e, exp_text in cases:
+        res_s, res_e = _trim_span_boundaries(text, s, e, ent_type)
+        assert (res_s, res_e) == (exp_s, exp_e), (
+            f"Failed for {text!r}: got {(res_s, res_e)}, expected {(exp_s, exp_e)}"
+        )
+        assert text[res_s:res_e] == exp_text
+
+    # 2. Corporate and person abbreviations that legitimately end with a period
+    corp_text = "Invest in Acme Corp. today."
+    res_s, res_e = _trim_span_boundaries(corp_text, 10, 20, EntityType.ORGANIZATION)
+    assert corp_text[res_s:res_e] == "Acme Corp."
+
+    inc_text = "Founded by Globex Inc. in 1999."
+    res_s, res_e = _trim_span_boundaries(inc_text, 11, 22, EntityType.ORGANIZATION)
+    assert inc_text[res_s:res_e] == "Globex Inc."
+
+    person_text = "Honoring Martin Luther King Jr. today."
+    res_s, res_e = _trim_span_boundaries(person_text, 9, 31, EntityType.PERSON)
+    assert person_text[res_s:res_e] == "Martin Luther King Jr."
+
+    # 3. Internal hyphens and apostrophes must be preserved
+    compound_text = "Jean-Paul and O'Connor"
+    res_s, res_e = _trim_span_boundaries(compound_text, 0, 9, EntityType.PERSON)
+    assert compound_text[res_s:res_e] == "Jean-Paul"
+
+    res_s2, res_e2 = _trim_span_boundaries(compound_text, 14, 22, EntityType.PERSON)
+    assert compound_text[res_s2:res_e2] == "O'Connor"
+
+    # 4. Degenerate punctuation only
+    degen = "..."
+    res_s3, res_e3 = _trim_span_boundaries(degen, 0, 3, None)
+    assert res_s3 >= res_e3
+
+
+def test_onnx_compound_name_and_punctuation_trimming(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+    )
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+
+    # 1. Punctuation wrapping: parentheses and commas should not contaminate entity boundaries
+    text = "Please reach out to (John Smith), our coordinator in (Paris)."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+    detections = backend.detect(block, policy)
+
+    detected_spans = [text[d.start : d.end] for d in detections]
+    for span in detected_spans:
+        assert not span.startswith("(")
+        assert not span.endswith(")")
+        assert not span.endswith(",")
+        assert not span.endswith(".")
+
+    # 2. Compound names with hyphens and apostrophes
+    text2 = "Meeting with Jean-Paul and Liam O'Connor."
+    block2 = ContentBlock(id="2", text=text2, location=TextOffsetLocation(0, len(text2)))
+    detections2 = backend.detect(block2, policy)
+    detected_spans2 = [text2[d.start : d.end] for d in detections2]
+
+    # Boundaries must be clean without trailing periods
+    for span in detected_spans2:
+        assert not span.endswith(".")
