@@ -4,6 +4,16 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- **Scoped Entity Type Filtering for ONNX Backend:**
+  - Added `allowed_entity_types` parameter to `LocalONNXPIIBackend` enabling callers to constrain ML token extraction and advertised backend capabilities to an arbitrary subset of supported entity types (e.g. `PERSON` and `LOCATION` for specialized multi-model ensembling).
+  - Added `allowed_entity_types` property on `LocalONNXPIIBackend` returning the configured subset or `None` when unrestricted.
+  - Added unit test suite in `tests/unit/backends/test_onnx.py` validating capability advertising, detection filtering, collection conversions, and unsupported-type filtering.
+- **Benchmark Evaluation Enhancements:**
+  - Added `--seed` argument to `benchmarks/evaluate_quality.py` for reproducible pseudo-random sampling across custom dataset seeds.
+  - Added `--ensemble-ner` flag to `benchmarks/evaluate_quality.py` supporting secondary specialized name/location NER model ensembling.
+  - Stored sanitized 2,000-sample validation benchmark artifact (`1.35.0_ai4privacy_validation_2000_fresh.json`) with privacy-safe sufficient statistics.
+
 ## [1.34.0] - 2026-09-30
 
 ### Added

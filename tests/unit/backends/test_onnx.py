@@ -780,3 +780,47 @@ def test_onnx_compound_name_and_punctuation_trimming(
     # Boundaries must be clean without trailing periods
     for span in detected_spans2:
         assert not span.endswith(".")
+
+
+def test_onnx_allowed_entity_types_scoping(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+    text = "Sarah lives in Paris and works for Acme Corp."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    # 1. Scoped to PERSON only using set
+    person_only_backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+        allowed_entity_types={EntityType.PERSON},
+    )
+    assert person_only_backend.allowed_entity_types == frozenset({EntityType.PERSON})
+    assert person_only_backend.capabilities.entity_types == frozenset({EntityType.PERSON})
+    person_dets = person_only_backend.detect(block, policy)
+    assert all(d.entity_type == EntityType.PERSON for d in person_dets)
+    assert any(d.entity_type == EntityType.PERSON for d in person_dets)
+
+    # 2. Scoped with an unsupported entity type in set
+    scoped_unsupported = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+        allowed_entity_types={EntityType.PERSON, EntityType.SECRET},
+    )
+    assert scoped_unsupported.capabilities.entity_types == frozenset({EntityType.PERSON})
+
+    # 3. Default backend includes all supported entity types
+    default_backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+    )
+    assert default_backend.allowed_entity_types is None
+    assert EntityType.LOCATION in default_backend.capabilities.entity_types
+    assert EntityType.PERSON in default_backend.capabilities.entity_types
