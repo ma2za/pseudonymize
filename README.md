@@ -13,7 +13,7 @@ payloads.
 ```text
 Email paolo@example.com from 192.0.2.10.
                 ↓
-Email <EMAIL_1> from <IP_ADDRESS_1>.
+Email <EML_1> from <IP_1>.
 ```
 
 Pseudonymize detects structured sensitive values locally and transforms them into numbered,
@@ -55,13 +55,13 @@ no telemetry or model downloads, and denies remote-capable backends by default.
 
 The engine is strictly gated on detection accuracy against the `ai4privacy/pii-masking-openpii-1.5m` dataset (validation split, 1000 randomly sampled rows).
 
-**Current Baseline (1.20.0, 1000 rows, strict boundaries and type matching, ONNX backend enabled):**
+**Historical baseline (1.20.0, 1,000 rows, one-to-one positive boundary overlap and exact entity-type matching, ONNX backend enabled):**
 - **Precision:** 0.8587
 - **Recall:** 0.8016
 - **F1 Score:** 0.8292
 
 Each detection is paired with at most one annotation and must agree with it on entity
-type. Figures published before the scoring was strictly corrected are not comparable; see
+type. These figures measure overlapping spans, not exact-boundary accuracy. Figures published before the scoring was strictly corrected are not comparable; see
 [docs/benchmarks.md](docs/benchmarks.md).
 
 ## Installation
@@ -116,7 +116,7 @@ from pseudonymize import pseudonymize, redact
 safe = pseudonymize("Email paolo@example.com")
 hidden = redact("Email paolo@example.com")
 
-assert safe == "Email <EMAIL_1>"
+assert safe == "Email <EML_1>"
 assert hidden == "Email [REDACTED]"
 ```
 
@@ -129,7 +129,7 @@ from pseudonymize import Pseudonymizer
 
 result = Pseudonymizer().process_with_report("Email paolo@example.com from 192.0.2.10.")
 
-assert result.output == "Email <EMAIL_1> from <IP_ADDRESS_1>."
+assert result.output == "Email <EML_1> from <IP_1>."
 assert result.statistics.detections_found == 2
 assert result.detections[0].backend == "rules"
 assert "paolo@example.com" not in repr(result)
@@ -155,8 +155,8 @@ payload = {
 
 result = Pseudonymizer(policy=Policy.llm()).process_data_with_report(payload)
 
-assert result.output["messages"][0]["content"] == "Email <EMAIL_1>"
-assert result.output["messages"][1]["content"] == "Use <EMAIL_1> again"
+assert result.output["messages"][0]["content"] == "Email <EML_1>"
+assert result.output["messages"][1]["content"] == "Use <EML_1> again"
 assert result.output["model"] == "example-model"
 ```
 
@@ -164,7 +164,11 @@ The input is not mutated. Dictionary keys and non-string values are preserved.
 
 ### Stream LLM responses
 
-Real-time WebSocket chunks from OpenAI or Anthropic can be processed seamlessly without risking split-entity leakage across chunks. Both `process_stream` and `process_stream_async` are available:
+Both `process_stream` and `process_stream_async` buffer incoming text chunks and retain
+context between emitted segments. Segment boundaries are heuristic: punctuation and long
+unbroken input can split an entity, so streaming does not guarantee the same detection as
+processing the complete text. Use `process()` on a complete bounded message when that
+equivalence is required.
 
 ```python
 import asyncio
@@ -183,20 +187,19 @@ async def handle_stream(socket):
 
 ## Transformation modes
 
-| Mode | Example | Identity behavior |
-| --- | --- | --- |
-| `numbered` | `<EMAIL_1>` | Stable inside one explicit scope |
-| `generic` | `<EMAIL>` | Does not distinguish values of the same type |
-| `deterministic` | `<EMAIL_K8M42PX7D3Q>` | Stable for the same key, namespace, type, and normalized value |
-| `redacted` | `[REDACTED]` | Removes type and identity distinction |
+- `numbered`: `<EML_1>`, stable inside one explicit scope.
+- `generic`: `<EML>`, without distinguishing values of the same type.
+- `deterministic`: an HMAC-derived `<EML_...>` token, stable for the same key,
+  namespace, entity type, and normalized value.
+- `redacted`: `[REDACTED]`, without type or identity distinctions.
 
 ```python
 from pseudonymize import Pseudonymizer
 
 scope = Pseudonymizer().new_scope()
 
-assert scope.process("paolo@example.com").text == "<EMAIL_1>"
-assert scope.process("maria@example.com and paolo@example.com").text == ("<EMAIL_2> and <EMAIL_1>")
+assert scope.process("paolo@example.com").text == "<EML_1>"
+assert scope.process("maria@example.com and paolo@example.com").text == ("<EML_2> and <EML_1>")
 ```
 
 Deterministic mode uses HMAC-SHA256 and requires a key of at least 32 bytes:
@@ -284,7 +287,7 @@ result = Pseudonymizer().process(
     include_mapping=True,
 )
 
-assert result.restore("Reply to <EMAIL_1>.") == "Reply to paolo@example.com."
+assert result.restore("Reply to <EML_1>.") == "Reply to paolo@example.com."
 ```
 
 Mappings contain sensitive source values. They are hidden from `repr`, never persisted by the
