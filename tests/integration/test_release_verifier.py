@@ -1,5 +1,6 @@
 import email.message
 import io
+import json
 import tarfile
 import zipfile
 from pathlib import Path
@@ -152,7 +153,7 @@ def test_verify_quality_gate_report_passing(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     report = tmp_path / "gate.json"
-    report.write_text('{"passed": true, "recommendation": "SHIP"}', encoding="utf-8")
+    report.write_text(json.dumps(_complete_gate_report()), encoding="utf-8")
     verify_quality_gate_report(report)
     assert "approved for shipment" in capsys.readouterr().out
 
@@ -171,3 +172,58 @@ def test_verify_quality_gate_report_missing_file(tmp_path: Path) -> None:
     missing = tmp_path / "nonexistent.json"
     with pytest.raises(ValueError, match="quality gate report not found"):
         verify_quality_gate_report(missing)
+
+
+def _complete_gate_report() -> dict[str, object]:
+    return {
+        "passed": True,
+        "recommendation": "SHIP",
+        "criteria": {
+            name: {"passed": True, "details": {"external_f1": 0.82}}
+            for name in (
+                "pinned_provenance",
+                "paired_f1_delta",
+                "precision_protection",
+                "critical_entities_floor",
+                "external_generalization",
+            )
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "criterion",
+    [
+        "pinned_provenance",
+        "paired_f1_delta",
+        "precision_protection",
+        "critical_entities_floor",
+        "external_generalization",
+    ],
+)
+@pytest.mark.parametrize("state", ["missing", "failed", "string"])
+def test_verify_quality_gate_report_checks_each_criterion(
+    tmp_path: Path, criterion: str, state: str
+) -> None:
+    data = _complete_gate_report()
+    criteria = data["criteria"]
+    assert isinstance(criteria, dict)
+    if state == "missing":
+        del criteria[criterion]
+    else:
+        criteria[criterion]["passed"] = False if state == "failed" else "true"
+    path = tmp_path / "gate.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="quality gate"):
+        verify_quality_gate_report(path)
+
+
+def test_verify_quality_gate_rejects_legacy_skipped_external_track(tmp_path: Path) -> None:
+    data = _complete_gate_report()
+    criteria = data["criteria"]
+    assert isinstance(criteria, dict)
+    criteria["external_generalization"]["details"] = {"status": "not_evaluated_in_current_run"}
+    path = tmp_path / "gate.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="external evaluation evidence"):
+        verify_quality_gate_report(path)
