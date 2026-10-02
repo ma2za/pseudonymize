@@ -4,7 +4,7 @@ import math
 import os
 import re
 import typing
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -55,6 +55,22 @@ _LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
     (("SSN", "SOCIALNUM", "IDCARDNUM", "PASSPORTNUM", "DRIVERLICENSENUM"), EntityType.NATIONAL_ID),
     (("TAXNUM",), EntityType.TAX_ID),
     (("URL",), EntityType.URL_CREDENTIAL),
+)
+
+_ALL_SUPPORTED_ENTITY_TYPES: frozenset[EntityType] = frozenset(
+    {
+        EntityType.PERSON,
+        EntityType.ORGANIZATION,
+        EntityType.LOCATION,
+        EntityType.EMAIL,
+        EntityType.PHONE,
+        EntityType.IP_ADDRESS,
+        EntityType.IBAN,
+        EntityType.PAYMENT_CARD,
+        EntityType.NATIONAL_ID,
+        EntityType.TAX_ID,
+        EntityType.URL_CREDENTIAL,
+    }
 )
 
 
@@ -200,6 +216,7 @@ class LocalONNXPIIBackend(DetectionBackend):
         temperature: float = 1.0,
         decoder_mode: str = "legacy",
         span_aggregator: str = "max",
+        allowed_entity_types: Collection[EntityType] | None = None,
     ) -> None:
         if ort is None or Tokenizer is None or np is None:
             raise ImportError(
@@ -236,6 +253,9 @@ class LocalONNXPIIBackend(DetectionBackend):
         self._temperature = float(temperature)
         self._decoder_mode = decoder_mode
         self._span_aggregator = span_aggregator
+        self._allowed_entity_types = (
+            frozenset(allowed_entity_types) if allowed_entity_types is not None else None
+        )
         self._model_path = str(model_path)
         self._tokenizer_path = str(tokenizer_path)
         self._config_path = str(config_path) if config_path else None
@@ -267,23 +287,19 @@ class LocalONNXPIIBackend(DetectionBackend):
         return self._name
 
     @property
+    def allowed_entity_types(self) -> frozenset[EntityType] | None:
+        """Return allowed entity types for this backend, or None if unrestricted."""
+        return self._allowed_entity_types
+
+    @property
     def capabilities(self) -> BackendCapabilities:
+        types = (
+            (self._allowed_entity_types & _ALL_SUPPORTED_ENTITY_TYPES)
+            if self._allowed_entity_types is not None
+            else _ALL_SUPPORTED_ENTITY_TYPES
+        )
         return BackendCapabilities(
-            entity_types=frozenset(
-                {
-                    EntityType.PERSON,
-                    EntityType.ORGANIZATION,
-                    EntityType.LOCATION,
-                    EntityType.EMAIL,
-                    EntityType.PHONE,
-                    EntityType.IP_ADDRESS,
-                    EntityType.IBAN,
-                    EntityType.PAYMENT_CARD,
-                    EntityType.NATIONAL_ID,
-                    EntityType.TAX_ID,
-                    EntityType.URL_CREDENTIAL,
-                }
-            ),
+            entity_types=types,
             remote=False,
         )
 
@@ -644,6 +660,8 @@ class LocalONNXPIIBackend(DetectionBackend):
                 continue
             entity_type = _entity_type_for(label_str)
             if entity_type is None:
+                continue
+            if self._allowed_entity_types and entity_type not in self._allowed_entity_types:
                 continue
             start, end = encoding.offsets[idx]
             if start >= end:
