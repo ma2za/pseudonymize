@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Scan coreference words once per block using dictionary lookup instead of rebuilding
+  a regular expression containing every learned token. Preserve case and word boundaries.
+
 ## [1.34.0] - 2026-09-30
 
 ### Added

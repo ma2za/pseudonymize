@@ -399,3 +399,33 @@ verification unless they are intentionally retained as a user-approved release a
 - Push only when explicitly requested.
 - A version is published only after its matching tag, successful release workflow, PyPI artifact,
   and GitHub release exist. Until then, keep changes under `[Unreleased]`.
+
+
+## Coreference lookup review (2026-10-02)
+
+Learned coreference tokens are alphabetic words. A single Unicode word scan with
+hash-table lookup replaces per-block sorting and regex alternation construction.
+Case sensitivity, offsets, confidence, token updates, and ambiguous-word exclusions
+are unchanged. Added generative equivalence checks against the previous matching
+algorithm and a benchmark including that algorithm as a reference.
+
+Observed verification with the frozen lockfile on Python 3.14.2:
+
+- Coreference tests: 6 passed, including Unicode and generated boundary cases.
+- Suite excluding `test_onnx.py` and `test_bio_decoder.py`, with `--no-cov`:
+  492 passed, 1 skipped because Tesseract is unavailable.
+- Pre-commit, strict mypy, strict docs build, package build, release verifier:
+  passed. Mypy includes the new benchmark (156 source files).
+- Reproducible performance command:
+  `uv run --frozen pytest benchmarks/benchmark_coreference.py --no-cov
+  --benchmark-only --benchmark-max-time=0.1 --benchmark-json=benchmark.json`.
+  Six benchmark cases passed. Timings are machine-dependent and are not a gate
+  or a claim of improved model quality. Small scopes need not be faster.
+- Full ONNX/coverage and supported-platform verification remain pending. A full
+  suite attempt on the sibling Bloom branch terminated during ONNX with exit 137;
+  that failure is not evidence of this branch passing those tests.
+
+Reusable lesson assessment: match learned literal words through word scanning
+and dictionary lookup when semantics allow it; preserve a boundary-equivalence
+test before replacing a dynamically constructed regex. No new global policy is
+needed for this local algorithm substitution.

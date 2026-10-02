@@ -155,13 +155,13 @@ class CoreferenceGraph:
             return []
 
         results = []
-        # Sort by length descending to match longest first (though they are words)
-        words = sorted(self.tokens.keys(), key=len, reverse=True)
-        pattern = r"\b(?:" + "|".join(map(re.escape, words)) + r")\b"
-
-        for match in re.finditer(pattern, text):
-            token = match.group(0)
-            ent_type, conf = self.tokens[token]
+        # Learned tokens are alphabetic words. Scanning once avoids rebuilding an
+        # alternation proportional to the entire scope for every content block.
+        for match in re.finditer(r"\b\w+\b", text):
+            learned = self.tokens.get(match.group(0))
+            if learned is None:
+                continue
+            ent_type, conf = learned
             results.append(Detection(ent_type, match.start(), match.end(), conf, "coreference"))
 
         return results
