@@ -399,3 +399,27 @@ verification unless they are intentionally retained as a user-approved release a
 - Push only when explicitly requested.
 - A version is published only after its matching tag, successful release workflow, PyPI artifact,
   and GitHub release exist. Until then, keep changes under `[Unreleased]`.
+
+
+## Executable README review (2026-10-02)
+
+The first Python quickstart failed its assertion against the current package:
+README examples used long entity names while the implementation emits short codes.
+Corrected aliases and added a test that executes all Python fences in order,
+providing the documented JSON file in a temporary directory. The asynchronous
+example is compiled and defined by that test; existing streaming tests exercise
+actual asynchronous processing. No token format or library behavior changed.
+
+The historical 1.20.0 score is now correctly labeled as an overlap result, and the
+streaming introduction no longer promises arbitrary split-entity safety. These
+clarifications reflect the existing scorer and heuristic segment splitter.
+
+Observed verification with the frozen lockfile:
+
+- README, streaming and session tests: 11 passed.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 490 passed; 1 Tesseract skip.
+- Pre-commit, mypy (156 source files), strict docs build, package build and release
+  verifier passed. Full coverage and platform evidence remain CI responsibilities.
+
+Reusable lesson assessment: executable onboarding assertions catch token-contract
+  drift that prose review misses. This is enforced by the new integration test.

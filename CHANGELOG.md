@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Align README aliases with the emitted token format and execute its Python examples
+  in an integration test. Clarify overlap benchmark scoring and streaming limitations.
+
 ## [1.34.0] - 2026-09-30
 
 ### Added
