@@ -24,7 +24,7 @@ def _make_dummy_eval_record(
             "PAYMENT_CARD": {
                 "true_positives": int(10 * card_recall),
                 "false_positives": 0,
-                "false_negatives": int(10 * (1 - card_recall)),
+                "false_negatives": 10 - int(10 * card_recall),
             },
         },
         "error_categories": {
@@ -42,10 +42,10 @@ def _make_dummy_eval_record(
                 "source": "wiki",
                 "tp": {"EMAIL": 5, "PAYMENT_CARD": int(5 * card_recall)},
                 "fp": {"EMAIL": 0, "PAYMENT_CARD": 0},
-                "fn": {"EMAIL": 0, "PAYMENT_CARD": int(5 * (1 - card_recall))},
+                "fn": {"EMAIL": 0, "PAYMENT_CARD": 5 - int(5 * card_recall)},
                 "exact_tp": {"EMAIL": 5, "PAYMENT_CARD": int(5 * card_recall)},
                 "exact_fp": {"EMAIL": 0, "PAYMENT_CARD": 0},
-                "exact_fn": {"EMAIL": 0, "PAYMENT_CARD": int(5 * (1 - card_recall))},
+                "exact_fn": {"EMAIL": 0, "PAYMENT_CARD": 5 - int(5 * card_recall)},
                 "error_categories": {},
             },
             {
@@ -55,10 +55,10 @@ def _make_dummy_eval_record(
                 "source": "wiki",
                 "tp": {"EMAIL": 5, "PAYMENT_CARD": int(5 * card_recall)},
                 "fp": {"EMAIL": 1, "PAYMENT_CARD": 0},
-                "fn": {"EMAIL": 1, "PAYMENT_CARD": int(5 * (1 - card_recall))},
+                "fn": {"EMAIL": 1, "PAYMENT_CARD": 5 - int(5 * card_recall)},
                 "exact_tp": {"EMAIL": 5, "PAYMENT_CARD": int(5 * card_recall)},
                 "exact_fp": {"EMAIL": 1, "PAYMENT_CARD": 0},
-                "exact_fn": {"EMAIL": 1, "PAYMENT_CARD": int(5 * (1 - card_recall))},
+                "exact_fn": {"EMAIL": 1, "PAYMENT_CARD": 5 - int(5 * card_recall)},
                 "error_categories": {},
             },
         ],
@@ -69,7 +69,9 @@ def test_quality_gate_passes_healthy_candidate() -> None:
     base = _make_dummy_eval_record(f1=0.83, precision=0.86)
     cand = _make_dummy_eval_record(f1=0.84, precision=0.865)
 
-    report = evaluate_quality_gate(base, cand, num_resamples=50)
+    report = evaluate_quality_gate(
+        base, cand, {"character_micro_metrics": {"f1": 0.82}}, num_resamples=50
+    )
     assert report.passed
     assert report.recommendation == "SHIP"
     assert report.criteria_results["pinned_provenance"].passed
@@ -97,7 +99,9 @@ def test_quality_gate_rejects_critical_identifier_recall_regression() -> None:
     assert not report.passed
     assert report.recommendation == "REJECT"
     assert not report.criteria_results["critical_entities_floor"].passed
-    assert "Recall regressed for 1 high-risk" in report.summary_reasons[0]
+    assert "Recall regressed for 1 high-risk" in (
+        report.criteria_results["critical_entities_floor"].failure_reason or ""
+    )
 
 
 def test_quality_gate_rejects_unpinned_provenance() -> None:
@@ -121,3 +125,56 @@ def test_quality_gate_verifies_external_generalization_floor() -> None:
     report_fail = evaluate_quality_gate(base, cand, external_eval_record=ext_fail, num_resamples=50)
     assert not report_fail.passed
     assert not report_fail.criteria_results["external_generalization"].passed
+
+
+def test_quality_gate_rejects_missing_external_evidence() -> None:
+    report = evaluate_quality_gate(
+        _make_dummy_eval_record(), _make_dummy_eval_record(), num_resamples=10
+    )
+    assert not report.passed
+    assert not report.criteria_results["external_generalization"].passed
+
+
+def test_quality_gate_rejects_missing_critical_entity_counts() -> None:
+    base = _make_dummy_eval_record()
+    candidate = _make_dummy_eval_record()
+    del candidate["per_entity"]["PAYMENT_CARD"]
+    report = evaluate_quality_gate(
+        base, candidate, {"character_micro_metrics": {"f1": 0.82}}, num_resamples=10
+    )
+    assert not report.passed
+    assert not report.criteria_results["critical_entities_floor"].passed
+
+
+def test_quality_gate_rejects_invalid_external_scores() -> None:
+    for f1 in (float("inf"), float("nan"), -0.1, 1.1, True, "0.82", None):
+        report = evaluate_quality_gate(
+            _make_dummy_eval_record(),
+            _make_dummy_eval_record(),
+            {"character_micro_metrics": {"f1": f1}},
+            num_resamples=10,
+        )
+        assert not report.passed
+        assert not report.criteria_results["external_generalization"].passed
+
+
+def test_zero_critical_recall_is_rejected_without_division_error() -> None:
+    base = _make_dummy_eval_record()
+    candidate = _make_dummy_eval_record(card_recall=0.0)
+    candidate["per_entity"]["PAYMENT_CARD"]["false_positives"] = 1
+    report = evaluate_quality_gate(
+        base, candidate, {"character_micro_metrics": {"f1": 0.82}}, num_resamples=10
+    )
+    assert not report.passed
+    assert not report.criteria_results["critical_entities_floor"].passed
+
+
+def test_quality_gate_rejects_changed_critical_support() -> None:
+    base = _make_dummy_eval_record()
+    candidate = _make_dummy_eval_record()
+    candidate["per_entity"]["EMAIL"]["false_negatives"] = 0
+    report = evaluate_quality_gate(
+        base, candidate, {"character_micro_metrics": {"f1": 0.82}}, num_resamples=10
+    )
+    assert not report.passed
+    assert not report.criteria_results["critical_entities_floor"].passed
