@@ -4,6 +4,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Correct one-to-one match accounting in the local benchmark, including empty and
+  disjoint inputs. Explanations now report offsets without copying source values.
+- Keep optional ML imports and root logging configuration out of benchmark imports.
+
 ## [1.34.0] - 2026-09-30
 
 ### Added
