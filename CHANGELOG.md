@@ -4,6 +4,11 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- Invalidate Bloom filter membership caches after insertion so earlier misses cannot hide
+  newly added entries. Validate filter parameters and allocate at least one bit.
+
 ## [1.34.0] - 2026-09-30
 
 ### Added
