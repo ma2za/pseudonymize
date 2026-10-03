@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.35.0] - 2026-10-03
+
 ### Added
 - **High-Throughput Dynamic Batching Pipeline:**
   - Added `invoke_backend_batch` to `src/pseudonymize/backends/base.py` providing unified block-aware batch dispatch with contract validation, provenance injection, bounds verification, and graceful fallback to `invoke_backend` for non-batch backends.
