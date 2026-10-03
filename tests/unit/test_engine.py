@@ -234,3 +234,26 @@ def test_pseudonymizer_ablation_flags() -> None:
 
     scope = ProcessingScope(engine)
     assert scope._coreferences is None
+
+
+def test_process_batch_features_and_edge_cases() -> None:
+    from pseudonymize import TransformationMode
+
+    engine = Pseudonymizer()
+    assert engine.process_batch(()) == ()
+
+    # Batch with mapping
+    texts = ["Contact alice@example.com", "No identifiers here", "Phone is +1 415 555 2671"]
+    results = engine.process_batch(texts, include_mapping=True)
+    assert len(results) == 3
+    assert "<EML_1>" in results[0].text
+    assert results[0].mapping is not None
+    assert results[0].restore(results[0].text) == texts[0]
+    assert results[1].text == texts[1]
+    assert "<PHN_1>" in results[2].text
+    assert results[2].mapping is not None
+
+    # Invalid mapping mode
+    redact_engine = Pseudonymizer(mode=TransformationMode.REDACTED)
+    with pytest.raises(ValueError, match="mappings are available only"):
+        redact_engine.process_batch(texts, include_mapping=True)

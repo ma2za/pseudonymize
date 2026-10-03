@@ -344,73 +344,79 @@ class LocalONNXPIIBackend(DetectionBackend):
             self._label2id = {v: k for k, v in self._id2label.items()}
 
     def detect(self, block: ContentBlock, policy: Policy) -> Sequence[Detection]:
-        if not block.text.strip():
-            return []
+        return self.detect_batch([block], policy)[0]
+
+    def detect_batch(
+        self, blocks: Sequence[ContentBlock], policy: Policy
+    ) -> Sequence[Sequence[Detection]]:
+        if not blocks:
+            return ()
 
         try:
             self._load_model()
 
-            # Calculate explicit global surrounding context (v1.7.0)
-            global_context_triggers = []
-            if self._enable_context_boost:
-                for pattern, _, _ in _CONTEXT_BOOSTS:
-                    for match in pattern.finditer(block.text):
-                        trigger_word = match.group().strip().strip(":.-#")
-                        if trigger_word and trigger_word not in global_context_triggers:
-                            global_context_triggers.append(trigger_word)
+            windows_to_process: list[tuple[int, str, int, str | None]] = []
+            block_seens: list[dict[tuple[EntityType, int, int], Detection]] = [
+                {} for _ in range(len(blocks))
+            ]
 
-            global_context_str = (
-                " ".join(global_context_triggers) if global_context_triggers else None
-            )
-
-            # Get tokenizer offsets for adaptive window slicing (v1.8.0)
-            encoding = self._tokenizer.encode(block.text)
-            offsets = [span for span in encoding.offsets if span[1] > span[0]]
-            [o[0] for o in offsets]
             budget = max(self._max_tokens - 2, 1)
             stride = max(budget - min(self._window_overlap_tokens, budget - 1), 1)
 
-            detections: list[Detection] = []
-            seen: dict[tuple[EntityType, int, int], Detection] = {}
+            for block_idx, block in enumerate(blocks):
+                if not block.text.strip():
+                    continue
 
-            # Collect all windows that need processing
-            windows_to_process: list[tuple[str, int, str | None]] = []
+                # Calculate explicit global surrounding context (v1.7.0)
+                global_context_triggers = []
+                if self._enable_context_boost:
+                    for pattern, _, _ in _CONTEXT_BOOSTS:
+                        for match in pattern.finditer(block.text):
+                            trigger_word = match.group().strip().strip(":.-#")
+                            if trigger_word and trigger_word not in global_context_triggers:
+                                global_context_triggers.append(trigger_word)
 
-            token_start_idx = 0
-            while token_start_idx < len(offsets):
-                token_end_idx = min(token_start_idx + budget, len(offsets))
-                window_start = offsets[token_start_idx][0]
-                window_end = offsets[token_end_idx - 1][1]
-
-                windows_to_process.append(
-                    (block.text[window_start:window_end], window_start, global_context_str)
+                global_context_str = (
+                    " ".join(global_context_triggers) if global_context_triggers else None
                 )
 
-                token_start_idx += stride
+                # Get tokenizer offsets for adaptive window slicing (v1.8.0)
+                encoding = self._tokenizer.encode(block.text)
+                offsets = [span for span in encoding.offsets if span[1] > span[0]]
+                if not offsets:
+                    continue
 
-            # Filter through LRU cache first to find cache misses that need batching
+                token_start_idx = 0
+                while token_start_idx < len(offsets):
+                    token_end_idx = min(token_start_idx + budget, len(offsets))
+                    window_start = offsets[token_start_idx][0]
+                    window_end = offsets[token_end_idx - 1][1]
 
-            [[] for _ in range(len(windows_to_process))]
+                    windows_to_process.append(
+                        (
+                            block_idx,
+                            block.text[window_start:window_end],
+                            window_start,
+                            global_context_str,
+                        )
+                    )
 
-            for _i, (_w_text, _w_start, _w_context) in enumerate(windows_to_process):
-                # We can try to hit the LRU cache manually by looking up the wrapped func
-                # If we don't want to introspect the cache, we can just process everything.
-                # However, since `_infer_text_cached` handles its own cache, we can't easily "peek".
-                # For batched execution, we will send all windows through `_infer_batch` directly
-                # if there are multiple windows, or use the single `_detect_window` if just one.
-                pass
+                    token_start_idx += stride
+
+            if not windows_to_process:
+                return tuple(() for _ in blocks)
 
             if len(windows_to_process) == 1:
                 # Single window fast-path (hits L1 cache natively)
-                w_text, w_start, w_context = windows_to_process[0]
+                block_idx, w_text, w_start, w_context = windows_to_process[0]
                 window_detections = self._detect_window(w_text, w_start, policy, w_context)
                 for detection in window_detections:
                     key = (detection.entity_type, detection.start, detection.end)
-                    seen[key] = detection
+                    block_seens[block_idx][key] = detection
             else:
                 # Multi-window batched AVX processing (bypasses L1 for throughput)
-                texts = [w[0] for w in windows_to_process]
-                contexts = [w[2] for w in windows_to_process]
+                texts = [w[1] for w in windows_to_process]
+                contexts = [w[3] for w in windows_to_process]
 
                 # Split into chunks of 32 to avoid massive memory spikes
                 batch_size = 32
@@ -422,19 +428,26 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                     for j, win_detections in enumerate(batch_results):
                         global_idx = i + j
-                        w_start = windows_to_process[global_idx][1]
+                        block_idx = windows_to_process[global_idx][0]
+                        w_start = windows_to_process[global_idx][2]
 
                         for d in win_detections:
                             # Apply character offset
                             detection = replace(d, start=d.start + w_start, end=d.end + w_start)
 
                             key = (detection.entity_type, detection.start, detection.end)
-                            previous = seen.get(key)
+                            previous = block_seens[block_idx].get(key)
                             if previous is None or detection.confidence > previous.confidence:
-                                seen[key] = detection
+                                block_seens[block_idx][key] = detection
 
-            detections = sorted(seen.values(), key=lambda item: (item.start, item.end))
-            return tuple(detections)
+            results: list[tuple[Detection, ...]] = []
+            for block_seen in block_seens:
+                sorted_detections = sorted(
+                    block_seen.values(), key=lambda item: (item.start, item.end)
+                )
+                results.append(tuple(sorted_detections))
+
+            return tuple(results)
 
         except Exception as e:
             # The originating message can quote the tokenized input, so it never

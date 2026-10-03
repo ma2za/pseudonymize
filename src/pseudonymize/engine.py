@@ -25,7 +25,7 @@ from pseudonymize.backends import (
     backend_capabilities,
     leaf_backends,
 )
-from pseudonymize.backends.base import invoke_backend
+from pseudonymize.backends.base import invoke_backend_batch
 from pseudonymize.coreference import CoreferenceGraph
 from pseudonymize.detectors import DEFAULT_DETECTORS, Detector
 from pseudonymize.document import (
@@ -217,18 +217,42 @@ class Pseudonymizer:
         coreferences: CoreferenceGraph | None = None,
         tabular_layout: TabularInferenceLayout | None = None,
     ) -> tuple[Detection, ...]:
+        return self._detect_blocks(
+            (block,),
+            statistics,
+            remote=remote,
+            coreferences=coreferences,
+            tabular_layout=tabular_layout,
+        )[0]
+
+    def _detect_blocks(
+        self,
+        blocks: Sequence[ContentBlock],
+        statistics: "_OperationStatistics",
+        remote: bool = False,
+        coreferences: CoreferenceGraph | None = None,
+        tabular_layout: TabularInferenceLayout | None = None,
+    ) -> list[tuple[Detection, ...]]:
+        if not blocks:
+            return []
+
         if not remote:
-            statistics.blocks_processed += 1
+            statistics.blocks_processed += len(blocks)
 
-        stripped_text, stripped_to_orig = _strip_format_characters(block.text)
-        stripped_block = block if stripped_to_orig is None else replace(block, text=stripped_text)
+        stripped_blocks: list[ContentBlock] = []
+        stripped_to_origs: list[list[int] | None] = []
+        for block in blocks:
+            stripped_text, stripped_to_orig = _strip_format_characters(block.text)
+            stripped_blocks.append(
+                block if stripped_to_orig is None else replace(block, text=stripped_text)
+            )
+            stripped_to_origs.append(stripped_to_orig)
 
-        candidates: list[Detection] = []
+        block_candidates: list[list[Detection]] = [[] for _ in range(len(blocks))]
 
         if not remote and tabular_layout is not None:
-            # We don't map tabular detections through stripped text because they
-            # generally just span the whole original text content of the cell.
-            candidates.extend(tabular_layout.extract_csv_detections(block))
+            for i, block in enumerate(blocks):
+                block_candidates[i].extend(tabular_layout.extract_csv_detections(block))
 
         for backend in self.backends:
             capabilities = backend_capabilities(backend)
@@ -236,38 +260,58 @@ class Pseudonymizer:
                 continue
             if not capabilities.entity_types.intersection(self.policy.entity_types):
                 continue
-            raw_detections = invoke_backend(backend, stripped_block, self.policy)
+            raw_batches = invoke_backend_batch(backend, stripped_blocks, self.policy)
 
-            if stripped_to_orig is None:
-                candidates.extend(raw_detections)
-            else:
-                for det in raw_detections:
-                    mapped_start = stripped_to_orig[det.start]
-                    mapped_end = stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
-                    candidates.append(replace(det, start=mapped_start, end=mapped_end))
+            for i, raw_detections in enumerate(raw_batches):
+                stripped_to_orig = stripped_to_origs[i]
+                if stripped_to_orig is None:
+                    block_candidates[i].extend(raw_detections)
+                else:
+                    for det in raw_detections:
+                        mapped_start = stripped_to_orig[det.start]
+                        mapped_end = (
+                            stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
+                        )
+                        block_candidates[i].append(replace(det, start=mapped_start, end=mapped_end))
 
-            statistics.record_backend(capabilities)
+            statistics.record_backend(capabilities, count=len(blocks))
 
-        if coreferences is not None:
-            coref_raw = coreferences.detect(stripped_block.text)
-            if stripped_to_orig is None:
-                candidates.extend(coref_raw)
-            else:
-                for det in coref_raw:
-                    mapped_start = stripped_to_orig[det.start]
-                    mapped_end = stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
-                    candidates.append(replace(det, start=mapped_start, end=mapped_end))
+        results: list[tuple[Detection, ...]] = []
+        for i, block in enumerate(blocks):
+            candidates = block_candidates[i]
+            if coreferences is not None:
+                coref_raw = coreferences.detect(stripped_blocks[i].text)
+                stripped_to_orig = stripped_to_origs[i]
+                if stripped_to_orig is None:
+                    candidates.extend(coref_raw)
+                else:
+                    for det in coref_raw:
+                        mapped_start = stripped_to_orig[det.start]
+                        mapped_end = (
+                            stripped_to_orig[det.end - 1] + 1 if det.end > 0 else mapped_start
+                        )
+                        candidates.append(replace(det, start=mapped_start, end=mapped_end))
 
-            # Register new high-confidence detections for future text in the same scope
-            coreferences.add_detections(candidates, block.text)
+                # Register new high-confidence detections for future text in the same scope
+                coreferences.add_detections(candidates, block.text)
 
-        text = block.text
-        protected = (
-            tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
-            if ("<" in text or "[" in text)
-            else ()
-        )
+            text = block.text
+            protected = (
+                tuple((match.start(), match.end()) for match in _PLACEHOLDER.finditer(text))
+                if ("<" in text or "[" in text)
+                else ()
+            )
 
+            results.append(self._resolve_block_candidates(candidates, text, protected))
+
+        return results
+
+    def _resolve_block_candidates(
+        self,
+        candidates: Sequence[Detection],
+        text: str,
+        protected: tuple[tuple[int, int], ...],
+    ) -> tuple[Detection, ...]:
         def _trim_and_filter() -> typing.Iterator[Detection]:
             for detection in candidates:
                 if detection.entity_type not in self.policy.entity_types:
@@ -450,11 +494,38 @@ class Pseudonymizer:
     def process_batch(
         self, texts: Sequence[str], *, include_mapping: bool = False
     ) -> tuple[Result, ...]:
+        if not texts:
+            return ()
+        if include_mapping and self.mode not in {
+            TransformationMode.NUMBERED,
+            TransformationMode.DETERMINISTIC,
+        }:
+            raise ValueError("mappings are available only in numbered and deterministic modes")
+
         context = AliasContext()
         coreferences = CoreferenceGraph() if self._enable_coreference else None
+
+        if self._has_remote:
+            return tuple(
+                self._process(text, context, include_mapping, coreferences=coreferences)
+                for text in texts
+            )
+
+        blocks = tuple(
+            ContentBlock(f"block_{i}", text, TextOffsetLocation(0, len(text)))
+            for i, text in enumerate(texts)
+        )
+        statistics = _OperationStatistics()
+        detections_batch = self._detect_blocks(
+            blocks,
+            statistics,
+            remote=False,
+            coreferences=coreferences,
+        )
+
         return tuple(
-            self._process(text, context, include_mapping, coreferences=coreferences)
-            for text in texts
+            self._render_result(block, detections, context, include_mapping)
+            for block, detections in zip(blocks, detections_batch, strict=True)
         )
 
     def process_data(self, data: Data | object, *, serializer: Serializer | None = None) -> Data:
@@ -476,37 +547,81 @@ class Pseudonymizer:
         context = AliasContext()
         coreferences = CoreferenceGraph() if self._enable_coreference else None
         tabular_layout = TabularInferenceLayout(document)
-        blocks: list[ContentBlock] = []
-        for block in document.blocks:
-            if self._allows_block(block):
-                result = self._process_block(
-                    block,
-                    context,
-                    False,
-                    statistics,
-                    reports,
-                    coreferences=coreferences,
-                    tabular_layout=tabular_layout,
-                )
-                blocks.append(replace(block, text=result.text))
-            else:
+
+        if self._has_remote:
+            blocks: list[ContentBlock] = []
+            for block in document.blocks:
+                if self._allows_block(block):
+                    result = self._process_block(
+                        block,
+                        context,
+                        False,
+                        statistics,
+                        reports,
+                        coreferences=coreferences,
+                        tabular_layout=tabular_layout,
+                    )
+                    blocks.append(replace(block, text=result.text))
+                else:
+                    statistics.blocks_processed += 1
+                    blocks.append(block)
+            output = replace(document, blocks=tuple(blocks))
+            return ProcessingResult(output, tuple(reports), statistics.finish(reports))
+
+        # Batched local document processing
+        allowed_pairs = [(i, b) for i, b in enumerate(document.blocks) if self._allows_block(b)]
+        if not allowed_pairs:
+            for _ in document.blocks:
                 statistics.blocks_processed += 1
-                blocks.append(block)
-        output = replace(document, blocks=tuple(blocks))
+            return ProcessingResult(document, (), statistics.finish(reports))
+
+        allowed_blocks = [b for _, b in allowed_pairs]
+        detections_batch = self._detect_blocks(
+            allowed_blocks,
+            statistics,
+            remote=False,
+            coreferences=coreferences,
+            tabular_layout=tabular_layout,
+        )
+
+        rendered_blocks: list[ContentBlock] = list(document.blocks)
+        for (orig_idx, block), detections in zip(allowed_pairs, detections_batch, strict=True):
+            res = self._render_result(block, detections, context, False, reports=reports)
+            rendered_blocks[orig_idx] = replace(block, text=res.text)
+
+        for b in document.blocks:
+            if not self._allows_block(b):
+                statistics.blocks_processed += 1
+
+        output = replace(document, blocks=tuple(rendered_blocks))
         return ProcessingResult(output, tuple(reports), statistics.finish(reports))
 
     def inspect_document(self, document: Document) -> ProcessingResult[None]:
         statistics = _OperationStatistics()
         reports: list[DetectionReport] = []
         tabular_layout = TabularInferenceLayout(document)
-        for block in document.blocks:
-            if self._allows_block(block):
-                detections = self._detect_block(
-                    block, statistics, remote=False, tabular_layout=tabular_layout
-                )
-                reports.extend(_detection_reports(block, detections))
-            else:
+
+        allowed_pairs = [(i, b) for i, b in enumerate(document.blocks) if self._allows_block(b)]
+        if not allowed_pairs:
+            for _ in document.blocks:
                 statistics.blocks_processed += 1
+            return ProcessingResult(None, (), statistics.finish(reports))
+
+        allowed_blocks = [b for _, b in allowed_pairs]
+        detections_batch = self._detect_blocks(
+            allowed_blocks,
+            statistics,
+            remote=False,
+            tabular_layout=tabular_layout,
+        )
+
+        for (_, block), detections in zip(allowed_pairs, detections_batch, strict=True):
+            reports.extend(_detection_reports(block, detections))
+
+        for b in document.blocks:
+            if not self._allows_block(b):
+                statistics.blocks_processed += 1
+
         return ProcessingResult(None, tuple(reports), statistics.finish(reports))
 
     def process_file(
@@ -608,6 +723,43 @@ class Pseudonymizer:
             coreferences=coreferences,
         )
 
+    def _render_result(
+        self,
+        block: ContentBlock,
+        detections: tuple[Detection, ...],
+        context: AliasContext,
+        include_mapping: bool,
+        reports: list[DetectionReport] | None = None,
+    ) -> Result:
+        text = block.text
+        final_entities = self.resolver.resolve(text, detections)
+        final_aliases = tuple(self.assigner.assign(entity, context) for entity in final_entities)
+        final_tokens = tuple(
+            self.transformer.render(entity, alias)
+            for entity, alias in zip(final_entities, final_aliases, strict=True)
+        )
+
+        if not final_entities:
+            output = text
+        else:
+            final_segments: list[str] = []
+            cursor = 0
+            for entity, token in zip(final_entities, final_tokens, strict=True):
+                detection = entity.detection
+                final_segments.append(text[cursor : detection.start])
+                final_segments.append(token)
+                cursor = detection.end
+            final_segments.append(text[cursor:])
+            output = "".join(final_segments)
+
+        replacements = _replacement_reports(final_entities, final_tokens)
+        if reports is not None:
+            reports.extend(_replacement_detection_reports(block, replacements))
+        mapping = (
+            _mapping(text, final_entities, final_aliases, final_tokens) if include_mapping else None
+        )
+        return Result(output, replacements, mapping)
+
     def _process_block(
         self,
         block: ContentBlock,
@@ -635,37 +787,9 @@ class Pseudonymizer:
         )
 
         if not self._has_remote:
-            final_detections = local_detections
-            final_entities = self.resolver.resolve(text, final_detections)
-            final_aliases = tuple(
-                self.assigner.assign(entity, context) for entity in final_entities
+            return self._render_result(
+                block, local_detections, context, include_mapping, reports=reports
             )
-            final_tokens = tuple(
-                self.transformer.render(entity, alias)
-                for entity, alias in zip(final_entities, final_aliases, strict=True)
-            )
-
-            if not final_entities:
-                output = text
-            else:
-                final_segments: list[str] = []
-                cursor = 0
-                for entity, token in zip(final_entities, final_tokens, strict=True):
-                    detection = entity.detection
-                    final_segments.append(text[cursor : detection.start])
-                    final_segments.append(token)
-                    cursor = detection.end
-                final_segments.append(text[cursor:])
-                output = "".join(final_segments)
-
-            replacements = _replacement_reports(final_entities, final_tokens)
-            reports.extend(_replacement_detection_reports(block, replacements))
-            mapping = (
-                _mapping(text, final_entities, final_aliases, final_tokens)
-                if include_mapping
-                else None
-            )
-            return Result(output, replacements, mapping)
 
         local_entities = self.resolver.resolve(text, local_detections)
         local_aliases = tuple(self.assigner.assign(entity, context) for entity in local_entities)
@@ -881,12 +1005,12 @@ class _OperationStatistics:
     local_block_calls: int = 0
     remote_block_calls: int = 0
 
-    def record_backend(self, capabilities: BackendCapabilities) -> None:
-        self.backend_invocations += 1
+    def record_backend(self, capabilities: BackendCapabilities, count: int = 1) -> None:
+        self.backend_invocations += count
         if capabilities.remote:
-            self.remote_block_calls += 1
+            self.remote_block_calls += count
         else:
-            self.local_block_calls += 1
+            self.local_block_calls += count
 
     def finish(self, reports: Sequence[DetectionReport]) -> ProcessingStatistics:
         return ProcessingStatistics(
