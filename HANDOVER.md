@@ -219,7 +219,8 @@ licenses, and datasets again because those external facts can change.
 ## Current release state
 
 `1.34.0` is published and tagged (`v1.34.0`).
-`1.35.0` is the active development version.
+`1.35.0` is prepared for publication and tagged release (`v1.35.0`).
+`1.36.0` is the next development milestone.
 
 Before this roadmap/handover update, `main` was clean at `4536e14` and matched `origin/main`.
 Relevant integrated commits are:
@@ -251,6 +252,11 @@ Relevant integrated commits are:
 - `60133c2 chore(release): prepare 1.33.0 release and update changelog`
 - `c683f12 chore(release): bump development version to 1.34.0`
 - `4536e14 chore(release): prepare 1.34.0 release and update changelog`
+- `8d16b05 chore(release): bump development version to 1.35.0`
+- `bc18792 feat(ml): implement subword repair, compound name bridging, and boundary punctuation alignment`
+- `382e47f feat(ml): add scoped entity type filtering and benchmark sampling enhancements`
+- `3cdef03 feat(engine): implement high-throughput dynamic batching pipeline`
+- `d04a25f perf(ml): optimize batch inference with SIMD-aligned dynamic sequence padding`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
