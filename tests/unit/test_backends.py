@@ -16,7 +16,10 @@ from pseudonymize import (
     Pseudonymizer,
     TextOffsetLocation,
 )
-from pseudonymize.backends import backend_capabilities
+from pseudonymize.backends import (
+    backend_capabilities,
+    invoke_backend_batch,
+)
 from pseudonymize.exceptions import (
     BackendContractError,
     BackendExecutionError,
@@ -337,3 +340,129 @@ def test_backends_without_relevant_capabilities_are_not_invoked() -> None:
     assert result.output == "Maria"
     assert backend.calls == 0
     assert result.statistics.backend_invocations == 0
+
+
+@dataclass
+class BatchStubBackend:
+    name: str
+    results: Sequence[Sequence[Detection]]
+    remote: bool = False
+    allow_remote_processing: bool = False
+    failure: Exception | None = None
+    calls: int = 0
+    supported: frozenset[EntityType] | None = None
+
+    @property
+    def capabilities(self) -> BackendCapabilities:
+        if self.supported is not None:
+            return BackendCapabilities(self.supported, remote=self.remote)
+        all_ents = set()
+        for res in self.results:
+            for d in res:
+                if hasattr(d, "entity_type"):
+                    all_ents.add(d.entity_type)
+        return BackendCapabilities(frozenset(all_ents or {EntityType.EMAIL}), remote=self.remote)
+
+    def detect(self, block: ContentBlock, policy: Policy) -> Sequence[Detection]:
+        raise NotImplementedError("detect should not be called when detect_batch is available")
+
+    def detect_batch(
+        self, blocks: Sequence[ContentBlock], policy: Policy
+    ) -> Sequence[Sequence[Detection]]:
+        self.calls += 1
+        if self.failure is not None:
+            raise self.failure
+        return self.results
+
+
+def test_invoke_backend_batch_empty() -> None:
+    backend = StubBackend("stub", ())
+    assert invoke_backend_batch(backend, (), Policy()) == ()
+
+
+def test_invoke_backend_batch_fallback_when_detect_batch_missing() -> None:
+    backend = StubBackend("stub", (_email_detection(),))
+    b1 = ContentBlock("1", "maria@example.com", TextOffsetLocation(0, 17))
+    b2 = ContentBlock("2", "paolo@example.com", TextOffsetLocation(0, 17))
+    res = invoke_backend_batch(backend, (b1, b2), Policy())
+    assert len(res) == 2
+    assert backend.calls == 2
+    assert res[0][0].entity_type == EntityType.EMAIL
+    assert res[0][0].backend == "stub"
+    assert res[1][0].entity_type == EntityType.EMAIL
+
+
+def test_invoke_backend_batch_native() -> None:
+    d1 = Detection(EntityType.EMAIL, 0, 17, 0.99, "d1")
+    d2 = Detection(EntityType.EMAIL, 0, 17, 0.99, "d2")
+    backend = BatchStubBackend("batch_stub", ((d1,), (d2,)))
+    b1 = ContentBlock("1", "maria@example.com", TextOffsetLocation(0, 17))
+    b2 = ContentBlock("2", "paolo@example.com", TextOffsetLocation(0, 17))
+    res = invoke_backend_batch(backend, (b1, b2), Policy())
+    assert len(res) == 2
+    assert backend.calls == 1
+    assert res[0][0].backend == "batch_stub"
+    assert res[1][0].backend == "batch_stub"
+
+
+def test_invoke_backend_batch_mismatch_length() -> None:
+    d1 = Detection(EntityType.EMAIL, 0, 17, 0.99, "d1")
+    backend = BatchStubBackend("batch_stub", ((d1,),))
+    b1 = ContentBlock("1", "maria@example.com", TextOffsetLocation(0, 17))
+    b2 = ContentBlock("2", "paolo@example.com", TextOffsetLocation(0, 17))
+    with pytest.raises(BackendContractError, match="returned 1 results for 2 blocks"):
+        invoke_backend_batch(backend, (b1, b2), Policy())
+
+
+def test_invoke_backend_batch_invalid_detection() -> None:
+    backend = BatchStubBackend("batch_stub", (("not-a-detection",),))  # type: ignore[arg-type]
+    b1 = ContentBlock("1", "maria@example.com", TextOffsetLocation(0, 17))
+    with pytest.raises(BackendContractError, match="not a Detection"):
+        invoke_backend_batch(backend, (b1,), Policy())
+
+
+def test_invoke_backend_batch_undeclared_entity_type() -> None:
+    d = Detection(EntityType.PHONE, 0, 5, 0.9, "d")
+    backend = BatchStubBackend("batch_stub", ((d,),), supported=frozenset({EntityType.EMAIL}))
+    b1 = ContentBlock("1", "+1234", TextOffsetLocation(0, 5))
+    with pytest.raises(BackendContractError, match="undeclared entity type"):
+        invoke_backend_batch(backend, (b1,), Policy())
+
+
+def test_invoke_backend_batch_bounds_error() -> None:
+    d = Detection(EntityType.EMAIL, 0, 50, 0.9, "d")
+    backend = BatchStubBackend("batch_stub", ((d,),))
+    b1 = ContentBlock("1", "short", TextOffsetLocation(0, 5))
+    with pytest.raises(InvalidDetectionError, match="offsets outside"):
+        invoke_backend_batch(backend, (b1,), Policy())
+
+
+def test_invoke_backend_batch_remote_policy_error() -> None:
+    backend = BatchStubBackend("remote_stub", ((),), remote=True, allow_remote_processing=True)
+    b1 = ContentBlock("1", "text", TextOffsetLocation(0, 4))
+    with pytest.raises(NetworkPolicyError, match="denies remote processing"):
+        invoke_backend_batch(backend, (b1,), Policy(network_policy=NetworkPolicy.DENY))
+
+
+def test_invoke_backend_batch_failure_sanitized() -> None:
+    backend = BatchStubBackend("batch_stub", ((),), failure=RuntimeError("sensitive query text"))
+    b1 = ContentBlock("1", "text", TextOffsetLocation(0, 4))
+    with pytest.raises(BackendExecutionError, match="failed during batch detection") as exc:
+        invoke_backend_batch(backend, (b1,), Policy())
+    assert "sensitive query text" not in str(exc.value)
+
+
+def test_composite_backend_detect_batch() -> None:
+    d1 = Detection(EntityType.EMAIL, 0, 17, 0.99, "stub1")
+    d2 = Detection(EntityType.PHONE, 18, 25, 0.95, "stub2")
+    b1 = StubBackend("s1", (d1,))
+    b2 = StubBackend("s2", (d2,))
+    composite = CompositeBackend((b1, b2))
+    assert composite.detect_batch((), Policy()) == ()
+
+    block = ContentBlock("b", "maria@example.com +123456", TextOffsetLocation(0, 25))
+    res = composite.detect_batch((block,), Policy())
+    assert len(res) == 1
+    assert len(res[0]) == 2
+    assert res[0][0].entity_type == EntityType.EMAIL
+    assert res[0][1].entity_type == EntityType.PHONE

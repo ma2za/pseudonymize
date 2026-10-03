@@ -46,3 +46,8 @@ class RulesBackend:
             if detection.entity_type in policy.entity_types
             and detection.confidence >= policy.minimum_confidence
         )
+
+    def detect_batch(
+        self, blocks: Sequence[ContentBlock], policy: Policy
+    ) -> Sequence[Sequence[Detection]]:
+        return tuple(self.detect(block, policy) for block in blocks)

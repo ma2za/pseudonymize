@@ -824,3 +824,48 @@ def test_onnx_allowed_entity_types_scoping(
     assert default_backend.allowed_entity_types is None
     assert EntityType.LOCATION in default_backend.capabilities.entity_types
     assert EntityType.PERSON in default_backend.capabilities.entity_types
+
+
+def test_onnx_detect_batch_equivalence(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+    )
+
+    # Empty blocks
+    assert backend.detect_batch((), policy) == ()
+
+    # Multi-block batch containing normal text, empty text, whitespace, and another entity
+    b1 = ContentBlock("1", "Hello Sarah Connor, welcome.", TextOffsetLocation(0, 28))
+    b2 = ContentBlock("2", "", TextOffsetLocation(0, 0))
+    b3 = ContentBlock("3", "   \n  ", TextOffsetLocation(0, 6))
+    b4 = ContentBlock("4", "Paris is the capital of France.", TextOffsetLocation(0, 31))
+
+    blocks = (b1, b2, b3, b4)
+    batch_results = backend.detect_batch(blocks, policy)
+
+    assert len(batch_results) == 4
+    assert len(batch_results[1]) == 0
+    assert len(batch_results[2]) == 0
+
+    # Verify equivalence with individual detect calls
+    single_r1 = backend.detect(b1, policy)
+    single_r4 = backend.detect(b4, policy)
+
+    assert len(batch_results[0]) == len(single_r1)
+    for d_batch, d_single in zip(batch_results[0], single_r1, strict=True):
+        assert d_batch.entity_type == d_single.entity_type
+        assert d_batch.start == d_single.start
+        assert d_batch.end == d_single.end
+
+    assert len(batch_results[3]) == len(single_r4)
+    for d_batch, d_single in zip(batch_results[3], single_r4, strict=True):
+        assert d_batch.entity_type == d_single.entity_type
+        assert d_batch.start == d_single.start
+        assert d_batch.end == d_single.end
