@@ -807,8 +807,8 @@ class LocalONNXPIIBackend(DetectionBackend):
             return []
 
         if hasattr(self._tokenizer, "encode_batch"):
-            # Enable padding for batch processing
-            self._tokenizer.enable_padding(direction="right", length=self._max_tokens)
+            # Dynamic padding to longest sequence in batch (snapped to 8 for SIMD alignment)
+            self._tokenizer.enable_padding(direction="right", pad_to_multiple_of=8)
 
             encode_inputs: list[str | tuple[str, str]] = []
             for text, pair in zip(texts, context_pairs, strict=False):
@@ -829,9 +829,9 @@ class LocalONNXPIIBackend(DetectionBackend):
                 else:
                     encodings.append(self._tokenizer.encode(text))
 
-            # Manual padding
-            max_len = max(len(e.ids) for e in encodings)
-            max_len = min(max_len, self._max_tokens)
+            # Dynamic padding to batch max length snapped to 8
+            raw_max = max(len(e.ids) for e in encodings)
+            max_len = min(raw_max + (8 - raw_max % 8) % 8, self._max_tokens)
 
             for e in encodings:
                 ids = e.ids[:max_len]
