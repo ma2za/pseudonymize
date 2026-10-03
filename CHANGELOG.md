@@ -7,7 +7,7 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ### Added
 - **High-Throughput Dynamic Batching Pipeline:**
   - Added `invoke_backend_batch` to `src/pseudonymize/backends/base.py` providing unified block-aware batch dispatch with contract validation, provenance injection, bounds verification, and graceful fallback to `invoke_backend` for non-batch backends.
-  - Implemented `detect_batch` on `LocalONNXPIIBackend` vectorizing token window inference across multiple `ContentBlock`s in chunks of 32 to maximize CPU vector register saturation, delivering an empirical ~3.1x throughput improvement.
+  - Implemented `detect_batch` on `LocalONNXPIIBackend` vectorizing token window inference across multiple `ContentBlock`s in chunks of 32 with SIMD-aligned dynamic sequence padding to maximize CPU vector register saturation, delivering an empirical ~3.1x throughput improvement.
   - Implemented `detect_batch` on `RulesBackend` and `CompositeBackend`.
   - Upgraded `Pseudonymizer.process_batch`, `process_document`, and `inspect_document` to execute multi-block detection in unified batches across all configured backends while strictly preserving the frozen B1 contract and single-scope alias consistency.
   - Added comprehensive unit test coverage in `tests/unit/test_backends.py`, `tests/unit/backends/test_onnx.py`, and `tests/unit/test_engine.py`.
