@@ -80,7 +80,7 @@ test = [
 ]
 benchmarks = [
     "datasets>=3.0.0",
-    "pyarrow>=19.0.0,<20.0.0",
+    "pyarrow>=19.0.0,<26.0.0",
 ]
 quality = ["mypy>=1.11", "pre-commit>=4", "ruff>=0.9"]
 docs = ["mkdocs-material>=9", "mkdocstrings[python]>=1.0.6"]
