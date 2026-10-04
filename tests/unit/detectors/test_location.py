@@ -38,3 +38,16 @@ def test_location_detector_international_postal_codes() -> None:
         assert len(detections) > 0
         matches = [full_text[det.start : det.end] for det in detections]
         assert any(code in match for match in matches)
+
+
+def test_location_detector_ignores_years_with_prepositions() -> None:
+    detector = LocationDetector()
+    false_candidates = [
+        "born on 31/05/1997 in Paris.",
+        "Graduated in 2020 at Cambridge.",
+        "Founded in 1985 on Monday.",
+        "Published in 2019 to acclaim.",
+    ]
+    for text in false_candidates:
+        detections = detector.detect(text)
+        assert detections == []
