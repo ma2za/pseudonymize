@@ -1,8 +1,8 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `1.34.0` (Automated 5-criteria quality release gate, formal model card publication, release verifier quality gate validation, and independent generalization proof).
-- **Active Development Version:** `1.35.0`
+- **Just Completed:** `1.35.0` (High-throughput dynamic batching pipeline, SIMD-aligned dynamic sequence padding, scoped entity type filtering, and reproducible benchmark sampling).
+- **Active Development Version:** `1.36.0`
 - **Current Baseline (1.34.0):** 
   - Precision: `0.8608` (Character Masking Precision: `91.73%`)
   - Recall: `0.8026` (Character Masking Recall: `81.36%`)
