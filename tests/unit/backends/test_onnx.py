@@ -869,3 +869,28 @@ def test_onnx_detect_batch_equivalence(
         assert d_batch.entity_type == d_single.entity_type
         assert d_batch.start == d_single.start
         assert d_batch.end == d_single.end
+
+
+def test_onnx_possessive_clitic_trimming(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.5)
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.3,
+    )
+
+    text = "John's car and Mary\u2019s house were visited by Peter's friend."
+    block = ContentBlock("1", text, TextOffsetLocation(0, len(text)))
+    detections = backend.detect(block, policy)
+    person_spans = [text[d.start : d.end] for d in detections if d.entity_type == EntityType.PERSON]
+
+    assert "John" in person_spans
+    assert "John's" not in person_spans
+    assert "Mary" in person_spans
+    assert "Mary\u2019s" not in person_spans
+    assert "Peter" in person_spans
+    assert "Peter's" not in person_spans

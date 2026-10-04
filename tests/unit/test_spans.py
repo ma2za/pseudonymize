@@ -45,10 +45,15 @@ def test_rules_outrank_ml_unless_ml_highly_confident() -> None:
     ml_normal = Detection(EntityType.PERSON, 0, 10, 0.85, "onnx", "local_onnx_pii")
     assert resolve_overlaps([ml_normal, rule_normal]) == (rule_normal,)
 
-    # Rule match and ML match with > 0.95 confidence -> ML wins
+    # Rule match and ML match with > 0.95 confidence -> ML wins for generic types
     rule_overridden = Detection(EntityType.PERSON, 0, 10, 1.0, "context_id", "local_rules")
     ml_high = Detection(EntityType.PERSON, 0, 10, 0.96, "onnx", "local_onnx_pii")
     assert resolve_overlaps([ml_high, rule_overridden]) == (ml_high,)
+
+    # Explicit context_id TAX_ID outranks generic ML NATIONAL_ID guess
+    rule_tax = Detection(EntityType.TAX_ID, 0, 10, 0.90, "context_id", "local_rules")
+    ml_nid = Detection(EntityType.NATIONAL_ID, 0, 10, 0.98, "onnx", "local_onnx_pii")
+    assert resolve_overlaps([ml_nid, rule_tax]) == (rule_tax,)
 
 
 def test_adjacent_same_type_spans_are_merged() -> None:

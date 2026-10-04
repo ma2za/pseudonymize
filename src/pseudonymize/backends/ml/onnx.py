@@ -190,6 +190,12 @@ def _trim_span_boundaries(
             ):
                 break
             end -= 1
+        elif (
+            entity_type == EntityType.PERSON
+            and text[start:end].endswith(("'s", "\u2019s", "'S", "\u2019S"))
+            and (end - start) > 2
+        ):
+            end -= 2
         else:
             break
 
