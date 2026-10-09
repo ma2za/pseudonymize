@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir --no-index --find-links=./wheels --require-hashes
 COPY src/ ./src/
 COPY server.py ./server.py
 COPY model/ ./model/
+RUN chmod -R a+rX /var/task
 ARG ENGINE_COMMIT=unknown
 ENV ENGINE_COMMIT=${ENGINE_COMMIT} PYTHONPATH=/var/task:/var/task/src MODEL_DIR=/var/task/model PORT=8080
 EXPOSE 8080

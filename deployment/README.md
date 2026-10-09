@@ -25,3 +25,5 @@ pytest --no-cov tests/unit/backends/test_onnx.py
 These include actual pinned-model inference, identity reuse, possessive handling, negative text controls, entity filtering, authenticated HTTP behavior, explicit inference failure, and missing-model startup rejection. Install the service extra to execute the HTTP checks.
 
 Build offline dependency wheels on a machine with network access using `python -m pip download --require-hashes -r deployment/requirements.txt --dest <build-context>/wheels`. The container's pip installation uses `--no-index` and those verified wheels, so it does not require build-network access. Base and adapter images still require registry access.
+
+Validate the finished image as a non-root user with a read-only filesystem (`docker run --user 10001:10001 --read-only --tmpfs /tmp ...`). Lambda's unprivileged runtime must be able to read the copied Python source and model files; the Dockerfile explicitly grants read/traverse permissions. Checking the container only as root can conceal permission failures.
