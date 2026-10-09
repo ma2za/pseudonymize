@@ -2,6 +2,15 @@ from pseudonymize import EntityType
 from pseudonymize.normalization import normalize
 
 
+def test_person_possessives_share_identity_without_changing_other_entity_types() -> None:
+    for suffix in ("'s", "'S", "\u2019s", "\u2019S"):
+        assert normalize(f"paolo{suffix}", EntityType.PERSON) == normalize(
+            "Paolo", EntityType.PERSON
+        )
+    assert normalize("O'Connor", EntityType.PERSON) == "o'connor"
+    assert normalize("McDonald's", EntityType.ORGANIZATION) == "mcdonald's"
+
+
 def test_structured_values_normalize_to_stable_alias_inputs() -> None:
     assert normalize("+39 333 123 4567", EntityType.PHONE) == "+393331234567"
     assert normalize("333 123 4567", EntityType.PHONE) == "3331234567"

@@ -734,6 +734,16 @@ class LocalONNXPIIBackend(DetectionBackend):
                         not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
                     )
 
+                # A fresh B- name component after a sentence-ending period
+                # is a new mention, not a continuation of the previous name.
+                if (
+                    gap.strip() == "."
+                    and any(char.isspace() for char in gap)
+                    and label_str.startswith("B-")
+                    and curr_tag == previous_tag
+                ):
+                    can_merge = False
+
                 if can_merge:
                     previous_confs.append(conf)
                     merged_tag = (
