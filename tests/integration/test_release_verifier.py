@@ -14,6 +14,7 @@ from scripts.verify_release import (
     REQUIRED_SDIST_FILES,
     project_version,
     verify_changelog,
+    verify_quality_gate_report,
     verify_release,
     verify_tag,
 )
@@ -145,3 +146,28 @@ def test_release_rejects_extra_mismatch(tmp_path: Path) -> None:
     _write_sdist(distribution_directory)
     with pytest.raises(ValueError, match="wheel extras"):
         verify_release(tmp_path, distribution_directory, None)
+
+
+def test_verify_quality_gate_report_passing(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    report = tmp_path / "gate.json"
+    report.write_text('{"passed": true, "recommendation": "SHIP"}', encoding="utf-8")
+    verify_quality_gate_report(report)
+    assert "approved for shipment" in capsys.readouterr().out
+
+
+def test_verify_quality_gate_report_rejects_failed(tmp_path: Path) -> None:
+    report = tmp_path / "gate.json"
+    report.write_text(
+        '{"passed": false, "recommendation": "REJECT", "summary_reasons": ["F1 regressed"]}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="quality gate failed"):
+        verify_quality_gate_report(report)
+
+
+def test_verify_quality_gate_report_missing_file(tmp_path: Path) -> None:
+    missing = tmp_path / "nonexistent.json"
+    with pytest.raises(ValueError, match="quality gate report not found"):
+        verify_quality_gate_report(missing)

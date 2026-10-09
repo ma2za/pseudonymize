@@ -696,3 +696,454 @@ def test_onnx_multilingual_honorific_boosting(
     assert t_type == EntityType.PERSON
     for mark in ("様", "さん", "君", "ちゃん", "氏", "님", "씨"):
         assert trailing_pat.search(f"田中{mark}") is not None
+
+
+def test_trim_span_boundaries_comprehensive() -> None:
+    from pseudonymize.backends.ml.onnx import _trim_span_boundaries
+
+    # 1. Standard peripheral brackets and quotes
+    cases = [
+        ("(John)", 0, 6, None, 1, 5, "John"),
+        ("[Paris]", 0, 7, None, 1, 6, "Paris"),
+        ("“Berlin”", 0, 8, None, 1, 7, "Berlin"),
+        ("«Madrid»", 0, 8, None, 1, 7, "Madrid"),
+        ("¿London?", 0, 8, None, 1, 7, "London"),
+        ("Smith,", 0, 6, None, 0, 5, "Smith"),
+        ("Smith.", 0, 6, None, 0, 5, "Smith"),
+        ("...Paris...", 0, 11, None, 3, 8, "Paris"),
+        ("(John Smith).", 0, 13, None, 1, 11, "John Smith"),
+    ]
+    for text, s, e, ent_type, exp_s, exp_e, exp_text in cases:
+        res_s, res_e = _trim_span_boundaries(text, s, e, ent_type)
+        assert (res_s, res_e) == (exp_s, exp_e), (
+            f"Failed for {text!r}: got {(res_s, res_e)}, expected {(exp_s, exp_e)}"
+        )
+        assert text[res_s:res_e] == exp_text
+
+    # 2. Corporate and person abbreviations that legitimately end with a period
+    corp_text = "Invest in Acme Corp. today."
+    res_s, res_e = _trim_span_boundaries(corp_text, 10, 20, EntityType.ORGANIZATION)
+    assert corp_text[res_s:res_e] == "Acme Corp."
+
+    inc_text = "Founded by Globex Inc. in 1999."
+    res_s, res_e = _trim_span_boundaries(inc_text, 11, 22, EntityType.ORGANIZATION)
+    assert inc_text[res_s:res_e] == "Globex Inc."
+
+    person_text = "Honoring Martin Luther King Jr. today."
+    res_s, res_e = _trim_span_boundaries(person_text, 9, 31, EntityType.PERSON)
+    assert person_text[res_s:res_e] == "Martin Luther King Jr."
+
+    # 3. Internal hyphens and apostrophes must be preserved
+    compound_text = "Jean-Paul and O'Connor"
+    res_s, res_e = _trim_span_boundaries(compound_text, 0, 9, EntityType.PERSON)
+    assert compound_text[res_s:res_e] == "Jean-Paul"
+
+    res_s2, res_e2 = _trim_span_boundaries(compound_text, 14, 22, EntityType.PERSON)
+    assert compound_text[res_s2:res_e2] == "O'Connor"
+
+    # 4. Degenerate punctuation only
+    degen = "..."
+    res_s3, res_e3 = _trim_span_boundaries(degen, 0, 3, None)
+    assert res_s3 >= res_e3
+
+
+def test_onnx_compound_name_and_punctuation_trimming(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+    )
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+
+    # 1. Punctuation wrapping: parentheses and commas should not contaminate entity boundaries
+    text = "Please reach out to (John Smith), our coordinator in (Paris)."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+    detections = backend.detect(block, policy)
+
+    detected_spans = [text[d.start : d.end] for d in detections]
+    for span in detected_spans:
+        assert not span.startswith("(")
+        assert not span.endswith(")")
+        assert not span.endswith(",")
+        assert not span.endswith(".")
+
+    # 2. Compound names with hyphens and apostrophes
+    text2 = "Meeting with Jean-Paul and Liam O'Connor."
+    block2 = ContentBlock(id="2", text=text2, location=TextOffsetLocation(0, len(text2)))
+    detections2 = backend.detect(block2, policy)
+    detected_spans2 = [text2[d.start : d.end] for d in detections2]
+
+    # Boundaries must be clean without trailing periods
+    for span in detected_spans2:
+        assert not span.endswith(".")
+
+
+def test_onnx_allowed_entity_types_scoping(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+    text = "Sarah lives in Paris and works for Acme Corp."
+    block = ContentBlock(id="1", text=text, location=TextOffsetLocation(0, len(text)))
+
+    # 1. Scoped to PERSON only using set
+    person_only_backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+        allowed_entity_types={EntityType.PERSON},
+    )
+    assert person_only_backend.allowed_entity_types == frozenset({EntityType.PERSON})
+    assert person_only_backend.capabilities.entity_types == frozenset({EntityType.PERSON})
+    person_dets = person_only_backend.detect(block, policy)
+    assert all(d.entity_type == EntityType.PERSON for d in person_dets)
+    assert any(d.entity_type == EntityType.PERSON for d in person_dets)
+
+    # 2. Scoped with an unsupported entity type in set
+    scoped_unsupported = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+        allowed_entity_types={EntityType.PERSON, EntityType.SECRET},
+    )
+    assert scoped_unsupported.capabilities.entity_types == frozenset({EntityType.PERSON})
+
+    # 3. Default backend includes all supported entity types
+    default_backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+    )
+    assert default_backend.allowed_entity_types is None
+    assert EntityType.LOCATION in default_backend.capabilities.entity_types
+    assert EntityType.PERSON in default_backend.capabilities.entity_types
+
+
+def test_onnx_detect_batch_equivalence(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.0)
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.05,
+    )
+
+    # Empty blocks
+    assert backend.detect_batch((), policy) == ()
+
+    # Multi-block batch containing normal text, empty text, whitespace, and another entity
+    b1 = ContentBlock("1", "Hello Sarah Connor, welcome.", TextOffsetLocation(0, 28))
+    b2 = ContentBlock("2", "", TextOffsetLocation(0, 0))
+    b3 = ContentBlock("3", "   \n  ", TextOffsetLocation(0, 6))
+    b4 = ContentBlock("4", "Paris is the capital of France.", TextOffsetLocation(0, 31))
+
+    blocks = (b1, b2, b3, b4)
+    batch_results = backend.detect_batch(blocks, policy)
+
+    assert len(batch_results) == 4
+    assert len(batch_results[1]) == 0
+    assert len(batch_results[2]) == 0
+
+    # Verify equivalence with individual detect calls
+    single_r1 = backend.detect(b1, policy)
+    single_r4 = backend.detect(b4, policy)
+
+    assert len(batch_results[0]) == len(single_r1)
+    for d_batch, d_single in zip(batch_results[0], single_r1, strict=True):
+        assert d_batch.entity_type == d_single.entity_type
+        assert d_batch.start == d_single.start
+        assert d_batch.end == d_single.end
+
+    assert len(batch_results[3]) == len(single_r4)
+    for d_batch, d_single in zip(batch_results[3], single_r4, strict=True):
+        assert d_batch.entity_type == d_single.entity_type
+        assert d_batch.start == d_single.start
+        assert d_batch.end == d_single.end
+
+
+def test_onnx_possessive_clitic_trimming(
+    onnx_artifacts: tuple[Path, Path, Path],
+) -> None:
+    config_path, tokenizer_path, model_path = onnx_artifacts
+    policy = Policy(network_policy=NetworkPolicy.DENY, minimum_confidence=0.5)
+    backend = LocalONNXPIIBackend(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        config_path=config_path,
+        entity_threshold=0.3,
+    )
+
+    text = "John's car and Mary\u2019s house were visited by Peter's friend."
+    block = ContentBlock("1", text, TextOffsetLocation(0, len(text)))
+    detections = backend.detect(block, policy)
+    person_spans = [text[d.start : d.end] for d in detections if d.entity_type == EntityType.PERSON]
+
+    assert "John" in person_spans
+    assert "John's" not in person_spans
+    assert "Mary" in person_spans
+    assert "Mary\u2019s" not in person_spans
+    assert "Peter" in person_spans
+    assert "Peter's" not in person_spans
+
+
+@pytest.fixture(scope="module")
+def recovery_backend(onnx_artifacts: tuple[Path, Path, Path]) -> LocalONNXPIIBackend:
+    config, tokenizer, model = onnx_artifacts
+    return LocalONNXPIIBackend(
+        model_path=model,
+        tokenizer_path=tokenizer,
+        config_path=config,
+        decoder_mode="constrained_bio",
+        case_recovery_threshold=0.9,
+    )
+
+
+def test_case_recovery_identity_and_possessive(recovery_backend: LocalONNXPIIBackend) -> None:
+    from pseudonymize.engine import Pseudonymizer
+
+    text = "Alice emailed Bob and Paolo. paolo's car\n and ana have problems"
+    result = Pseudonymizer(backends=(recovery_backend,)).process(text)
+    assert result.text == (
+        "<PER_1> emailed <PER_2> and <PER_3>. <PER_3> car\n and <PER_4> have problems"
+    )
+    assert [text[r.detection.start : r.detection.end] for r in result.replacements] == [
+        "Alice",
+        "Bob",
+        "Paolo",
+        "paolo's",
+        "ana",
+    ]
+    assert all(r.detection.detector == "onnx" for r in result.replacements)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "the car and engine have problems. the problem is common.",
+        "we emailed support and requested help with the car.",
+        "we will mark the bill paid in may and hope the rose grows.",
+        "please send a message to support about the service.",
+    ],
+)
+def test_case_recovery_preserves_ordinary_words(
+    recovery_backend: LocalONNXPIIBackend, text: str
+) -> None:
+    from pseudonymize.engine import Pseudonymizer
+
+    assert Pseudonymizer(backends=(recovery_backend,)).process(text).text == text
+
+
+def test_case_recovery_respects_entity_policy(recovery_backend: LocalONNXPIIBackend) -> None:
+    from pseudonymize.engine import Pseudonymizer
+
+    text = "Alice emailed Bob and Paolo. paolo's car and ana have problems"
+    policy = Policy(entity_types=frozenset({EntityType.EMAIL}))
+    assert Pseudonymizer(backends=(recovery_backend,), policy=policy).process(text).text == text
+
+
+def test_http_engine_requires_onnx_and_auth(
+    recovery_backend: LocalONNXPIIBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service as server
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setattr(server, "_ML_BACKEND", recovery_backend)
+    with TestClient(server.app) as client:
+        assert client.get("/health").json()["ml_backend"] == "active"
+        assert client.post("/v1/text", json={"text": "Alice"}).status_code == 401
+        headers = {"X-Internal-Gateway-Key": "synthetic-test-gateway-key"}
+        assert (
+            client.post(
+                "/v1/text", headers=headers, json={"text": "Alice", "require_ml": False}
+            ).status_code
+            == 422
+        )
+        response = client.post(
+            "/v1/text",
+            headers=headers,
+            json={
+                "text": "Alice emailed Bob and Paolo. paolo's car\n and ana have problems",
+                "require_ml": True,
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["text"] == (
+            "<PER_1> emailed <PER_2> and <PER_3>. <PER_3> car\n and <PER_4> have problems"
+        )
+        assert len(body["entities"]) == 5
+        assert all(e["detector"] == "onnx" for e in body["entities"])
+
+        def fail_detection(*args: Any, **kwargs: Any) -> Any:
+            raise RuntimeError("synthetic inference failure")
+
+        monkeypatch.setattr(recovery_backend, "detect_batch", fail_detection)
+        failed = client.post("/v1/text", headers=headers, json={"text": "Alice"})
+        assert failed.status_code == 503
+        assert "synthetic inference failure" not in failed.text
+
+
+def test_http_engine_missing_model_does_not_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service as server
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setenv("MODEL_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "_ML_BACKEND", None)
+    with pytest.raises(FileNotFoundError), TestClient(server.app):
+        pass
+
+
+@pytest.mark.parametrize("preset", ["strict", "financial", "llm", "default"])
+def test_http_policy_presets_and_filtering(preset: str) -> None:
+    pytest.importorskip("fastapi")
+    from pseudonymize import service
+
+    policy = service.resolve_policy(preset, ["email", "not-an-entity"])
+    assert policy.entity_types == frozenset({EntityType.EMAIL})
+    assert service.resolve_policy(preset, ["unknown"]).entity_types
+    assert service.resolve_policy({"minimum_confidence": 0.95}, None).minimum_confidence == 0.95
+
+
+def test_http_nested_data_identity_and_failure(
+    recovery_backend: LocalONNXPIIBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setattr(service, "_ML_BACKEND", recovery_backend)
+    with TestClient(service.app) as client:
+        headers = {"Authorization": "Bearer synthetic-test-gateway-key"}
+        response = client.post(
+            "/v1/data",
+            headers=headers,
+            json={
+                "data": {
+                    "first": "Alice emailed Bob and Paolo.",
+                    "nested": ["Alice emailed Bob and Paolo.", 42, None, True],
+                }
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["data"]["first"] == body["data"]["nested"][0]
+        assert body["data"]["nested"][1:] == [42, None, True]
+        assert len(body["entities"]) == 6
+        assert all(e["detector"] == "onnx" for e in body["entities"])
+        assert (
+            client.post(
+                "/v1/text",
+                headers=headers,
+                json={"text": "Alice", "policy": {"minimum_confidence": "invalid"}},
+            ).status_code
+            == 400
+        )
+        assert (
+            client.post(
+                "/v1/text",
+                headers=headers,
+                json={"text": "Alice", "policy": {"minimum_confidence": 2}},
+            ).status_code
+            == 400
+        )
+        assert (
+            client.post(
+                "/v1/text", headers={"Authorization": "wrong-key"}, json={"text": "Alice"}
+            ).status_code
+            == 401
+        )
+
+        def fail_detection(*args: Any, **kwargs: Any) -> Any:
+            raise RuntimeError("synthetic inference failure")
+
+        monkeypatch.setattr(recovery_backend, "detect_batch", fail_detection)
+        assert client.post("/v1/data", headers=headers, json={"data": ["Alice"]}).status_code == 503
+        monkeypatch.delenv("GATEWAY_SECRET_TOKEN")
+        assert client.post("/v1/text", headers=headers, json={"text": "Alice"}).status_code == 503
+
+
+def test_http_engine_requires_configured_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    monkeypatch.delenv("GATEWAY_SECRET_TOKEN", raising=False)
+    with (
+        pytest.raises(RuntimeError, match="authentication must be configured"),
+        TestClient(service.app),
+    ):
+        pass
+
+
+def test_http_engine_rejects_corrupt_model(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    (tmp_path / "config.json").write_text("{}")
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setenv("MODEL_DIR", str(tmp_path))
+    monkeypatch.setattr(service, "_ML_BACKEND", None)
+    with pytest.raises(RuntimeError, match="integrity verification"), TestClient(service.app):
+        pass
+
+
+def test_http_engine_verified_model_startup(
+    onnx_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setenv("MODEL_DIR", str(onnx_artifacts[0].parent))
+    monkeypatch.setattr(service, "_ML_BACKEND", None)
+    with TestClient(service.app) as client:
+        health = client.get("/health").json()
+        assert health["ml_backend"] == "active"
+        assert health["onnx_required"] is True
+        assert not service.create_pseudonymizer(Policy())._enable_coreference
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"case_recovery_threshold": 0},
+        {"case_recovery_threshold": 1.1},
+        {"case_recovery_threshold": 0.9, "decoder_mode": "legacy"},
+        {"case_recovery_max_candidates": 0},
+        {"case_recovery_max_candidates": True},
+        {"case_recovery_max_candidates": 1.5},
+    ],
+)
+def test_case_recovery_rejects_invalid_settings(
+    onnx_artifacts: tuple[Path, Path, Path], kwargs: dict[str, Any]
+) -> None:
+    config, tokenizer, model = onnx_artifacts
+    with pytest.raises(ValueError):
+        LocalONNXPIIBackend(
+            model_path=model, tokenizer_path=tokenizer, config_path=config, **kwargs
+        )

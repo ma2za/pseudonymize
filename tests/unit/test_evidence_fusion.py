@@ -6,53 +6,79 @@ from benchmarks.evidence_fusion import (
 from pseudonymize.result import Detection, EntityType
 
 
-def test_mathematically_validated_identifier_has_hard_safety_precedence() -> None:
-    # A payment card validated by Luhn checksum
-    card_det = Detection(
-        EntityType.PAYMENT_CARD, 0, 16, 0.85, "payment_card", "algorithmic_checksum"
+def test_hard_safety_precedence_dominates_ml() -> None:
+    # Mathematically validated checksum candidate with moderate confidence
+    validated_det = Detection(
+        entity_type=EntityType.IBAN,
+        start=0,
+        end=20,
+        confidence=0.85,
+        detector="algorithmic_checksum",
     )
-    # An overlapping ML detection with higher raw confidence
-    ml_det = Detection(EntityType.PERSON, 0, 16, 0.99, "onnx", "local_onnx_pii")
+    validated_evidence = extract_candidate_evidence(validated_det)
+    assert validated_evidence.is_mathematically_validated is True
 
-    ev_card = extract_candidate_evidence(card_det)
-    ev_ml = extract_candidate_evidence(ml_det)
+    # High-confidence ML detection overlapping the exact same span
+    ml_det = Detection(
+        entity_type=EntityType.ORGANIZATION,
+        start=0,
+        end=20,
+        confidence=0.99,
+        detector="ml_onnx",
+    )
+    ml_evidence = extract_candidate_evidence(ml_det)
+    assert ml_evidence.is_mathematically_validated is False
 
-    assert ev_card.is_mathematically_validated
-    assert not ev_ml.is_mathematically_validated
+    # Fused score for validated must exceed 10.0 and easily beat ML
+    assert validated_evidence.compute_fused_score() > 10.0
+    assert ml_evidence.compute_fused_score() < 5.0
 
-    # Card score exceeds 10.0 due to hard safety invariant
-    assert ev_card.compute_fused_score() > 10.0
-    assert ev_ml.compute_fused_score() < 2.0
-
-    # Arbitration must select card over ML
-    arbitrated = arbitrate_conflicts([ev_ml, ev_card])
-    assert len(arbitrated) == 1
-    assert arbitrated[0].detection.entity_type == EntityType.PAYMENT_CARD
-
-
-def test_arbitrate_conflicts_prefers_higher_fused_evidence() -> None:
-    d1 = Detection(EntityType.EMAIL, 10, 25, 0.95, "email", "rules")
-    d2 = Detection(EntityType.PERSON, 10, 25, 0.60, "heuristic", "rules")
-
-    ev1 = extract_candidate_evidence(d1, context_polarity=1.0, agreement_count=2)
-    ev2 = extract_candidate_evidence(d2, context_polarity=-1.0, agreement_count=1)
-
-    arbitrated = arbitrate_conflicts([ev2, ev1])
-    assert len(arbitrated) == 1
-    assert arbitrated[0].detection.entity_type == EntityType.EMAIL
+    # Arbitration must select the validated identifier
+    resolved = arbitrate_conflicts([ml_evidence, validated_evidence])
+    assert len(resolved) == 1
+    assert resolved[0].detection.entity_type == EntityType.IBAN
+    assert resolved[0].detection.detector == "algorithmic_checksum"
 
 
-def test_arbitrate_conflicts_preserves_disjoint_spans() -> None:
-    d1 = Detection(EntityType.PERSON, 0, 10, 0.90, "onnx", "local_onnx_pii")
-    d2 = Detection(EntityType.LOCATION, 20, 30, 0.85, "onnx", "local_onnx_pii")
+def test_context_polarity_influences_score() -> None:
+    det = Detection(
+        entity_type=EntityType.PHONE,
+        start=10,
+        end=20,
+        confidence=0.80,
+        detector="phone",
+    )
 
-    ev1 = extract_candidate_evidence(d1)
-    ev2 = extract_candidate_evidence(d2)
+    pos_evidence = extract_candidate_evidence(det, context_polarity=1.0)
+    neg_evidence = extract_candidate_evidence(det, context_polarity=-1.0)
 
-    arbitrated = arbitrate_conflicts([ev1, ev2])
-    assert len(arbitrated) == 2
-    assert arbitrated[0].detection.start == 0
-    assert arbitrated[1].detection.start == 20
+    assert pos_evidence.compute_fused_score() > neg_evidence.compute_fused_score()
+
+
+def test_arbitrate_non_overlapping_spans() -> None:
+    det1 = Detection(
+        entity_type=EntityType.EMAIL,
+        start=0,
+        end=15,
+        confidence=0.95,
+        detector="email",
+    )
+    det2 = Detection(
+        entity_type=EntityType.PHONE,
+        start=20,
+        end=32,
+        confidence=0.85,
+        detector="phone",
+    )
+
+    ev1 = extract_candidate_evidence(det1)
+    ev2 = extract_candidate_evidence(det2)
+
+    resolved = arbitrate_conflicts([ev2, ev1])  # passed in reverse order
+    assert len(resolved) == 2
+    # Output must be ordered by start offset
+    assert resolved[0].detection.start == 0
+    assert resolved[1].detection.start == 20
 
 
 def test_arbitrate_conflicts_empty() -> None:

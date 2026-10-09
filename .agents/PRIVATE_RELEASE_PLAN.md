@@ -1,13 +1,13 @@
 # Private Release Plan: Pseudonymize
 
 ## Current State
-- **Just Completed:** `1.30.0` (Standardized immutable detector weights, pairwise conflict hierarchy, adjacent span merging, and operational readiness guide).
-- **Active Development Version:** `1.31.0`
-- **Current Baseline (1.30.0):** 
-  - Precision: `0.8611` (Character Masking Precision: `92.67%`)
-  - Recall: `0.8039` (Character Masking Recall: `81.78%`)
-  - F1 Score: `0.8315`
-  - Critical Entity Recall Floors: EMAIL (`1.0000`, 0 FN), PHONE (`0.9748`), PAYMENT_CARD (`0.9650`), NATIONAL_ID (`0.9716`).
+- **Just Completed:** `1.35.0` (High-throughput dynamic batching pipeline, SIMD-aligned dynamic sequence padding, scoped entity type filtering, and reproducible benchmark sampling).
+- **Active Development Version:** `1.36.0`
+- **Current Baseline (1.34.0):** 
+  - Precision: `0.8608` (Character Masking Precision: `91.73%`)
+  - Recall: `0.8026` (Character Masking Recall: `81.36%`)
+  - F1 Score: `0.8307`
+  - Critical Entity Recall Floors: EMAIL (`1.0000`, 0 FN), PHONE (`0.9725`), PAYMENT_CARD (`0.9650`), NATIONAL_ID (`0.9716`).
   *(Measured against `ai4privacy/pii-masking-openpii-1.5m` validation split, 1000 samples).*
 
 ## Strategic Imperative: High-Throughput & Semantic Depth

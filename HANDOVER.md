@@ -218,10 +218,10 @@ licenses, and datasets again because those external facts can change.
 
 ## Current release state
 
-`1.30.0` is published and tagged (`v1.30.0`).
-`1.31.0` is the active development version.
+`1.35.0` is published and tagged (`v1.35.0`).
+`1.36.0` is the active development version.
 
-Before this roadmap/handover update, `main` was clean at `f6c67b4` and matched `origin/main`.
+Before this roadmap/handover update, `main` was clean at `8329358` and matched `origin/main`.
 Relevant integrated commits are:
 
 - `8ec7e11 chore: restore dependency-free base release contract`
@@ -239,6 +239,24 @@ Relevant integrated commits are:
 - `0d3d9fb chore(release): prepare 1.29.0 release and update changelog`
 - `7f77f39 chore(release): bump development version to 1.30.0 and harden Windows CI installer`
 - `f6c67b4 chore(release): prepare 1.30.0 release and update changelog`
+- `672f8c9 chore(release): bump development version to 1.31.0`
+- `e4f0249 feat(benchmarks): support flexible entity and text schemas in grouped template partitioning`
+- `3656824 chore(release): prepare 1.31.0 release and update changelog`
+- `e359a2f chore(release): bump development version to 1.32.0`
+- `988bc88 feat(benchmarks): support flexible annotation schemas in evaluate_quality`
+- `04922ff chore(release): prepare 1.32.0 release and update changelog`
+- `49de503 chore(release): bump development version to 1.33.0`
+- `5fdee58 feat(benchmarks): complete 1.33.0 model bake-off, evidence fusion tests, and decision record`
+- `ee92eba feat(release): integrate 1.34.0 quality gate and model card validation into release verifier`
+- `60133c2 chore(release): prepare 1.33.0 release and update changelog`
+- `c683f12 chore(release): bump development version to 1.34.0`
+- `4536e14 chore(release): prepare 1.34.0 release and update changelog`
+- `8d16b05 chore(release): bump development version to 1.35.0`
+- `bc18792 feat(ml): implement subword repair, compound name bridging, and boundary punctuation alignment`
+- `382e47f feat(ml): add scoped entity type filtering and benchmark sampling enhancements`
+- `3cdef03 feat(engine): implement high-throughput dynamic batching pipeline`
+- `d04a25f perf(ml): optimize batch inference with SIMD-aligned dynamic sequence padding`
+- `8329358 chore(release): prepare 1.35.0 release and update changelog`
 
 The roadmap/handover edits described here are documentation changes after that commit. Always run
 `git status --short` first and inspect the actual diff. Do not infer release publication from an
@@ -304,9 +322,11 @@ ensemble” interpretation.
 3. Use the resulting ranked error causes to decide whether `1.32.0` calibration/decoding work is
    justified. Pre-register experiments and fit on grouped development/calibration data only.
 4. Run the `1.33.0` model/hybrid bake-off only if evidence says model capacity or error
-   complementarity is the bottleneck.
+   complementarity is the bottleneck (COMPLETED).
 5. Run the `1.34.0` blind generalization gate once after freezing the candidate. Ship no claimed
-   benchmark improvement without paired uncertainty and independent-corpus support.
+   benchmark improvement without paired uncertainty and independent-corpus support (COMPLETED).
+6. Execute the performance and semantic recall initiatives (batch vectorization, zero-copy caching,
+   and subword repair).
 
 ## 1.29.0-dev False Negatives Reduction Program (VERIFIED & INTEGRATED)
 

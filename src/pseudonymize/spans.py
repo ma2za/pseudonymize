@@ -44,10 +44,9 @@ def resolve_overlaps(
 
     def resolution_score(detection: Detection) -> float:
         base_weight = _DETECTOR_WEIGHT.get(detection.detector, 0.3)
-        if detection.detector == "context_id" and detection.entity_type in (
-            EntityType.TAX_ID,
-            EntityType.NATIONAL_ID,
-        ):
+        if detection.detector == "context_id" and detection.entity_type == EntityType.TAX_ID:
+            base_weight = 1.0
+        elif detection.detector == "context_id" and detection.entity_type == EntityType.NATIONAL_ID:
             base_weight = 0.88
         if detection.backend == "local_onnx_pii" and detection.confidence >= 0.95:
             # Overwhelmingly confident ML overrides generic heuristics,

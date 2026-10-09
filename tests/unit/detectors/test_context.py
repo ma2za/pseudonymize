@@ -47,6 +47,17 @@ def test_context_detector_ignores_prose_without_an_identifier(text: str) -> None
         ("Tax reference: 12345678 in system.", "12345678", EntityType.TAX_ID),
         ("Tax code: 987654321 registered.", "987654321", EntityType.TAX_ID),
         ("Nomor pajak adalah: 6621826002159997 valid.", "6621826002159997", EntityType.TAX_ID),
+        ("GST registration no: 123456789 verified.", "123456789", EntityType.TAX_ID),
+        (
+            "The invoice will cite your G4644716T for accounting.",
+            "G4644716T",
+            EntityType.TAX_ID,
+        ),
+        (
+            "GST regulations require filing 1941-02-17T00:00:00 under T5408492C.",
+            "T5408492C",
+            EntityType.TAX_ID,
+        ),
         ("护照号 E12345678 已过期。", "E12345678", EntityType.NATIONAL_ID),
     ],
 )

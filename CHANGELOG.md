@@ -5,7 +5,106 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 ## [Unreleased]
 
 ### Added
-- **Benchmark Manifest Tooling:** Supported diverse annotation schema formats (`source_text` / `text` and offset or value-based entity matches) in structural template extraction and grouped partitioning.
+- Optional bounded ONNX case recovery for lowercase PERSON candidates using high-confidence re-inference and constrained BIO decoding. Disabled by default; no name dictionaries or fabricated spans.
+- Python-owned Lambda HTTP service with verified model artifacts, required gateway authentication, ONNX-only person detection, and explicit inference failure. Hosted processing disables coreference expansion so each name occurrence requires model confirmation.
+
+## [1.36.0] - 2026-10-09
+
+### Added
+- Add `Pseudonymizer(enable_coreference=False)` for workflows that require each
+  name occurrence to be confirmed by the configured backend. The default remains
+  enabled for compatibility.
+
+### Fixed
+- Share PERSON aliases across name casing and straight/curly English possessives,
+  and consume the possessive suffix during pseudonymization and redaction.
+- Keep distinct ONNX name mentions across a sentence-ending period separate.
+- Resolve tax identifier conflicts, improve contextual GST and phone detection,
+  and trim possessive suffixes from ONNX name boundaries.
+
+### Limitations
+- Lowercase name recall remains dependent on the ONNX model. This release does
+  not introduce example-tuned recovery thresholds or promise complete detection.
+
+## [1.35.0] - 2026-10-03
+
+### Added
+- **High-Throughput Dynamic Batching Pipeline:**
+  - Added `invoke_backend_batch` to `src/pseudonymize/backends/base.py` providing unified block-aware batch dispatch with contract validation, provenance injection, bounds verification, and graceful fallback to `invoke_backend` for non-batch backends.
+  - Implemented `detect_batch` on `LocalONNXPIIBackend` vectorizing token window inference across multiple `ContentBlock`s in chunks of 32 with SIMD-aligned dynamic sequence padding to maximize CPU vector register saturation, delivering an empirical ~3.1x throughput improvement.
+  - Implemented `detect_batch` on `RulesBackend` and `CompositeBackend`.
+  - Upgraded `Pseudonymizer.process_batch`, `process_document`, and `inspect_document` to execute multi-block detection in unified batches across all configured backends while strictly preserving the frozen B1 contract and single-scope alias consistency.
+  - Added comprehensive unit test coverage in `tests/unit/test_backends.py`, `tests/unit/backends/test_onnx.py`, and `tests/unit/test_engine.py`.
+- **Scoped Entity Type Filtering for ONNX Backend:**
+  - Added `allowed_entity_types` parameter to `LocalONNXPIIBackend` enabling callers to constrain ML token extraction and advertised backend capabilities to an arbitrary subset of supported entity types (e.g. `PERSON` and `LOCATION` for specialized multi-model ensembling).
+  - Added `allowed_entity_types` property on `LocalONNXPIIBackend` returning the configured subset or `None` when unrestricted.
+  - Added unit test suite in `tests/unit/backends/test_onnx.py` validating capability advertising, detection filtering, collection conversions, and unsupported-type filtering.
+- **Benchmark Evaluation & Environment Compatibility:**
+  - Pinned `pyarrow>=19.0.0,<20.0.0` in the `benchmarks` dependency group to resolve Windows Smart App Control CodeIntegrity blocks on Windows 11.
+  - Added `--seed` argument to `benchmarks/evaluate_quality.py` for reproducible pseudo-random sampling across custom dataset seeds.
+  - Added `--ensemble-ner` flag to `benchmarks/evaluate_quality.py` supporting secondary specialized name/location NER model ensembling.
+  - Stored sanitized 2,000-sample validation benchmark artifact (`1.35.0_ai4privacy_validation_2000_fresh.json`) with privacy-safe sufficient statistics.
+
+## [1.34.0] - 2026-09-30
+
+### Added
+- **Automated Quality Release Gate:**
+  - Implemented formal 5-criteria quality release gate (`benchmarks/quality_gate.py`) evaluating pinned provenance (dataset revision `a785eb528e28be2693c3718a27e066970de5dadb` and model SHA-256 hashes), non-negative paired 95% bootstrap F1-delta intervals, strict precision protection, zero recall regression on critical identifiers (EMAIL, PHONE, PAYMENT_CARD, NATIONAL_ID), and external generalization floor.
+  - Added fail-closed unit test coverage in `tests/unit/test_quality_gate.py` verifying detection of precision regressions, critical identifier drops, unpinned provenance, and external generalization failures.
+- **Formal Model Card Publication:**
+  - Published comprehensive model card (`docs/model_card.md`) documenting model architecture (XLM-RoBERTa Token Classifier), INT8 dynamic quantization, training lineage (AI4Privacy 500k), verified strict quality metrics, zero-shot character metrics on the PIIMB benchmark, CPU inference latency (85ms/1k chars), memory footprint (420MB RSS), and causal failure mode taxonomy.
+- **Release Verification & CI Integration:**
+  - Integrated `docs/model_card.md` into `REQUIRED_SDIST_FILES` in `scripts/verify_release.py`.
+  - Added `verify_quality_gate_report` function and `--quality-gate-report` CLI flag in release verification tooling.
+  - Added integration test suite in `tests/integration/test_release_verifier.py` validating fail-closed behavior for passing and failing quality gate reports.
+- **Blind Generalization & Causal Error Integration:**
+  - Completed validation across pinned 1,000-sample validation slice with zero raw value exposure in diagnostic logs, traces, or test outputs.
+
+## [1.33.0] - 2026-09-29
+
+### Added
+- **Model and Evidence-Fusion Bake-Off Framework:**
+  - Implemented formal `ModelCandidate` registry and validation in `benchmarks/model_manifests.py` auditing licenses, commercial viability, redistribution, parameter footprints, and inference latency.
+  - Formally disqualified non-commercial and no-derivatives models (e.g. `piiranha-v1` under CC-BY-NC-ND-4.0).
+  - Implemented empirical quantization damage assessment (`assess_quantization_damage`) verifying that INT8 quantization incurs no significant quality loss against FP32 baselines (`+0.0012` Delta F1, well within `±0.02` tolerance).
+  - Added Oracle diagnostics (`compute_oracle_diagnostics`) isolating token label confusion from span boundary misalignment, revealing boundary segmentation as the primary performance lever (`+0.1616` potential F1 gain).
+  - Executed candidate bake-off suite on pinned evaluation data and generated official Decision Record `docs/decisions/1.33.0_model_bakeoff_record.md` confirming retention of the incumbent INT8 ONNX backend.
+- **Evidence-Fusion Conflict Arbitration & Hard Safety Precedence:**
+  - Implemented `arbitrate_conflicts` in `benchmarks/evidence_fusion.py` enforcing absolute precedence for mathematically validated identifiers (IBAN Mod97, Credit Card Luhn, Tax IDs) over unvalidated or high-confidence ML predictions.
+  - Added bounded scoring integrating context polarity, detector provenance weights, and span length.
+- **Release Verification & Quality Gate Integration:**
+  - Enforced `docs/model_card.md` inclusion in `REQUIRED_SDIST_FILES` in `scripts/verify_release.py`.
+  - Added `verify_quality_gate_report` function and `--quality-gate-report` CLI flag in release tooling.
+
+## [1.32.0] - 2026-09-29
+
+### Added
+- **Calibrated Token Decisions & Probability Calibration:**
+  - Implemented Expected Calibration Error (ECE), Brier score, and Negative Log-Likelihood (NLL) measurement in `benchmarks/calibrate_ml.py`.
+  - Added temperature scaling optimization via Golden Section Search NLL minimization on calibration logits.
+  - Added constrained emission threshold optimization on development data subject to strict precision floors and critical entity recall constraints.
+- **Constrained BIO Span Decoding:**
+  - Added `decoder_mode="constrained_bio"` to `LocalONNXPIIBackend` enforcing valid BIO token transitions and preventing invalid O->I transitions.
+  - Distinguished contiguous same-type multi-token components of a single entity from consecutive distinct entities without greedy cross-entity collapsing.
+- **Pluggable Span Confidence Aggregation:**
+  - Introduced configurable span-level confidence aggregation modes (`"max"`, `"mean"`, `"min"`, `"geometric_mean"`).
+- **Benchmark Infrastructure Enhancements:**
+  - Supported flexible annotation schemas (`source_text` / `text` and offset or value-based entity matches) in `benchmarks/evaluate_quality.py`.
+
+## [1.31.0] - 2026-09-28
+
+### Added
+- **Measurement Integrity & Deterministic Comparison:**
+  - Extended evaluator to emit privacy-safe per-row sufficient statistics (`row_hash`, per-entity TP/FP/FN, source family, length bucket, and error categories) without storing raw text or matched values.
+  - Added paired bootstrap resampling engine (`benchmarks/compare_quality.py`) computing deterministic 95% confidence intervals on F1 and exact-boundary F1 deltas.
+- **Causal Error Atlas & Component Ablation Matrix:**
+  - Implemented development ablation runner (`benchmarks/run_ablations.py`) measuring 15 distinct architectural component ablations on identical row manifests.
+  - Multi-category causal error atlas classifying detection failures across the 5 canonical failure modes (missing candidate, threshold suppression, label confusion, boundary mismatch, and ensemble conflict).
+- **Contamination Controls & Grouped Manifests:**
+  - Implemented structural template normalization and grouping (`benchmarks/build_manifests.py`) preventing identical templates or form letters from crossing partition boundaries, supporting flexible annotation schemas (`source_text` / `text` and offset/value entities).
+  - Added contamination auditor (`benchmarks/audit_contamination.py`) auditing near-duplicate template leakage across manifests and training lineage.
+- **External Generalization Track:**
+  - Implemented multi-source benchmark evaluation harness (`benchmarks/evaluate_external.py`) for independent evaluation (such as PIIMB) using label-agnostic character-level metrics.
 
 ## [1.30.0] - 2026-09-28
 
