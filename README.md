@@ -84,6 +84,12 @@ This installs `onnxruntime`, `tokenizers`, and `numpy` allowing you to configure
 to run a lightweight local quantized DistilBERT model. No models are downloaded implicitly; you must provide 
 your own paths to your downloaded `model.onnx`, `tokenizer.json`, and `config.json`.
 
+When a detected PERSON is followed by an English possessive (`'s` or `\u2019s`), the
+replacement consumes that suffix and shares the alias of the unmodified name.
+For a workflow in which every name occurrence must be confirmed by ONNX, configure
+`Pseudonymizer(backends=[onnx_backend], enable_coreference=False)`. This excludes
+rule/gazetteer backends and disables propagation of earlier names into new detections.
+
 ### Optional Document & OCR Support
 
 To extract and safely redact complex file formats, install the relevant extras:
