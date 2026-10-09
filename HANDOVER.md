@@ -405,3 +405,26 @@ verification unless they are intentionally retained as a user-approved release a
 - Push only when explicitly requested.
 - A version is published only after its matching tag, successful release workflow, PyPI artifact,
   and GitHub release exist. Until then, keep changes under `[Unreleased]`.
+
+
+## Local benchmark accounting review (2026-10-02)
+
+`pseudonymize.bench._match` updated `matched_truth` outside the acceptance loop.
+This produced duplicate detection matches, undercounted true positives, and an
+UnboundLocalError for empty/disjoint inputs. Six new cases failed before the fix.
+The correction restores one-to-one matching; explanation logs now contain row,
+type and offsets instead of source values. Optional ML imports are lazy and the
+root logger is configured only by the CLI entry point.
+
+Observed verification using the frozen lockfile:
+
+- Local benchmark and evaluator tests: 13 passed, including exact expected
+  aggregate metrics for a corpus with true positives, false positives and misses.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 496 passed; 1 Tesseract skip.
+- Pre-commit, mypy, strict docs build, package build and release verifier passed.
+- Full coverage and supported-platform verification are pending CI.
+
+This repairs the local benchmark harness; it does not improve detection accuracy
+or revise the separate published evaluation baseline. Reusable lesson assessment:
+assert match cardinality and zero-match cases instead of only exercising the
+benchmark command. Those invariants are now covered by regression tests.

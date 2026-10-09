@@ -4,14 +4,12 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-from pseudonymize.backends.ml.onnx import LocalONNXPIIBackend
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.result import EntityType
 
 # We duplicate the minimum necessary parts from evaluate_quality.py
 # to make it completely stand-alone and zero-dependency (other than what's already in core).
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("pseudonymize.bench")
 
 SUPPORTED_LABELS = {
@@ -50,7 +48,7 @@ def _match(
         if detection_index in matched_detections or truth_index in matched_truth:
             continue
         matched_detections.add(detection_index)
-    matched_truth.add(truth_index)
+        matched_truth.add(truth_index)
     return matched_detections, matched_truth
 
 
@@ -78,6 +76,8 @@ def evaluate(
 
     engine = Pseudonymizer()
     if use_ml:
+        from pseudonymize.backends.ml.onnx import LocalONNXPIIBackend
+
         CACHE_DIR = Path(".cache/pseudonymize-tests/models/multilang-pii-ner-ml")
         onnx_model_path = CACHE_DIR / "model_int8.onnx"
         tokenizer_path = CACHE_DIR / "tokenizer.json"
@@ -135,7 +135,7 @@ def evaluate(
                 entity_type = EntityType[label]
                 fn_per_type[entity_type] += 1
                 if explain:
-                    logger.info(f"FN: '{text[g_start:g_end]}' should be {label}")
+                    logger.info("FN: row=%d type=%s start=%d end=%d", count, label, g_start, g_end)
 
         # Unmatched Detections (False Positives)
         for index, (d_start, d_end, entity_type) in enumerate(detections):
@@ -145,7 +145,13 @@ def evaluate(
             fp_per_type[entity_type] += 1
             false_positives += 1
             if explain:
-                logger.info(f"FP: '{text[d_start:d_end]}' as {entity_type.value}")
+                logger.info(
+                    "FP: row=%d type=%s start=%d end=%d",
+                    count,
+                    entity_type.value,
+                    d_start,
+                    d_end,
+                )
 
         count += 1
 
@@ -195,6 +201,7 @@ def evaluate(
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     parser = argparse.ArgumentParser(
         description="Local evaluation harness for pseudonymize quality testing."
     )
@@ -210,7 +217,7 @@ def main() -> None:
     parser.add_argument(
         "--explain",
         action="store_true",
-        help="Log details of all False Positives and False Negatives.",
+        help="Log row numbers, entity types and offsets for errors without source values.",
     )
     args = parser.parse_args()
 
