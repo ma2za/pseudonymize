@@ -4,7 +4,7 @@ import math
 import os
 import re
 import typing
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -55,6 +55,22 @@ _LABEL_SUFFIXES: tuple[tuple[tuple[str, ...], EntityType], ...] = (
     (("SSN", "SOCIALNUM", "IDCARDNUM", "PASSPORTNUM", "DRIVERLICENSENUM"), EntityType.NATIONAL_ID),
     (("TAXNUM",), EntityType.TAX_ID),
     (("URL",), EntityType.URL_CREDENTIAL),
+)
+
+_ALL_SUPPORTED_ENTITY_TYPES: frozenset[EntityType] = frozenset(
+    {
+        EntityType.PERSON,
+        EntityType.ORGANIZATION,
+        EntityType.LOCATION,
+        EntityType.EMAIL,
+        EntityType.PHONE,
+        EntityType.IP_ADDRESS,
+        EntityType.IBAN,
+        EntityType.PAYMENT_CARD,
+        EntityType.NATIONAL_ID,
+        EntityType.TAX_ID,
+        EntityType.URL_CREDENTIAL,
+    }
 )
 
 
@@ -174,6 +190,12 @@ def _trim_span_boundaries(
             ):
                 break
             end -= 1
+        elif (
+            entity_type == EntityType.PERSON
+            and text[start:end].endswith(("'s", "\u2019s", "'S", "\u2019S"))
+            and (end - start) > 2
+        ):
+            end -= 2
         else:
             break
 
@@ -200,6 +222,9 @@ class LocalONNXPIIBackend(DetectionBackend):
         temperature: float = 1.0,
         decoder_mode: str = "legacy",
         span_aggregator: str = "max",
+        allowed_entity_types: Collection[EntityType] | None = None,
+        case_recovery_threshold: float | None = None,
+        case_recovery_max_candidates: int = 8,
     ) -> None:
         if ort is None or Tokenizer is None or np is None:
             raise ImportError(
@@ -221,6 +246,17 @@ class LocalONNXPIIBackend(DetectionBackend):
             raise ValueError(f"Unknown decoder_mode '{decoder_mode}'")
         if span_aggregator not in ("max", "mean", "min", "geometric_mean"):
             raise ValueError(f"Unknown span_aggregator '{span_aggregator}'")
+        if case_recovery_threshold is not None:
+            if not 0 < case_recovery_threshold <= 1:
+                raise ValueError("case_recovery_threshold must be between 0 and 1")
+            if decoder_mode != "constrained_bio":
+                raise ValueError("case recovery requires constrained_bio decoding")
+        if (
+            not isinstance(case_recovery_max_candidates, int)
+            or isinstance(case_recovery_max_candidates, bool)
+            or case_recovery_max_candidates < 1
+        ):
+            raise ValueError("case_recovery_max_candidates must be positive")
 
         self._name = name
         self._entity_threshold = entity_threshold
@@ -233,9 +269,14 @@ class LocalONNXPIIBackend(DetectionBackend):
         self._enable_confidence_remapping = enable_confidence_remapping
         self._enable_subword_repair = enable_subword_repair
         self._enable_word_expansion = enable_word_expansion
+        self._case_recovery_threshold = case_recovery_threshold
+        self._case_recovery_max_candidates = case_recovery_max_candidates
         self._temperature = float(temperature)
         self._decoder_mode = decoder_mode
         self._span_aggregator = span_aggregator
+        self._allowed_entity_types = (
+            frozenset(allowed_entity_types) if allowed_entity_types is not None else None
+        )
         self._model_path = str(model_path)
         self._tokenizer_path = str(tokenizer_path)
         self._config_path = str(config_path) if config_path else None
@@ -267,23 +308,19 @@ class LocalONNXPIIBackend(DetectionBackend):
         return self._name
 
     @property
+    def allowed_entity_types(self) -> frozenset[EntityType] | None:
+        """Return allowed entity types for this backend, or None if unrestricted."""
+        return self._allowed_entity_types
+
+    @property
     def capabilities(self) -> BackendCapabilities:
+        types = (
+            (self._allowed_entity_types & _ALL_SUPPORTED_ENTITY_TYPES)
+            if self._allowed_entity_types is not None
+            else _ALL_SUPPORTED_ENTITY_TYPES
+        )
         return BackendCapabilities(
-            entity_types=frozenset(
-                {
-                    EntityType.PERSON,
-                    EntityType.ORGANIZATION,
-                    EntityType.LOCATION,
-                    EntityType.EMAIL,
-                    EntityType.PHONE,
-                    EntityType.IP_ADDRESS,
-                    EntityType.IBAN,
-                    EntityType.PAYMENT_CARD,
-                    EntityType.NATIONAL_ID,
-                    EntityType.TAX_ID,
-                    EntityType.URL_CREDENTIAL,
-                }
-            ),
+            entity_types=types,
             remote=False,
         )
 
@@ -328,73 +365,79 @@ class LocalONNXPIIBackend(DetectionBackend):
             self._label2id = {v: k for k, v in self._id2label.items()}
 
     def detect(self, block: ContentBlock, policy: Policy) -> Sequence[Detection]:
-        if not block.text.strip():
-            return []
+        return self.detect_batch([block], policy)[0]
+
+    def detect_batch(
+        self, blocks: Sequence[ContentBlock], policy: Policy
+    ) -> Sequence[Sequence[Detection]]:
+        if not blocks:
+            return ()
 
         try:
             self._load_model()
 
-            # Calculate explicit global surrounding context (v1.7.0)
-            global_context_triggers = []
-            if self._enable_context_boost:
-                for pattern, _, _ in _CONTEXT_BOOSTS:
-                    for match in pattern.finditer(block.text):
-                        trigger_word = match.group().strip().strip(":.-#")
-                        if trigger_word and trigger_word not in global_context_triggers:
-                            global_context_triggers.append(trigger_word)
+            windows_to_process: list[tuple[int, str, int, str | None]] = []
+            block_seens: list[dict[tuple[EntityType, int, int], Detection]] = [
+                {} for _ in range(len(blocks))
+            ]
 
-            global_context_str = (
-                " ".join(global_context_triggers) if global_context_triggers else None
-            )
-
-            # Get tokenizer offsets for adaptive window slicing (v1.8.0)
-            encoding = self._tokenizer.encode(block.text)
-            offsets = [span for span in encoding.offsets if span[1] > span[0]]
-            [o[0] for o in offsets]
             budget = max(self._max_tokens - 2, 1)
             stride = max(budget - min(self._window_overlap_tokens, budget - 1), 1)
 
-            detections: list[Detection] = []
-            seen: dict[tuple[EntityType, int, int], Detection] = {}
+            for block_idx, block in enumerate(blocks):
+                if not block.text.strip():
+                    continue
 
-            # Collect all windows that need processing
-            windows_to_process: list[tuple[str, int, str | None]] = []
+                # Calculate explicit global surrounding context (v1.7.0)
+                global_context_triggers = []
+                if self._enable_context_boost:
+                    for pattern, _, _ in _CONTEXT_BOOSTS:
+                        for match in pattern.finditer(block.text):
+                            trigger_word = match.group().strip().strip(":.-#")
+                            if trigger_word and trigger_word not in global_context_triggers:
+                                global_context_triggers.append(trigger_word)
 
-            token_start_idx = 0
-            while token_start_idx < len(offsets):
-                token_end_idx = min(token_start_idx + budget, len(offsets))
-                window_start = offsets[token_start_idx][0]
-                window_end = offsets[token_end_idx - 1][1]
-
-                windows_to_process.append(
-                    (block.text[window_start:window_end], window_start, global_context_str)
+                global_context_str = (
+                    " ".join(global_context_triggers) if global_context_triggers else None
                 )
 
-                token_start_idx += stride
+                # Get tokenizer offsets for adaptive window slicing (v1.8.0)
+                encoding = self._tokenizer.encode(block.text)
+                offsets = [span for span in encoding.offsets if span[1] > span[0]]
+                if not offsets:
+                    continue
 
-            # Filter through LRU cache first to find cache misses that need batching
+                token_start_idx = 0
+                while token_start_idx < len(offsets):
+                    token_end_idx = min(token_start_idx + budget, len(offsets))
+                    window_start = offsets[token_start_idx][0]
+                    window_end = offsets[token_end_idx - 1][1]
 
-            [[] for _ in range(len(windows_to_process))]
+                    windows_to_process.append(
+                        (
+                            block_idx,
+                            block.text[window_start:window_end],
+                            window_start,
+                            global_context_str,
+                        )
+                    )
 
-            for _i, (_w_text, _w_start, _w_context) in enumerate(windows_to_process):
-                # We can try to hit the LRU cache manually by looking up the wrapped func
-                # If we don't want to introspect the cache, we can just process everything.
-                # However, since `_infer_text_cached` handles its own cache, we can't easily "peek".
-                # For batched execution, we will send all windows through `_infer_batch` directly
-                # if there are multiple windows, or use the single `_detect_window` if just one.
-                pass
+                    token_start_idx += stride
+
+            if not windows_to_process:
+                return tuple(() for _ in blocks)
 
             if len(windows_to_process) == 1:
                 # Single window fast-path (hits L1 cache natively)
-                w_text, w_start, w_context = windows_to_process[0]
+                block_idx, w_text, w_start, w_context = windows_to_process[0]
                 window_detections = self._detect_window(w_text, w_start, policy, w_context)
                 for detection in window_detections:
                     key = (detection.entity_type, detection.start, detection.end)
-                    seen[key] = detection
+                    block_seens[block_idx][key] = detection
             else:
                 # Multi-window batched AVX processing (bypasses L1 for throughput)
-                texts = [w[0] for w in windows_to_process]
-                contexts = [w[2] for w in windows_to_process]
+                texts = [w[1] for w in windows_to_process]
+                contexts = [w[3] for w in windows_to_process]
 
                 # Split into chunks of 32 to avoid massive memory spikes
                 batch_size = 32
@@ -406,19 +449,26 @@ class LocalONNXPIIBackend(DetectionBackend):
 
                     for j, win_detections in enumerate(batch_results):
                         global_idx = i + j
-                        w_start = windows_to_process[global_idx][1]
+                        block_idx = windows_to_process[global_idx][0]
+                        w_start = windows_to_process[global_idx][2]
 
                         for d in win_detections:
                             # Apply character offset
                             detection = replace(d, start=d.start + w_start, end=d.end + w_start)
 
                             key = (detection.entity_type, detection.start, detection.end)
-                            previous = seen.get(key)
+                            previous = block_seens[block_idx].get(key)
                             if previous is None or detection.confidence > previous.confidence:
-                                seen[key] = detection
+                                block_seens[block_idx][key] = detection
 
-            detections = sorted(seen.values(), key=lambda item: (item.start, item.end))
-            return tuple(detections)
+            results: list[tuple[Detection, ...]] = []
+            for block_seen in block_seens:
+                sorted_detections = sorted(
+                    block_seen.values(), key=lambda item: (item.start, item.end)
+                )
+                results.append(tuple(sorted_detections))
+
+            return tuple(results)
 
         except Exception as e:
             # The originating message can quote the tokenized input, so it never
@@ -491,7 +541,14 @@ class LocalONNXPIIBackend(DetectionBackend):
         return self._decode_window_spans(text, encoding, probs, policy)
 
     def _decode_window_spans(
-        self, text: str, encoding: Any, probs: np.ndarray, policy: Policy
+        self,
+        text: str,
+        encoding: Any,
+        probs: np.ndarray,
+        policy: Policy,
+        *,
+        allow_case_recovery: bool = True,
+        calibrate_confidence: bool = True,
     ) -> tuple[Detection, ...]:
         # Pre-calculate boosted ranges based on context keywords in window text
         boosted_ranges: dict[EntityType, list[tuple[int, int]]] = {
@@ -645,6 +702,8 @@ class LocalONNXPIIBackend(DetectionBackend):
             entity_type = _entity_type_for(label_str)
             if entity_type is None:
                 continue
+            if self._allowed_entity_types and entity_type not in self._allowed_entity_types:
+                continue
             start, end = encoding.offsets[idx]
             if start >= end:
                 continue
@@ -659,7 +718,7 @@ class LocalONNXPIIBackend(DetectionBackend):
             # ensuring that highly accurate low-probability detections survive policy filtering.
             # Bypassed for extremely permissive development thresholds (less than 0.05)
             # to keep real low confidences.
-            if self._enable_confidence_remapping and thresh >= 0.05:
+            if calibrate_confidence and self._enable_confidence_remapping and thresh >= 0.05:
                 if raw_conf >= thresh:
                     conf = 0.80 + 0.20 * (raw_conf - thresh) / max(1.0 - thresh, 1e-5)
                 else:
@@ -696,6 +755,16 @@ class LocalONNXPIIBackend(DetectionBackend):
                     can_merge = (entity_type is previous_type) and (
                         not gap.strip() or gap.strip() in ("-", ",", "'", ".", "/", "\\")
                     )
+
+                # A fresh B- name component after a sentence-ending period
+                # is a new mention, not a continuation of the previous name.
+                if (
+                    gap.strip() == "."
+                    and any(char.isspace() for char in gap)
+                    and label_str.startswith("B-")
+                    and curr_tag == previous_tag
+                ):
+                    can_merge = False
 
                 if can_merge:
                     previous_confs.append(conf)
@@ -755,7 +824,96 @@ class LocalONNXPIIBackend(DetectionBackend):
                     )
                 )
 
+        if allow_case_recovery and self._case_recovery_threshold is not None:
+            results.extend(self._recover_case_spans(text, encoding, probs, policy, results))
         return tuple(results)
+
+    def _recover_case_spans(
+        self,
+        text: str,
+        encoding: Any,
+        probs: np.ndarray,
+        policy: Policy,
+        existing: Sequence[Detection],
+    ) -> list[Detection]:
+        """Recheck weak PERSON evidence through ONNX, without name lists or invented spans."""
+        if EntityType.PERSON not in policy.entity_types:
+            return []
+        if (
+            self._allowed_entity_types is not None
+            and EntityType.PERSON not in self._allowed_entity_types
+        ):
+            return []
+        person_labels = [
+            label_id
+            for label_id, label in (self._id2label or {}).items()
+            if _entity_type_for(label) == EntityType.PERSON
+        ]
+        if not person_labels:
+            return []
+        candidates: dict[int, tuple[int, int, float]] = {}
+        for index, word_id in enumerate(encoding.word_ids[: len(probs)]):
+            if word_id is None or encoding.sequence_ids[index] != 0:
+                continue
+            chars = encoding.word_to_chars(word_id)
+            if chars is None:
+                continue
+            start, end = _trim_span_boundaries(text, chars[0], chars[1], EntityType.PERSON)
+            word = text[start:end]
+            if len(word) < 2 or not word.isalpha() or not word[0].islower():
+                continue
+            if len(word[0].upper()) != 1:
+                continue  # Capitalization must preserve the original character offsets.
+            if any(d.start < end and start < d.end for d in existing):
+                continue
+            evidence = float(np.sum(probs[index, person_labels]))
+            if evidence < 0.0001:
+                continue
+            previous = candidates.get(word_id)
+            if previous is None or evidence > previous[2]:
+                candidates[word_id] = (start, end, evidence)
+        recovered: list[Detection] = []
+        ranked = sorted(candidates.values(), key=lambda candidate: (-candidate[2], candidate[0]))
+        threshold = max(policy.minimum_confidence, self._case_recovery_threshold or 1.0)
+        recovery_policy = replace(policy, minimum_confidence=threshold)
+        expected_inputs = {item.name for item in self._session.get_inputs()}
+        for start, end, _evidence in ranked[: self._case_recovery_max_candidates]:
+            variant = text[:start] + text[start].upper() + text[start + 1 :]
+            variant_encoding = self._tokenizer.encode(variant)
+            inputs = {
+                "input_ids": [variant_encoding.ids[: self._max_tokens]],
+                "attention_mask": [variant_encoding.attention_mask[: self._max_tokens]],
+                "token_type_ids": [variant_encoding.type_ids[: self._max_tokens]],
+            }
+            logits = (
+                self._session.run(
+                    None,
+                    {
+                        name: np.array(value, dtype=np.int64)
+                        for name, value in inputs.items()
+                        if name in expected_inputs
+                    },
+                )[0][0]
+                / self._temperature
+            )
+            exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+            variant_probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
+            detections = self._decode_window_spans(
+                variant,
+                variant_encoding,
+                variant_probs,
+                recovery_policy,
+                allow_case_recovery=False,
+                calibrate_confidence=False,
+            )
+            recovered.extend(
+                detection
+                for detection in detections
+                if detection.entity_type == EntityType.PERSON
+                and detection.start == start
+                and detection.end <= end
+            )
+        return recovered
 
     def _detect_window(
         self, text: str, char_offset: int, policy: Policy, context_pair: str | None = None
@@ -776,8 +934,8 @@ class LocalONNXPIIBackend(DetectionBackend):
             return []
 
         if hasattr(self._tokenizer, "encode_batch"):
-            # Enable padding for batch processing
-            self._tokenizer.enable_padding(direction="right", length=self._max_tokens)
+            # Dynamic padding to longest sequence in batch (snapped to 8 for SIMD alignment)
+            self._tokenizer.enable_padding(direction="right", pad_to_multiple_of=8)
 
             encode_inputs: list[str | tuple[str, str]] = []
             for text, pair in zip(texts, context_pairs, strict=False):
@@ -798,9 +956,9 @@ class LocalONNXPIIBackend(DetectionBackend):
                 else:
                     encodings.append(self._tokenizer.encode(text))
 
-            # Manual padding
-            max_len = max(len(e.ids) for e in encodings)
-            max_len = min(max_len, self._max_tokens)
+            # Dynamic padding to batch max length snapped to 8
+            raw_max = max(len(e.ids) for e in encodings)
+            max_len = min(raw_max + (8 - raw_max % 8) % 8, self._max_tokens)
 
             for e in encodings:
                 ids = e.ids[:max_len]
