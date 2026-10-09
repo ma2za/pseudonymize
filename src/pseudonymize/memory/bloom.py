@@ -8,6 +8,10 @@ class BloomFilter:
     __slots__ = ("_bit_array", "_contains_cached", "_hash_count", "_size")
 
     def __init__(self, capacity: int, error_rate: float = 0.001) -> None:
+        if capacity <= 0:
+            raise ValueError("capacity must be positive")
+        if not 0 < error_rate < 1:
+            raise ValueError("error_rate must be between 0 and 1")
         self._size = self._get_size(capacity, error_rate)
         self._hash_count = self._get_hash_count(self._size, capacity)
         self._bit_array = bytearray((self._size + 7) // 8)
@@ -41,6 +45,9 @@ class BloomFilter:
             digest = int.from_bytes(h.digest(), "big") % self._size
             self._bit_array[digest // 8] |= 1 << (digest % 8)
 
+        # Cached misses become stale whenever the bit array changes.
+        self._contains_cached.cache_clear()
+
     def _raw_contains(self, item: str) -> bool:
         item_bytes = item.encode("utf-8")
         base = hashlib.sha256(item_bytes)
@@ -58,7 +65,7 @@ class BloomFilter:
     @staticmethod
     def _get_size(n: int, p: float) -> int:
         m = -(n * math.log(p)) / (math.log(2) ** 2)
-        return int(m)
+        return max(1, math.ceil(m))
 
     @staticmethod
     def _get_hash_count(m: int, n: int) -> int:

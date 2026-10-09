@@ -405,3 +405,28 @@ verification unless they are intentionally retained as a user-approved release a
 - Push only when explicitly requested.
 - A version is published only after its matching tag, successful release workflow, PyPI artifact,
   and GitHub release exist. Until then, keep changes under `[Unreleased]`.
+
+
+## Bloom filter correctness review (2026-10-02)
+
+The mutation regression was reproduced before fixing it: a cached negative lookup
+remained negative after insertion. Small filters could also allocate zero bits.
+The change clears membership cache entries after insertion, validates parameters,
+and rounds the bit count upward. No dependency or detection threshold changes.
+
+Observed verification on Python 3.14.2 with the frozen lockfile:
+
+- Focused Bloom and gazetteer tests: 11 passed.
+- `uv run --frozen pre-commit run --all-files`: passed.
+- `uv run --frozen mypy`: passed, 155 source files.
+- `uv run --frozen mkdocs build --strict`: passed.
+- `uv build` and `uv run --frozen python scripts/verify_release.py`: passed.
+- `uv run --frozen pytest --ignore=tests/unit/backends/test_onnx.py
+  --ignore=tests/unit/backends/test_bio_decoder.py --no-cov`: 493 passed,
+  1 skipped because Tesseract was unavailable.
+- The full suite terminated with exit 137 during ONNX tests. Full coverage and the
+  cross-platform matrix remain unverified locally; the partial run is not a
+  substitute for either gate.
+
+Reusable lesson assessment: mutation must invalidate cached negative membership
+results. The regression test records that invariant in its owning implementation.
