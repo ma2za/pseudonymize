@@ -894,3 +894,256 @@ def test_onnx_possessive_clitic_trimming(
     assert "Mary\u2019s" not in person_spans
     assert "Peter" in person_spans
     assert "Peter's" not in person_spans
+
+
+@pytest.fixture(scope="module")
+def recovery_backend(onnx_artifacts: tuple[Path, Path, Path]) -> LocalONNXPIIBackend:
+    config, tokenizer, model = onnx_artifacts
+    return LocalONNXPIIBackend(
+        model_path=model,
+        tokenizer_path=tokenizer,
+        config_path=config,
+        decoder_mode="constrained_bio",
+        case_recovery_threshold=0.9,
+    )
+
+
+def test_case_recovery_identity_and_possessive(recovery_backend: LocalONNXPIIBackend) -> None:
+    from pseudonymize.engine import Pseudonymizer
+
+    text = "Alice emailed Bob and Paolo. paolo's car\n and ana have problems"
+    result = Pseudonymizer(backends=(recovery_backend,)).process(text)
+    assert result.text == (
+        "<PER_1> emailed <PER_2> and <PER_3>. <PER_3> car\n and <PER_4> have problems"
+    )
+    assert [text[r.detection.start : r.detection.end] for r in result.replacements] == [
+        "Alice",
+        "Bob",
+        "Paolo",
+        "paolo's",
+        "ana",
+    ]
+    assert all(r.detection.detector == "onnx" for r in result.replacements)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "the car and engine have problems. the problem is common.",
+        "we emailed support and requested help with the car.",
+        "we will mark the bill paid in may and hope the rose grows.",
+        "please send a message to support about the service.",
+    ],
+)
+def test_case_recovery_preserves_ordinary_words(
+    recovery_backend: LocalONNXPIIBackend, text: str
+) -> None:
+    from pseudonymize.engine import Pseudonymizer
+
+    assert Pseudonymizer(backends=(recovery_backend,)).process(text).text == text
+
+
+def test_case_recovery_respects_entity_policy(recovery_backend: LocalONNXPIIBackend) -> None:
+    from pseudonymize.engine import Pseudonymizer
+
+    text = "Alice emailed Bob and Paolo. paolo's car and ana have problems"
+    policy = Policy(entity_types=frozenset({EntityType.EMAIL}))
+    assert Pseudonymizer(backends=(recovery_backend,), policy=policy).process(text).text == text
+
+
+def test_http_engine_requires_onnx_and_auth(
+    recovery_backend: LocalONNXPIIBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service as server
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setattr(server, "_ML_BACKEND", recovery_backend)
+    with TestClient(server.app) as client:
+        assert client.get("/health").json()["ml_backend"] == "active"
+        assert client.post("/v1/text", json={"text": "Alice"}).status_code == 401
+        headers = {"X-Internal-Gateway-Key": "synthetic-test-gateway-key"}
+        assert (
+            client.post(
+                "/v1/text", headers=headers, json={"text": "Alice", "require_ml": False}
+            ).status_code
+            == 422
+        )
+        response = client.post(
+            "/v1/text",
+            headers=headers,
+            json={
+                "text": "Alice emailed Bob and Paolo. paolo's car\n and ana have problems",
+                "require_ml": True,
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["text"] == (
+            "<PER_1> emailed <PER_2> and <PER_3>. <PER_3> car\n and <PER_4> have problems"
+        )
+        assert len(body["entities"]) == 5
+        assert all(e["detector"] == "onnx" for e in body["entities"])
+
+        def fail_detection(*args: Any, **kwargs: Any) -> Any:
+            raise RuntimeError("synthetic inference failure")
+
+        monkeypatch.setattr(recovery_backend, "detect_batch", fail_detection)
+        failed = client.post("/v1/text", headers=headers, json={"text": "Alice"})
+        assert failed.status_code == 503
+        assert "synthetic inference failure" not in failed.text
+
+
+def test_http_engine_missing_model_does_not_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service as server
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setenv("MODEL_DIR", str(tmp_path))
+    monkeypatch.setattr(server, "_ML_BACKEND", None)
+    with pytest.raises(FileNotFoundError), TestClient(server.app):
+        pass
+
+
+@pytest.mark.parametrize("preset", ["strict", "financial", "llm", "default"])
+def test_http_policy_presets_and_filtering(preset: str) -> None:
+    pytest.importorskip("fastapi")
+    from pseudonymize import service
+
+    policy = service.resolve_policy(preset, ["email", "not-an-entity"])
+    assert policy.entity_types == frozenset({EntityType.EMAIL})
+    assert service.resolve_policy(preset, ["unknown"]).entity_types
+    assert service.resolve_policy({"minimum_confidence": 0.95}, None).minimum_confidence == 0.95
+
+
+def test_http_nested_data_identity_and_failure(
+    recovery_backend: LocalONNXPIIBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setattr(service, "_ML_BACKEND", recovery_backend)
+    with TestClient(service.app) as client:
+        headers = {"Authorization": "Bearer synthetic-test-gateway-key"}
+        response = client.post(
+            "/v1/data",
+            headers=headers,
+            json={
+                "data": {
+                    "first": "Alice emailed Bob and Paolo.",
+                    "nested": ["Alice emailed Bob and Paolo.", 42, None, True],
+                }
+            },
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["data"]["first"] == body["data"]["nested"][0]
+        assert body["data"]["nested"][1:] == [42, None, True]
+        assert len(body["entities"]) == 6
+        assert all(e["detector"] == "onnx" for e in body["entities"])
+        assert (
+            client.post(
+                "/v1/text",
+                headers=headers,
+                json={"text": "Alice", "policy": {"minimum_confidence": "invalid"}},
+            ).status_code
+            == 400
+        )
+        assert (
+            client.post(
+                "/v1/text",
+                headers=headers,
+                json={"text": "Alice", "policy": {"minimum_confidence": 2}},
+            ).status_code
+            == 400
+        )
+        assert (
+            client.post(
+                "/v1/text", headers={"Authorization": "wrong-key"}, json={"text": "Alice"}
+            ).status_code
+            == 401
+        )
+
+        def fail_detection(*args: Any, **kwargs: Any) -> Any:
+            raise RuntimeError("synthetic inference failure")
+
+        monkeypatch.setattr(recovery_backend, "detect_batch", fail_detection)
+        assert client.post("/v1/data", headers=headers, json={"data": ["Alice"]}).status_code == 503
+        monkeypatch.delenv("GATEWAY_SECRET_TOKEN")
+        assert client.post("/v1/text", headers=headers, json={"text": "Alice"}).status_code == 503
+
+
+def test_http_engine_requires_configured_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    monkeypatch.delenv("GATEWAY_SECRET_TOKEN", raising=False)
+    with (
+        pytest.raises(RuntimeError, match="authentication must be configured"),
+        TestClient(service.app),
+    ):
+        pass
+
+
+def test_http_engine_rejects_corrupt_model(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    (tmp_path / "config.json").write_text("{}")
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setenv("MODEL_DIR", str(tmp_path))
+    monkeypatch.setattr(service, "_ML_BACKEND", None)
+    with pytest.raises(RuntimeError, match="integrity verification"), TestClient(service.app):
+        pass
+
+
+def test_http_engine_verified_model_startup(
+    onnx_artifacts: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from pseudonymize import service
+
+    monkeypatch.setenv("GATEWAY_SECRET_TOKEN", "synthetic-test-gateway-key")
+    monkeypatch.setenv("MODEL_DIR", str(onnx_artifacts[0].parent))
+    monkeypatch.setattr(service, "_ML_BACKEND", None)
+    with TestClient(service.app) as client:
+        health = client.get("/health").json()
+        assert health["ml_backend"] == "active"
+        assert health["onnx_required"] is True
+        assert not service.create_pseudonymizer(Policy())._enable_coreference
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"case_recovery_threshold": 0},
+        {"case_recovery_threshold": 1.1},
+        {"case_recovery_threshold": 0.9, "decoder_mode": "legacy"},
+        {"case_recovery_max_candidates": 0},
+        {"case_recovery_max_candidates": True},
+        {"case_recovery_max_candidates": 1.5},
+    ],
+)
+def test_case_recovery_rejects_invalid_settings(
+    onnx_artifacts: tuple[Path, Path, Path], kwargs: dict[str, Any]
+) -> None:
+    config, tokenizer, model = onnx_artifacts
+    with pytest.raises(ValueError):
+        LocalONNXPIIBackend(
+            model_path=model, tokenizer_path=tokenizer, config_path=config, **kwargs
+        )

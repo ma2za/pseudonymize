@@ -180,6 +180,7 @@ class Pseudonymizer:
         transformer: Transformer | None = None,
         typed_redaction: bool = False,
         bloom_filter: BloomFilter | None = None,
+        enable_coreference: bool = True,
     ) -> None:
         if detectors is not None and backends is not None:
             raise ValueError("configure detectors or backends, not both")
@@ -190,7 +191,7 @@ class Pseudonymizer:
             raise ValueError("typed_redaction is valid only in redacted mode")
         self.policy = policy or Policy.default()
         self.bloom_filter = bloom_filter
-        self._enable_coreference: bool = True
+        self._enable_coreference = enable_coreference
         self._enable_adjacent_merge: bool = True
         configured_detectors = DEFAULT_DETECTORS if detectors is None else detectors
         self.backends = (
@@ -382,6 +383,16 @@ class Pseudonymizer:
                     continue
                 if start != detection.start or end != detection.end:
                     detection = replace(detection, start=start, end=end)
+
+                # Consume a possessive together with a model-detected name. Identity
+                # normalization excludes it, so Paolo and paolo's share one alias.
+                if detection.entity_type is EntityType.PERSON:
+                    suffix = text[detection.end : detection.end + 2].casefold()
+                    suffix_end = detection.end + 2
+                    if suffix in {"'s", "\u2019s"} and (
+                        suffix_end == len(text) or not text[suffix_end].isalnum()
+                    ):
+                        detection = replace(detection, end=suffix_end)
 
                 # Bloom Filter False-Positive Veto (v1.15.0)
                 if self.bloom_filter is not None and detection.confidence < 0.95:

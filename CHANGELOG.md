@@ -4,6 +4,28 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- Optional bounded ONNX case recovery for lowercase PERSON candidates using high-confidence re-inference and constrained BIO decoding. Disabled by default; no name dictionaries or fabricated spans.
+- Python-owned Lambda HTTP service with verified model artifacts, required gateway authentication, ONNX-only person detection, and explicit inference failure. Hosted processing disables coreference expansion so each name occurrence requires model confirmation.
+
+## [1.36.0] - 2026-10-09
+
+### Added
+- Add `Pseudonymizer(enable_coreference=False)` for workflows that require each
+  name occurrence to be confirmed by the configured backend. The default remains
+  enabled for compatibility.
+
+### Fixed
+- Share PERSON aliases across name casing and straight/curly English possessives,
+  and consume the possessive suffix during pseudonymization and redaction.
+- Keep distinct ONNX name mentions across a sentence-ending period separate.
+- Resolve tax identifier conflicts, improve contextual GST and phone detection,
+  and trim possessive suffixes from ONNX name boundaries.
+
+### Limitations
+- Lowercase name recall remains dependent on the ONNX model. This release does
+  not introduce example-tuned recovery thresholds or promise complete detection.
+
 ## [1.35.0] - 2026-10-03
 
 ### Added
