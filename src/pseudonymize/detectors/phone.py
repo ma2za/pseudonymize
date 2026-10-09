@@ -13,8 +13,9 @@ def _credible_phone(value: str) -> bool:
     separators = sum(character in " .()-" for character in value)
     if value.startswith("+") or separators >= 2:
         return True
-    if separators == 1 and "-" in value:
-        prefix, _, suffix = value.partition("-")
+    if separators == 1 and ("-" in value or " " in value):
+        sep = "-" if "-" in value else " "
+        prefix, _, suffix = value.partition(sep)
         p_len = sum(1 for c in prefix if c.isdigit())
         s_len = sum(1 for c in suffix if c.isdigit())
         if 2 <= p_len <= 5 and 5 <= s_len <= 10:

@@ -42,6 +42,8 @@ publishable without requiring unfinished later layers.
 | `1.32.0` | Published | Development-only calibration and constrained span decoding |
 | `1.33.0` | Published | Reproducible model and hybrid-ensemble bake-off |
 | `1.34.0` | Published | Independent generalization proof and quality release gate |
+| `1.35.0` | Published | High-throughput batching, scoped ML entities, and performance optimization |
+| `1.36.0` | In Development | High-throughput zero-copy token caching and vocabulary bypass |
 
 Alpha releases optimize for the cleanest safe architecture, not backward compatibility. They may
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
