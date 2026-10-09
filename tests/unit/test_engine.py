@@ -234,3 +234,90 @@ def test_pseudonymizer_ablation_flags() -> None:
 
     scope = ProcessingScope(engine)
     assert scope._coreferences is None
+
+
+def test_process_batch_features_and_edge_cases() -> None:
+    from pseudonymize import TransformationMode
+
+    engine = Pseudonymizer()
+    assert engine.process_batch(()) == ()
+
+    # Batch with mapping
+    texts = ["Contact alice@example.com", "No identifiers here", "Phone is +1 415 555 2671"]
+    results = engine.process_batch(texts, include_mapping=True)
+    assert len(results) == 3
+    assert "<EML_1>" in results[0].text
+    assert results[0].mapping is not None
+    assert results[0].restore(results[0].text) == texts[0]
+    assert results[1].text == texts[1]
+    assert "<PHN_1>" in results[2].text
+    assert results[2].mapping is not None
+
+    # Invalid mapping mode
+    redact_engine = Pseudonymizer(mode=TransformationMode.REDACTED)
+    with pytest.raises(ValueError, match="mappings are available only"):
+        redact_engine.process_batch(texts, include_mapping=True)
+
+
+def test_engine_remote_process_document_and_batch() -> None:
+    from dataclasses import dataclass
+
+    from pseudonymize import Detection, EntityType, NetworkPolicy, TextOffsetLocation
+    from pseudonymize.backends import BackendCapabilities, RulesBackend
+    from pseudonymize.detectors import DEFAULT_DETECTORS
+    from pseudonymize.document import ContentBlock, Document
+
+    @dataclass
+    class SimpleMockRemoteBackend:
+        name: str = "mock_remote"
+
+        @property
+        def capabilities(self) -> BackendCapabilities:
+            return BackendCapabilities(frozenset({EntityType.PERSON}), remote=True)
+
+        @property
+        def allow_remote_processing(self) -> bool:
+            return True
+
+        def detect(self, block: ContentBlock, policy: Policy) -> list[Detection]:
+            idx = block.text.find("Maria")
+            if idx >= 0:
+                return [
+                    Detection(
+                        entity_type=EntityType.PERSON,
+                        start=idx,
+                        end=idx + 5,
+                        confidence=1.0,
+                        detector="mock_remote",
+                    )
+                ]
+            return []
+
+    policy = Policy(
+        network_policy=NetworkPolicy.ALLOW_CONFIGURED,
+        allowed_remote_backends=frozenset({"mock_remote"}),
+    )
+    engine = Pseudonymizer(
+        policy=policy, backends=(RulesBackend(DEFAULT_DETECTORS), SimpleMockRemoteBackend())
+    )
+
+    # 1. Test process_batch with remote backend
+    texts = ["Contact maria@example.com for Maria.", "No PII here."]
+    batch_res = engine.process_batch(texts)
+    assert len(batch_res) == 2
+    assert "<EML_1>" in batch_res[0].text
+    assert "<PER_1>" in batch_res[0].text
+    assert "Maria" not in batch_res[0].text
+
+    # 2. Test process_document with remote backend
+    doc = Document(
+        "doc1",
+        (
+            ContentBlock("b1", "Contact maria@example.com for Maria.", TextOffsetLocation(0, 35)),
+            ContentBlock("b2", "Plain text block", TextOffsetLocation(0, 16)),
+        ),
+    )
+    doc_res = engine.process_document(doc)
+    assert doc_res.output.blocks[0].text == "Contact <EML_1> for <PER_1>."
+    assert doc_res.output.blocks[1].text == "Plain text block"
+    assert doc_res.statistics.remote_block_calls == 2

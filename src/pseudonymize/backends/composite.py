@@ -6,6 +6,7 @@ from pseudonymize.backends.base import (
     DetectionBackend,
     backend_capabilities,
     invoke_backend,
+    invoke_backend_batch,
 )
 from pseudonymize.document import ContentBlock
 from pseudonymize.policy import Policy
@@ -42,6 +43,26 @@ class CompositeBackend:
             and detection.confidence >= policy.minimum_confidence
         )
         return resolve_overlaps(candidates, policy.detector_priority)
+
+    def detect_batch(
+        self, blocks: Sequence[ContentBlock], policy: Policy
+    ) -> Sequence[Sequence[Detection]]:
+        if not blocks:
+            return ()
+        backend_detections = [
+            invoke_backend_batch(backend, blocks, policy) for backend in self.backends
+        ]
+        results: list[tuple[Detection, ...]] = []
+        for block_idx in range(len(blocks)):
+            candidates = (
+                detection
+                for b_idx in range(len(self.backends))
+                for detection in backend_detections[b_idx][block_idx]
+                if detection.entity_type in policy.entity_types
+                and detection.confidence >= policy.minimum_confidence
+            )
+            results.append(resolve_overlaps(candidates, policy.detector_priority))
+        return tuple(results)
 
 
 def leaf_backends(backends: Sequence[DetectionBackend]) -> tuple[DetectionBackend, ...]:

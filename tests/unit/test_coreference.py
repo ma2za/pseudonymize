@@ -31,6 +31,15 @@ def test_intra_document_coreference() -> None:
     assert "Jonathan" not in res[1].text
     assert "Doe" not in res[1].text
 
+    # Model-only workflows must not invent detections from earlier mentions.
+    strict_engine = Pseudonymizer(detectors=[MockDetector()], enable_coreference=False)
+    strict_results = strict_engine.process_batch(texts)
+    assert "Jonathan Doe" not in strict_results[0].text
+    assert strict_results[1].text == texts[1]
+    scope = strict_engine.new_scope()
+    scope.process(texts[0])
+    assert scope.process(texts[1]).text == texts[1]
+
 
 def test_ambiguous_tokens_never_propagate_in_coreference() -> None:
     from pseudonymize.detectors.base import Detector
