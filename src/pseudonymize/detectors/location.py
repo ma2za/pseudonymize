@@ -22,7 +22,7 @@ _ROMANCE_STREET_RX = re.compile(
 )
 
 _ZIPCODE_RX = re.compile(
-    r"(?i)\b(?:"
+    r"\b(?:"
     r"[A-Z]{1,2}\d[A-Z\d]?\s+\d[A-Z]{2}"  # UK
     r"|[A-Z]\d[A-Z][ -]\d[A-Z]\d"  # Canada
     r"|\d{4}\s+[A-Z]{2}"  # Netherlands

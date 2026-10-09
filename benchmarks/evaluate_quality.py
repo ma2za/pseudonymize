@@ -242,6 +242,8 @@ def evaluate(
     temperature: float = 1.0,
     decoder_mode: str = "legacy",
     span_aggregator: str = "max",
+    seed: int = SHUFFLE_SEED,
+    enable_ner_ensemble: bool = False,
 ) -> dict[str, object]:
     print(INTEGRITY_NOTICE)
 
@@ -265,12 +267,15 @@ def evaluate(
             print("Error: 'datasets' library not found.")
             print("Run: uv run --with datasets python benchmarks/evaluate_quality.py")
             sys.exit(1)
-        logger.info(f"Loading {DATASET_NAME}@{dataset_revision} ({split} split, English subset)...")
+        logger.info(
+            f"Loading {DATASET_NAME}@{dataset_revision} "
+            f"({split} split, English subset, seed {seed})..."
+        )
         # We shuffle with a fixed seed to ensure a consistent, reproducible
         # pseudo-random sample of the evaluation dataset for A/B testing versions.
         ds = load_dataset(
             DATASET_NAME, split=split, streaming=True, revision=dataset_revision
-        ).shuffle(seed=SHUFFLE_SEED)
+        ).shuffle(seed=seed)
 
     from pseudonymize.memory.bloom import BloomFilter
 
@@ -333,6 +338,25 @@ def evaluate(
             "config": _sha256(config_path),
         }
         backends = [backend] if not use_rules else [*engine.backends, backend]
+        if enable_ner_ensemble:
+            ner_cache = Path(".cache/pseudonymize-tests/models/bert-base-ner")
+            if not (ner_cache / "model_int8.onnx").exists():
+                logger.error(f"Secondary NER artifacts not found in {ner_cache}.")
+                logger.error(
+                    "Please download bert-base-ner artifacts to enable secondary NER ensembling."
+                )
+                sys.exit(1)
+            ner_backend = LocalONNXPIIBackend(
+                model_path=ner_cache / "model_int8.onnx",
+                tokenizer_path=ner_cache / "tokenizer.json",
+                config_path=ner_cache / "config.json",
+                name="bert_ner_per_loc",
+                entity_threshold=0.20,
+                allowed_entity_types=frozenset({EntityType.PERSON, EntityType.LOCATION}),
+            )
+            backends.append(ner_backend)
+            model_hashes["secondary_ner"] = _sha256(ner_cache / "model_int8.onnx")
+
         engine = Pseudonymizer(
             backends=backends,
             bloom_filter=bloom_filter,
@@ -708,7 +732,7 @@ def evaluate(
         "file_sha256": _sha256(file_path) if file_path is not None else None,
         "manifest": str(manifest_path) if manifest_path is not None else None,
         "split": split,
-        "shuffle_seed": SHUFFLE_SEED,
+        "shuffle_seed": seed,
         "samples": count,
         "strict_labels": strict_labels,
         "allow_unverified_checksums": allow_unverified_checksums,
@@ -782,6 +806,17 @@ if __name__ == "__main__":
         type=Path,
         help="Path to JSON manifest containing row hashes to evaluate.",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=SHUFFLE_SEED,
+        help="Random shuffle seed for dataset sampling.",
+    )
+    parser.add_argument(
+        "--ensemble-ner",
+        action="store_true",
+        help="Include secondary specialized name/location NER model in ensemble.",
+    )
     args = parser.parse_args()
 
     file_path = Path(args.file) if args.file is not None else None
@@ -798,6 +833,8 @@ if __name__ == "__main__":
         allow_unverified_checksums=args.allow_unverified_checksums,
         dataset_revision=args.dataset_revision,
         manifest_path=manifest_path,
+        seed=args.seed,
+        enable_ner_ensemble=args.ensemble_ner,
     )
     if args.output is not None:
         args.output.write_text(

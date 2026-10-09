@@ -4,10 +4,51 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- Optional bounded ONNX case recovery for lowercase PERSON candidates using high-confidence re-inference and constrained BIO decoding. Disabled by default; no name dictionaries or fabricated spans.
+- Python-owned Lambda HTTP service with verified model artifacts, required gateway authentication, ONNX-only person detection, and explicit inference failure. Hosted processing disables coreference expansion so each name occurrence requires model confirmation.
+
 ### Fixed
 
 - Align README aliases with the emitted token format and execute its Python examples
   in an integration test. Clarify overlap benchmark scoring and streaming limitations.
+
+## [1.36.0] - 2026-10-09
+
+### Added
+- Add `Pseudonymizer(enable_coreference=False)` for workflows that require each
+  name occurrence to be confirmed by the configured backend. The default remains
+  enabled for compatibility.
+
+### Fixed
+- Share PERSON aliases across name casing and straight/curly English possessives,
+  and consume the possessive suffix during pseudonymization and redaction.
+- Keep distinct ONNX name mentions across a sentence-ending period separate.
+- Resolve tax identifier conflicts, improve contextual GST and phone detection,
+  and trim possessive suffixes from ONNX name boundaries.
+
+### Limitations
+- Lowercase name recall remains dependent on the ONNX model. This release does
+  not introduce example-tuned recovery thresholds or promise complete detection.
+
+## [1.35.0] - 2026-10-03
+
+### Added
+- **High-Throughput Dynamic Batching Pipeline:**
+  - Added `invoke_backend_batch` to `src/pseudonymize/backends/base.py` providing unified block-aware batch dispatch with contract validation, provenance injection, bounds verification, and graceful fallback to `invoke_backend` for non-batch backends.
+  - Implemented `detect_batch` on `LocalONNXPIIBackend` vectorizing token window inference across multiple `ContentBlock`s in chunks of 32 with SIMD-aligned dynamic sequence padding to maximize CPU vector register saturation, delivering an empirical ~3.1x throughput improvement.
+  - Implemented `detect_batch` on `RulesBackend` and `CompositeBackend`.
+  - Upgraded `Pseudonymizer.process_batch`, `process_document`, and `inspect_document` to execute multi-block detection in unified batches across all configured backends while strictly preserving the frozen B1 contract and single-scope alias consistency.
+  - Added comprehensive unit test coverage in `tests/unit/test_backends.py`, `tests/unit/backends/test_onnx.py`, and `tests/unit/test_engine.py`.
+- **Scoped Entity Type Filtering for ONNX Backend:**
+  - Added `allowed_entity_types` parameter to `LocalONNXPIIBackend` enabling callers to constrain ML token extraction and advertised backend capabilities to an arbitrary subset of supported entity types (e.g. `PERSON` and `LOCATION` for specialized multi-model ensembling).
+  - Added `allowed_entity_types` property on `LocalONNXPIIBackend` returning the configured subset or `None` when unrestricted.
+  - Added unit test suite in `tests/unit/backends/test_onnx.py` validating capability advertising, detection filtering, collection conversions, and unsupported-type filtering.
+- **Benchmark Evaluation & Environment Compatibility:**
+  - Pinned `pyarrow>=19.0.0,<20.0.0` in the `benchmarks` dependency group to resolve Windows Smart App Control CodeIntegrity blocks on Windows 11.
+  - Added `--seed` argument to `benchmarks/evaluate_quality.py` for reproducible pseudo-random sampling across custom dataset seeds.
+  - Added `--ensemble-ner` flag to `benchmarks/evaluate_quality.py` supporting secondary specialized name/location NER model ensembling.
+  - Stored sanitized 2,000-sample validation benchmark artifact (`1.35.0_ai4privacy_validation_2000_fresh.json`) with privacy-safe sufficient statistics.
 
 ## [1.34.0] - 2026-09-30
 
