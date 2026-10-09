@@ -8,6 +8,13 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Optional bounded ONNX case recovery for lowercase PERSON candidates using high-confidence re-inference and constrained BIO decoding. Disabled by default; no name dictionaries or fabricated spans.
 - Python-owned Lambda HTTP service with verified model artifacts, required gateway authentication, ONNX-only person detection, and explicit inference failure. Hosted processing disables coreference expansion so each name occurrence requires model confirmation.
 
+### Fixed
+
+- Align README aliases with the emitted token format and execute its Python examples
+  in an integration test. Clarify overlap benchmark scoring and streaming limitations.
+- Include the hosted-service extra in release verification and isolated installation
+  audits, while keeping service frameworks out of the dependency-free base import.
+
 ## [1.36.0] - 2026-10-09
 
 ### Added
