@@ -1,6 +1,7 @@
 import email.message
 import io
 import tarfile
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -171,3 +172,15 @@ def test_verify_quality_gate_report_missing_file(tmp_path: Path) -> None:
     missing = tmp_path / "nonexistent.json"
     with pytest.raises(ValueError, match="quality gate report not found"):
         verify_quality_gate_report(missing)
+
+
+def test_declared_extras_have_release_and_install_audits() -> None:
+    from scripts.audit_extras import DOCUMENTED_EXTRAS
+    from scripts.audit_install import EXTRA_CHECKS
+
+    project_file = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    with project_file.open("rb") as stream:
+        declared = set(tomllib.load(stream)["project"]["optional-dependencies"])
+    assert declared == EXPECTED_EXTRAS
+    assert declared == set(DOCUMENTED_EXTRAS)
+    assert declared == set(EXTRA_CHECKS)

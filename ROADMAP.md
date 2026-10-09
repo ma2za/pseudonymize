@@ -49,6 +49,21 @@ Alpha releases optimize for the cleanest safe architecture, not backward compati
 remove, rename, or replace public APIs without aliases or shims. Material changes are documented,
 but compatibility guarantees start only with `0.1.0`.
 
+## Active development review
+
+The [1.35 product review](docs/decisions/1.35.0_product_review.md) compares the
+vision, existing implementation and evidence gaps. It proposes the next order:
+
+1. Review the isolated correctness, performance, onboarding and measurement fixes.
+2. Resolve ambiguous policy, archive, remote-response and diagnostic contracts.
+3. Reconcile quality-gate methodology, compatibility and platform evidence.
+4. Add bounded ML configuration, caller-framed streaming and lazy record processing.
+5. Resume measured detector improvements under the existing experimental protocol.
+
+These are proposed priorities, not published capabilities or verified security
+findings. The review records the source paths, acceptance conditions and validation
+limits; individual PRs and HANDOVER carry implementation evidence.
+
 ## Release gate for every milestone
 
 - Ruff formatting and linting pass.
@@ -634,9 +649,10 @@ independent-corpus evaluation, and paired uncertainty show a real benefit.
 
 ## Optional dependency policy
 
-Extras appear only with the release that owns them: `ml`, `pdf`, `office`, `ocr`, `documents`,
-`docling`, and `remote`. An `all` extra may exist for CI and integration testing, but user
-documentation recommends the narrowest installation that satisfies the workload.
+The currently declared extras are `ml`, `pdf`, `office`, `ocr`, `remote`, `html`, and `service`.
+`pyproject.toml` is authoritative. `documents`, `docling`, and `all` are not currently
+published extras. Recommend the narrowest installation that satisfies the workload;
+new extras require an owning capability and independent installed-wheel checks.
 
 ## Deliberately uncommitted work
 
