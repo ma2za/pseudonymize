@@ -82,6 +82,9 @@ _NEGATIVE_CONTEXT = re.compile(
 # Software version-like pattern (e.g. 1.2.3, 2.0.1, v1.0.0)
 _VERSION_LIKE = re.compile(r"^v?\d+(?:\.\d+)+(?:-[a-z0-9]+)?$", re.IGNORECASE)
 
+# ISO date/timestamp pattern to avoid treating timestamps as contextual IDs
+_DATE_LIKE = re.compile(r"^\d{4}-\d{2}-\d{2}(?:T.*)?$")
+
 
 @dataclass(frozen=True, slots=True)
 class ContextRule:
@@ -133,13 +136,15 @@ _CONTEXT_RULES: tuple[ContextRule, ...] = (
             r"(?i)(?<![a-z0-9_])(?:"
             r"tax\s*(?:no\.?|number|reference|identifier|id|record|code|payer)?|tin"
             r"|vat\s*(?:no\.?|number|id|code)?|numéro\s*(?:fiscal|de\s*tva)|n°\s*fiscal|mã\s*số\s*thuế|nomor\s*pajak|no\.?\s*pajak|税号|纳税人识别号"
+            r"|gst\s*(?:no\.?|number|id|code|reg(?:istration)?|regulations?)?"
+            r"|invoice\s*(?:will\s*cite|cites)"
             r"|steuernummer|steuer-id|steuer-identifikationsnummer|steuer-nr|ust-idnr|npwp"
             r"|rfc|nit|rut|cif|nif|nipc|siren|siret|partita\s*iva|p\.?\s*iva"
             r"|マイナンバー|法人番号"
             r")(?![a-z0-9_])"
         ),
         value_regex=re.compile(r"^[A-Z0-9-]{6,20}$", re.IGNORECASE),
-        window_length=60,
+        window_length=80,
         base_confidence=0.92,
         rationale=(
             "Matches tax, VAT, and fiscal registry headers followed by registered "
@@ -265,13 +270,17 @@ class ContextualIdDetector:
                     if _VERSION_LIKE.match(token):
                         break
 
+                    # Skip date/timestamp values occurring in context windows
+                    if _DATE_LIKE.match(token):
+                        continue
+
                     # If the token contains digits, this is our candidate identifier
                     if _HAS_DIGIT.search(token):
                         if rule.value_regex.match(token):
                             if rule.entity_type is EntityType.PAYMENT_CARD:
                                 stripped_len = sum(1 for c in token if c.isdigit())
                                 if not (13 <= stripped_len <= 19):
-                                    break
+                                    continue
 
                             distance = token_match.start()
                             score = _calculate_score(rule, distance, has_separator, has_negative)
@@ -290,12 +299,15 @@ class ContextualIdDetector:
                                         self.name,
                                     )
                                 )
-                        # Once we evaluate the candidate bearing digits, stop searching forward
-                        break
+                                break
+                        # Only break if candidate token was long enough to be an identifier (>= 6)
+                        if len(token) >= 6:
+                            break
+                        continue
 
-                    # If the token contains no digits, allow skipping up to 3 descriptive words
+                    # If the token contains no digits, allow skipping up to 5 descriptive words
                     non_digit_words_skipped += 1
-                    if non_digit_words_skipped > 3:
+                    if non_digit_words_skipped > 5:
                         break
 
         if len(detections) <= 1:

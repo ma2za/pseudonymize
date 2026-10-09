@@ -90,3 +90,63 @@ def invoke_backend(
             raise InvalidDetectionError("backend returned offsets outside the content block")
         detections.append(detection if detection.backend else replace(detection, backend=name))
     return tuple(detections)
+
+
+def invoke_backend_batch(
+    backend: DetectionBackend, blocks: Sequence[ContentBlock], policy: Policy
+) -> tuple[tuple[Detection, ...], ...]:
+    if not blocks:
+        return ()
+
+    capabilities = backend_capabilities(backend)
+    name = backend.name
+    if capabilities.remote:
+        if policy.network_policy is NetworkPolicy.DENY:
+            raise NetworkPolicyError("network policy denies remote processing")
+        if not backend.allow_remote_processing:
+            raise NetworkPolicyError("remote backend lacks explicit consent")
+        if (
+            policy.network_policy is NetworkPolicy.ALLOW_CONFIGURED
+            and name not in policy.allowed_remote_backends
+        ):
+            raise NetworkPolicyError("remote backend is not allowlisted")
+
+    detect_batch_fn = getattr(backend, "detect_batch", None)
+    if callable(detect_batch_fn):
+        try:
+            batch_candidates = tuple(detect_batch_fn(blocks, policy))
+        except TypeError:
+            raise BackendContractError(
+                "backend does not implement block-aware batch detection"
+            ) from None
+        except Exception as e:
+            raise BackendExecutionError("backend failed during batch detection") from e
+
+        if len(batch_candidates) != len(blocks):
+            raise BackendContractError(
+                f"backend {backend.name} returned {len(batch_candidates)} "
+                f"results for {len(blocks)} blocks"
+            )
+
+        all_results: list[tuple[Detection, ...]] = []
+        for block, candidates in zip(blocks, batch_candidates, strict=True):
+            detections: list[Detection] = []
+            for detection in candidates:
+                if not isinstance(detection, Detection):
+                    raise BackendContractError("backend returned a value that is not a Detection")
+                if detection.entity_type not in capabilities.entity_types:
+                    raise BackendContractError(
+                        f"backend {backend.name} returned an undeclared entity type "
+                        f"{detection.entity_type}"
+                    )
+                if detection.end > len(block.text):
+                    raise InvalidDetectionError(
+                        "backend returned offsets outside the content block"
+                    )
+                detections.append(
+                    detection if detection.backend else replace(detection, backend=name)
+                )
+            all_results.append(tuple(detections))
+        return tuple(all_results)
+
+    return tuple(invoke_backend(backend, block, policy) for block in blocks)
