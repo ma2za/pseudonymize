@@ -11,6 +11,9 @@ FORBIDDEN_IMPORTS = {
     "aiohttp",
     "docling",
     "docx",
+    "fastapi",
+    "pydantic",
+    "uvicorn",
     "httpx",
     "onnxruntime",
     "openpyxl",
@@ -19,6 +22,7 @@ FORBIDDEN_IMPORTS = {
 }
 EXPECTED_BASE_REQUIREMENTS: frozenset[str] = frozenset()
 EXTRA_CHECKS: dict[str, tuple[str, frozenset[str]]] = {
+    "service": ("pseudonymize.service", frozenset({"fastapi", "pydantic", "uvicorn"})),
     "remote": ("pseudonymize.backends.remote", frozenset({"httpx"})),
     "html": ("pseudonymize.html_xml", frozenset()),
     "office": ("pseudonymize.inspection.office", frozenset({"docx", "openpyxl"})),
