@@ -649,7 +649,7 @@ independent-corpus evaluation, and paired uncertainty show a real benefit.
 
 ## Optional dependency policy
 
-The currently declared extras are `ml`, `pdf`, `office`, `ocr`, `remote`, and `html`.
+The currently declared extras are `ml`, `pdf`, `office`, `ocr`, `remote`, `html`, and `service`.
 `pyproject.toml` is authoritative. `documents`, `docling`, and `all` are not currently
 published extras. Recommend the narrowest installation that satisfies the workload;
 new extras require an owning capability and independent installed-wheel checks.
