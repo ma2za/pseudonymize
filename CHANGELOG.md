@@ -12,6 +12,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 - Invalidate Bloom filter membership caches after insertion so earlier misses cannot hide
   newly added entries. Validate filter parameters and allocate at least one bit.
+- Include the hosted-service extra in release verification and isolated installation
+  audits, while keeping service frameworks out of the dependency-free base import.
 
 ## [1.36.0] - 2026-10-09
 
