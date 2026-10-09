@@ -13,6 +13,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Correct one-to-one match accounting in the local benchmark, including empty and
   disjoint inputs. Explanations now report offsets without copying source values.
 - Keep optional ML imports and root logging configuration out of benchmark imports.
+- Include the hosted-service extra in release verification and isolated installation
+  audits, while keeping service frameworks out of the dependency-free base import.
 
 ## [1.36.0] - 2026-10-09
 
