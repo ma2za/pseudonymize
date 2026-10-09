@@ -38,6 +38,10 @@ Security = "https://github.com/ma2za/pseudonymize/security/policy"
 pseudonymize = "pseudonymize.cli:main"
 
 [project.optional-dependencies]
+service = [
+    "fastapi>=0.143.0",
+    "uvicorn>=0.54.0",
+]
 ml = [
     "huggingface-hub>=1.28.0",
     "onnxruntime>=1.29.0",
