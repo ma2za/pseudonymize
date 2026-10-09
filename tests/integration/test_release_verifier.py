@@ -2,6 +2,7 @@ import email.message
 import io
 import json
 import tarfile
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -227,3 +228,15 @@ def test_verify_quality_gate_rejects_legacy_skipped_external_track(tmp_path: Pat
     path.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ValueError, match="external evaluation evidence"):
         verify_quality_gate_report(path)
+
+
+def test_declared_extras_have_release_and_install_audits() -> None:
+    from scripts.audit_extras import DOCUMENTED_EXTRAS
+    from scripts.audit_install import EXTRA_CHECKS
+
+    project_file = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    with project_file.open("rb") as stream:
+        declared = set(tomllib.load(stream)["project"]["optional-dependencies"])
+    assert declared == EXPECTED_EXTRAS
+    assert declared == set(DOCUMENTED_EXTRAS)
+    assert declared == set(EXTRA_CHECKS)

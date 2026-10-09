@@ -24,7 +24,9 @@ EXPECTED_PYTHON_CLASSIFIERS = {
 }
 EXPECTED_DEVELOPMENT_CLASSIFIER = "Development Status :: 5 - Production/Stable"
 EXPECTED_BASE_REQUIREMENTS: frozenset[str] = frozenset()
-EXPECTED_EXTRAS: frozenset[str] = frozenset({"ml", "office", "pdf", "ocr", "remote", "html"})
+EXPECTED_EXTRAS: frozenset[str] = frozenset(
+    {"ml", "office", "pdf", "ocr", "remote", "html", "service"}
+)
 REQUIRED_SDIST_FILES = frozenset(
     {
         "CHANGELOG.md",
