@@ -4,6 +4,8 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.36.0] - 2026-10-09
+
 ### Added
 - Add `Pseudonymizer(enable_coreference=False)` for workflows that require each
   name occurrence to be confirmed by the configured backend. The default remains
