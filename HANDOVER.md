@@ -529,3 +529,21 @@ Reusable lesson assessment: match learned literal words through word scanning
 and dictionary lookup when semantics allow it; preserve a boundary-equivalence
 test before replacing a dynamically constructed regex. No new global policy is
 needed for this local algorithm substitution.
+
+## Product direction review (2026-10-02)
+
+The proposed development priorities are recorded in
+`docs/decisions/1.35.0_product_review.md`, linked from VISION, ROADMAP and the docs
+navigation. The review maps existing implementation paths to product value,
+acceptance conditions and unresolved evidence. It separates five implemented PRs
+from future proposals; it is not a claim that those proposals have shipped.
+The roadmap's optional-extra list now matches `pyproject.toml`.
+
+Observed checks: strict docs build and `git diff --check` passed. Implementation
+PRs carry their own regression tests and CI evidence. The attempted additional
+privacy validation sandbox failed during network namespace setup, so those
+source-grounded proposals have no new dynamic validation claim.
+
+Reusable lesson assessment: the existing evidence-before-claims policy already
+covers the findings. This review applies it to concrete product priorities rather
+than creating another general standard or duplicating the shared runtime.

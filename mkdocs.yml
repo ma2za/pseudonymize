@@ -31,6 +31,7 @@ nav:
   - Model Card: model_card.md
   - Contributing: contributing.md
   - Decisions:
+      - Product Review (1.35 development): decisions/1.35.0_product_review.md
       - Dependency-free core: adr/0001-dependency-free-core.md
       - Token format: adr/0002-token-format.md
       - No reversible storage: adr/0003-no-reversible-storage.md
