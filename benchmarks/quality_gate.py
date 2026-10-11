@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -200,15 +201,27 @@ def evaluate_quality_gate(
     base_per_entity = baseline_record.get("per_entity", {})
     cand_per_entity = candidate_record.get("per_entity", {})
     critical_regressions: list[dict[str, Any]] = []
+    missing_critical_evidence: list[str] = []
+    checked_entities: list[str] = []
 
-    for ent in HIGH_RISK_ENTITY_TYPES:
+    for ent in sorted(HIGH_RISK_ENTITY_TYPES):
         if ent in base_per_entity:
             b_et = base_per_entity[ent]
             c_et = cand_per_entity.get(ent, {})
-            b_tp = b_et.get("true_positives", 0)
-            b_fn = b_et.get("false_negatives", 0)
-            c_tp = c_et.get("true_positives", 0)
-            c_fn = c_et.get("false_negatives", 0)
+            b_tp = b_et.get("true_positives")
+            b_fn = b_et.get("false_negatives")
+            c_tp = c_et.get("true_positives")
+            c_fn = c_et.get("false_negatives")
+            counts = (b_tp, b_fn, c_tp, c_fn)
+            if not all(isinstance(n, int) and not isinstance(n, bool) and n >= 0 for n in counts):
+                missing_critical_evidence.append(ent)
+                continue
+            if b_tp + b_fn != c_tp + c_fn:
+                missing_critical_evidence.append(ent)
+                continue
+            if b_tp + b_fn == 0:
+                continue
+            checked_entities.append(ent)
 
             b_rec = b_tp / (b_tp + b_fn) if (b_tp + b_fn) > 0 else 1.0
             c_rec = c_tp / (c_tp + c_fn) if (c_tp + c_fn) > 0 else 1.0
@@ -224,55 +237,79 @@ def evaluate_quality_gate(
                     }
                 )
 
-    critical_ok = len(critical_regressions) == 0
+    critical_ok = (
+        not critical_regressions and not missing_critical_evidence and bool(checked_entities)
+    )
     if not critical_ok:
-        reason = (
-            f"Recall regressed for {len(critical_regressions)} high-risk identifiers: "
-            f"{[r['entity_type'] for r in critical_regressions]}"
-        )
+        if missing_critical_evidence or not checked_entities:
+            reason = "Critical identifier recall evidence is missing, invalid or incomparable."
+        else:
+            reason = (
+                f"Recall regressed for {len(critical_regressions)} high-risk identifiers: "
+                f"{[r['entity_type'] for r in critical_regressions]}"
+            )
         failure_reasons.append(reason)
         results["critical_entities_floor"] = QualityGateCriteriaResult(
             criterion_name="critical_entities_floor",
             passed=False,
-            details={"regressed_entities": critical_regressions},
+            details={
+                "regressed_entities": critical_regressions,
+                "missing_or_incomparable_entities": missing_critical_evidence,
+            },
             failure_reason=reason,
         )
     else:
         results["critical_entities_floor"] = QualityGateCriteriaResult(
             criterion_name="critical_entities_floor",
             passed=True,
-            details={"protected_entities_checked": list(HIGH_RISK_ENTITY_TYPES)},
+            details={
+                "protected_entities_checked": checked_entities,
+                "unrepresented_entities": sorted(HIGH_RISK_ENTITY_TYPES - set(checked_entities)),
+            },
         )
 
     # 5. Independent External Generalization Track (PIIMB)
     if external_eval_record is not None:
         ext_micro = external_eval_record.get("character_micro_metrics", {})
-        ext_f1 = ext_micro.get("f1", 0.0)
-        ext_ok = ext_f1 >= external_f1_floor
+        ext_f1 = ext_micro.get("f1") if isinstance(ext_micro, dict) else None
+        valid_score = (
+            isinstance(ext_f1, (int, float))
+            and not isinstance(ext_f1, bool)
+            and math.isfinite(ext_f1)
+            and 0 <= ext_f1 <= 1
+        )
+        ext_ok = valid_score and isinstance(ext_f1, (int, float)) and ext_f1 >= external_f1_floor
         if not ext_ok:
             reason = (
-                f"External benchmark (PIIMB) character F1 {ext_f1:.4f} is below floor "
-                f"{external_f1_floor:.4f}."
+                "External benchmark character F1 is missing, invalid or below the required floor."
             )
             failure_reasons.append(reason)
             results["external_generalization"] = QualityGateCriteriaResult(
                 criterion_name="external_generalization",
                 passed=False,
-                details={"external_f1": ext_f1, "required_floor": external_f1_floor},
+                details={
+                    "external_f1": ext_f1 if valid_score else None,
+                    "required_floor": external_f1_floor,
+                },
                 failure_reason=reason,
             )
         else:
             results["external_generalization"] = QualityGateCriteriaResult(
                 criterion_name="external_generalization",
                 passed=True,
-                details={"external_f1": ext_f1, "required_floor": external_f1_floor},
+                details={
+                    "external_f1": ext_f1 if valid_score else None,
+                    "required_floor": external_f1_floor,
+                },
             )
     else:
-        # Informational pass if external track was not evaluated in this specific run
+        reason = "Independent external generalization evidence is required for shipment."
+        failure_reasons.append(reason)
         results["external_generalization"] = QualityGateCriteriaResult(
             criterion_name="external_generalization",
-            passed=True,
+            passed=False,
             details={"status": "not_evaluated_in_current_run"},
+            failure_reason=reason,
         )
 
     all_passed = all(r.passed for r in results.values())
@@ -304,7 +341,7 @@ def main() -> int:
         "--external",
         type=Path,
         default=None,
-        help="Optional path to external generalization artifact JSON (PIIMB).",
+        help="External generalization artifact JSON (PIIMB), required for a passing gate.",
     )
     parser.add_argument(
         "--output",
@@ -317,7 +354,7 @@ def main() -> int:
     baseline_data = json.loads(args.baseline.read_text(encoding="utf-8"))
     candidate_data = json.loads(args.candidate.read_text(encoding="utf-8"))
     external_data = None
-    if args.external and args.external.exists():
+    if args.external is not None:
         external_data = json.loads(args.external.read_text(encoding="utf-8"))
 
     report = evaluate_quality_gate(

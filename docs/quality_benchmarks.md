@@ -146,3 +146,24 @@ Evaluated against the pinned validation split (`a785eb528e28be2693c3718a27e06697
 See also the formal [Model Card](model_card.md) for full architecture specifications and hardware profiles.
 
 
+
+
+## Required evidence for a quality-gate report
+
+A release-quality evaluation needs an external evaluation record. Omitting it
+produces `REJECT`; a missing file supplied through `--external` is an error.
+External character F1 must be a finite number between zero and one and meet the
+configured floor. Critical-entity comparisons require matching annotation
+support and explicit nonnegative integer TP/FN counts. The report distinguishes
+entities with observed support from those not represented in that evaluation.
+
+`verify_release.py --quality-gate-report` requires all five criteria to be
+present and explicitly passing. A top-level `passed: true` flag is insufficient,
+and legacy reports that treated an unevaluated external track as passing are
+rejected. Regenerate those reports with external evidence rather than editing
+approval flags.
+
+These checks validate evidence presence and consistency. They do not authenticate
+an artifact, prove that a corpus is independent, or replace the roadmap's stricter
+experimental protocol. This change does not alter detector behavior or establish
+an improvement in the published quality baseline.
