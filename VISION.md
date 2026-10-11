@@ -116,6 +116,14 @@ The project succeeds when an application can place a narrow local boundary aroun
 content, choose the appropriate transformation, inspect what happened without leaking what was
 found, and add only the format or detection dependencies it actually needs.
 
+## Current product review
+
+The [1.35 development review](docs/decisions/1.35.0_product_review.md) retains this
+vision and prioritizes predictable contracts, reproducible evidence and bounded
+resource use across the capabilities already shipped. Proposed additions should
+reduce integration work without expanding the trusted core or implying stronger
+privacy guarantees than the evidence supports.
+
 ## Future Exploration & Open Proposals
 
 The following architectural and visionary proposals are under consideration for the long-term future:
