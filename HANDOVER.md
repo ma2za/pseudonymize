@@ -407,6 +407,77 @@ verification unless they are intentionally retained as a user-approved release a
   and GitHub release exist. Until then, keep changes under `[Unreleased]`.
 
 
+## Required quality evidence review (2026-10-02)
+
+Three regression tests reproduced approval with absent external evidence, a
+missing critical entity, and an infinite external F1. The gate now rejects those
+inputs, compares critical annotation support, and distinguishes represented from
+unrepresented entities. The release verifier checks all five criteria and rejects
+legacy skipped external evaluations. Per-entity F1 uses the equivalent count
+formula, avoiding division by zero when TP is zero and FP/FN are nonzero.
+
+Observed verification using the frozen lockfile:
+
+- Quality gate, comparator and release-verifier tests: 40 passed.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 510 passed; 1 Tesseract skip.
+- Pre-commit, mypy, strict docs build, package build and release verifier passed.
+- Full coverage and supported-platform acceptance remain pending CI.
+
+No detector, held-out sample, published score or quality tolerance was changed.
+The remaining difference between the roadmap's strict exact-boundary improvement
+protocol and the existing overlap-based tolerance gate requires a separate
+methodology change. This patch must not be described as proving that protocol.
+
+Reusable lesson assessment: missing measurements cannot count as passing release
+criteria. Explicit negative tests now enforce that invariant at generation and
+consumption of gate reports.
+
+## Local benchmark accounting review (2026-10-02)
+
+`pseudonymize.bench._match` updated `matched_truth` outside the acceptance loop.
+This produced duplicate detection matches, undercounted true positives, and an
+UnboundLocalError for empty/disjoint inputs. Six new cases failed before the fix.
+The correction restores one-to-one matching; explanation logs now contain row,
+type and offsets instead of source values. Optional ML imports are lazy and the
+root logger is configured only by the CLI entry point.
+
+Observed verification using the frozen lockfile:
+
+- Local benchmark and evaluator tests: 13 passed, including exact expected
+  aggregate metrics for a corpus with true positives, false positives and misses.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 496 passed; 1 Tesseract skip.
+- Pre-commit, mypy, strict docs build, package build and release verifier passed.
+- Full coverage and supported-platform verification are pending CI.
+
+This repairs the local benchmark harness; it does not improve detection accuracy
+or revise the separate published evaluation baseline. Reusable lesson assessment:
+assert match cardinality and zero-match cases instead of only exercising the
+benchmark command. Those invariants are now covered by regression tests.
+
+## Bloom filter correctness review (2026-10-02)
+
+The mutation regression was reproduced before fixing it: a cached negative lookup
+remained negative after insertion. Small filters could also allocate zero bits.
+The change clears membership cache entries after insertion, validates parameters,
+and rounds the bit count upward. No dependency or detection threshold changes.
+
+Observed verification on Python 3.14.2 with the frozen lockfile:
+
+- Focused Bloom and gazetteer tests: 11 passed.
+- `uv run --frozen pre-commit run --all-files`: passed.
+- `uv run --frozen mypy`: passed, 155 source files.
+- `uv run --frozen mkdocs build --strict`: passed.
+- `uv build` and `uv run --frozen python scripts/verify_release.py`: passed.
+- `uv run --frozen pytest --ignore=tests/unit/backends/test_onnx.py
+  --ignore=tests/unit/backends/test_bio_decoder.py --no-cov`: 493 passed,
+  1 skipped because Tesseract was unavailable.
+- The full suite terminated with exit 137 during ONNX tests. Full coverage and the
+  cross-platform matrix remain unverified locally; the partial run is not a
+  substitute for either gate.
+
+Reusable lesson assessment: mutation must invalidate cached negative membership
+results. The regression test records that invariant in its owning implementation.
+
 ## Executable README review (2026-10-02)
 
 The first Python quickstart failed its assertion against the current package:
