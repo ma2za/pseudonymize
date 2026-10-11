@@ -25,6 +25,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 - Align README aliases with the emitted token format and execute its Python examples
   in an integration test. Clarify overlap benchmark scoring and streaming limitations.
+
+### Changed
+
+- Scan coreference words once per block using dictionary lookup instead of rebuilding
+  a regular expression containing every learned token. Preserve case and word boundaries.
+### Fixed
 - Include the hosted-service extra in release verification and isolated installation
   audits, while keeping service frameworks out of the dependency-free base import.
 
