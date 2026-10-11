@@ -10,6 +10,12 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ### Fixed
 
+- Reject quality-gate approval when external evaluation is absent or its F1 is invalid,
+  and reject missing or incomparable critical-entity counts. Report which entities
+  actually have evaluated support.
+- Require every quality criterion to pass explicitly when verifying a release report,
+  rejecting incomplete reports and legacy skipped external evaluations.
+
 - Correct one-to-one match accounting in the local benchmark, including empty and
   disjoint inputs. Explanations now report offsets without copying source values.
 - Keep optional ML imports and root logging configuration out of benchmark imports.
