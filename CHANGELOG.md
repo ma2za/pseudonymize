@@ -19,6 +19,9 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 - Correct one-to-one match accounting in the local benchmark, including empty and
   disjoint inputs. Explanations now report offsets without copying source values.
 - Keep optional ML imports and root logging configuration out of benchmark imports.
+
+- Invalidate Bloom filter membership caches after insertion so earlier misses cannot hide
+  newly added entries. Validate filter parameters and allocate at least one bit.
 - Include the hosted-service extra in release verification and isolated installation
   audits, while keeping service frameworks out of the dependency-free base import.
 
