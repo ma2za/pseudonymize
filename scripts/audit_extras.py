@@ -6,7 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-DOCUMENTED_EXTRAS = ("html", "ml", "ocr", "office", "pdf", "remote")
+DOCUMENTED_EXTRAS = ("html", "ml", "ocr", "office", "pdf", "remote", "service")
 
 
 def audit_extras(wheel_path: Path, python_executable: str | None = None) -> None:

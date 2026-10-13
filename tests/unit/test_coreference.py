@@ -1,3 +1,8 @@
+import re
+
+from hypothesis import given
+from hypothesis import strategies as st
+
 from pseudonymize.engine import Pseudonymizer
 from pseudonymize.policy import Policy
 from pseudonymize.result import EntityType
@@ -30,6 +35,15 @@ def test_intra_document_coreference() -> None:
     assert "<PER_2>" in res[1].text
     assert "Jonathan" not in res[1].text
     assert "Doe" not in res[1].text
+
+    # Model-only workflows must not invent detections from earlier mentions.
+    strict_engine = Pseudonymizer(detectors=[MockDetector()], enable_coreference=False)
+    strict_results = strict_engine.process_batch(texts)
+    assert "Jonathan Doe" not in strict_results[0].text
+    assert strict_results[1].text == texts[1]
+    scope = strict_engine.new_scope()
+    scope.process(texts[0])
+    assert scope.process(texts[1]).text == texts[1]
 
 
 def test_ambiguous_tokens_never_propagate_in_coreference() -> None:
@@ -104,3 +118,71 @@ def test_coreference_never_leaks_across_independent_process_calls() -> None:
     # Independent second call has its own fresh scope; 'Cooper' alone must not be linked
     res2 = engine.process("Cooper was absent from the subsequent panel.")
     assert "Cooper was absent" in res2.text
+
+
+def test_token_lookup_preserves_unicode_boundaries_and_case() -> None:
+    from pseudonymize.coreference import CoreferenceGraph
+    from pseudonymize.result import Detection
+
+    graph = CoreferenceGraph()
+    source = "Élodie Smith O\u2019Connor"
+    graph.add_detections([Detection(EntityType.PERSON, 0, len(source), 0.99, "source")], source)
+    text = "Élodie, Smith's Connor-Smith; smith Smithson _Smith Smith2 2Smith Élodié."
+    found = graph.detect(text)
+    assert [text[d.start : d.end] for d in found] == [
+        "Élodie",
+        "Smith",
+        "Connor",
+        "Smith",
+        "Élodie",
+    ]
+    assert all(d.entity_type is EntityType.PERSON and d.confidence == 0.99 for d in found)
+
+
+def test_lookup_observes_new_tokens_and_confidence_updates() -> None:
+    from pseudonymize.coreference import CoreferenceGraph
+    from pseudonymize.result import Detection
+
+    graph = CoreferenceGraph()
+    assert graph.detect("Smith") == []
+    graph.add_detections([Detection(EntityType.PERSON, 0, 5, 0.96, "source")], "Smith")
+    assert graph.detect("Smith")[0].confidence == 0.96
+    graph.add_detections([Detection(EntityType.PERSON, 0, 5, 0.99, "source")], "Smith")
+    assert graph.detect("Smith")[0].confidence == 0.99
+
+
+@given(
+    st.lists(
+        st.sampled_from(
+            [
+                "Smith",
+                "Smithson",
+                "Élodie",
+                "Connor",
+                "smith",
+                "東京",
+                "_",
+                "2",
+                " ",
+                "-",
+                "'",
+                "\n",
+                "\u0301",
+                "🙂",
+            ]
+        ),
+        max_size=100,
+    ).map("".join)
+)
+def test_lookup_matches_original_word_boundary_semantics(text: str) -> None:
+    from pseudonymize.coreference import CoreferenceGraph
+    from pseudonymize.result import Detection
+
+    graph = CoreferenceGraph()
+    source = "Smith Smithson Élodie Connor"
+    graph.add_detections([Detection(EntityType.PERSON, 0, len(source), 0.99, "source")], source)
+    pattern = (
+        r"\b(?:" + "|".join(map(re.escape, sorted(graph.tokens, key=len, reverse=True))) + r")\b"
+    )
+    expected = [(m.start(), m.end()) for m in re.finditer(pattern, text)]
+    assert [(d.start, d.end) for d in graph.detect(text)] == expected

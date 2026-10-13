@@ -1,5 +1,17 @@
 # Engineering handover
 
+## Cloud handover and merge preservation: October 13, 2026
+
+Follow `docs/codex_cloud.md` and `INSTRUCTIONS.md` in a fresh checkout. The pending
+merge preserves both Git histories, the existing APIs and tests, and the incoming
+ONNX, coreference, Bloom-cache and release-evidence fixes. Historical benchmark
+documentation is retained once, and `uv` validates the combined dependency lock.
+The repository remains public and keeps development version `1.37.0`; no release
+is published by this repair. The local checkout, ignored files, and verified
+pre-resolution backup are retained. Agent instructions no longer require an
+external workstation kernel. The setup script performs dependency and hook setup
+only; benchmark/release claims still require the gates below.
+
 Read this file and `ROADMAP.md` before changing the project. The recovery roadmap in
 `ROADMAP.md` is authoritative when it conflicts with an older changelog claim or aspirational
 release name.
@@ -405,3 +417,145 @@ verification unless they are intentionally retained as a user-approved release a
 - Push only when explicitly requested.
 - A version is published only after its matching tag, successful release workflow, PyPI artifact,
   and GitHub release exist. Until then, keep changes under `[Unreleased]`.
+
+
+## Required quality evidence review (2026-10-02)
+
+Three regression tests reproduced approval with absent external evidence, a
+missing critical entity, and an infinite external F1. The gate now rejects those
+inputs, compares critical annotation support, and distinguishes represented from
+unrepresented entities. The release verifier checks all five criteria and rejects
+legacy skipped external evaluations. Per-entity F1 uses the equivalent count
+formula, avoiding division by zero when TP is zero and FP/FN are nonzero.
+
+Observed verification using the frozen lockfile:
+
+- Quality gate, comparator and release-verifier tests: 40 passed.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 510 passed; 1 Tesseract skip.
+- Pre-commit, mypy, strict docs build, package build and release verifier passed.
+- Full coverage and supported-platform acceptance remain pending CI.
+
+No detector, held-out sample, published score or quality tolerance was changed.
+The remaining difference between the roadmap's strict exact-boundary improvement
+protocol and the existing overlap-based tolerance gate requires a separate
+methodology change. This patch must not be described as proving that protocol.
+
+Reusable lesson assessment: missing measurements cannot count as passing release
+criteria. Explicit negative tests now enforce that invariant at generation and
+consumption of gate reports.
+
+## Local benchmark accounting review (2026-10-02)
+
+`pseudonymize.bench._match` updated `matched_truth` outside the acceptance loop.
+This produced duplicate detection matches, undercounted true positives, and an
+UnboundLocalError for empty/disjoint inputs. Six new cases failed before the fix.
+The correction restores one-to-one matching; explanation logs now contain row,
+type and offsets instead of source values. Optional ML imports are lazy and the
+root logger is configured only by the CLI entry point.
+
+Observed verification using the frozen lockfile:
+
+- Local benchmark and evaluator tests: 13 passed, including exact expected
+  aggregate metrics for a corpus with true positives, false positives and misses.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 496 passed; 1 Tesseract skip.
+- Pre-commit, mypy, strict docs build, package build and release verifier passed.
+- Full coverage and supported-platform verification are pending CI.
+
+This repairs the local benchmark harness; it does not improve detection accuracy
+or revise the separate published evaluation baseline. Reusable lesson assessment:
+assert match cardinality and zero-match cases instead of only exercising the
+benchmark command. Those invariants are now covered by regression tests.
+
+## Bloom filter correctness review (2026-10-02)
+
+The mutation regression was reproduced before fixing it: a cached negative lookup
+remained negative after insertion. Small filters could also allocate zero bits.
+The change clears membership cache entries after insertion, validates parameters,
+and rounds the bit count upward. No dependency or detection threshold changes.
+
+Observed verification on Python 3.14.2 with the frozen lockfile:
+
+- Focused Bloom and gazetteer tests: 11 passed.
+- `uv run --frozen pre-commit run --all-files`: passed.
+- `uv run --frozen mypy`: passed, 155 source files.
+- `uv run --frozen mkdocs build --strict`: passed.
+- `uv build` and `uv run --frozen python scripts/verify_release.py`: passed.
+- `uv run --frozen pytest --ignore=tests/unit/backends/test_onnx.py
+  --ignore=tests/unit/backends/test_bio_decoder.py --no-cov`: 493 passed,
+  1 skipped because Tesseract was unavailable.
+- The full suite terminated with exit 137 during ONNX tests. Full coverage and the
+  cross-platform matrix remain unverified locally; the partial run is not a
+  substitute for either gate.
+
+Reusable lesson assessment: mutation must invalidate cached negative membership
+results. The regression test records that invariant in its owning implementation.
+
+## Executable README review (2026-10-02)
+
+The first Python quickstart failed its assertion against the current package:
+README examples used long entity names while the implementation emits short codes.
+Corrected aliases and added a test that executes all Python fences in order,
+providing the documented JSON file in a temporary directory. The asynchronous
+example is compiled and defined by that test; existing streaming tests exercise
+actual asynchronous processing. No token format or library behavior changed.
+
+The historical 1.20.0 score is now correctly labeled as an overlap result, and the
+streaming introduction no longer promises arbitrary split-entity safety. These
+clarifications reflect the existing scorer and heuristic segment splitter.
+
+Observed verification with the frozen lockfile:
+
+- README, streaming and session tests: 11 passed.
+- Suite excluding ONNX/BIO modules with `--no-cov`: 490 passed; 1 Tesseract skip.
+- Pre-commit, mypy (156 source files), strict docs build, package build and release
+  verifier passed. Full coverage and platform evidence remain CI responsibilities.
+
+Reusable lesson assessment: executable onboarding assertions catch token-contract
+  drift that prose review misses. This is enforced by the new integration test.
+
+## Coreference lookup review (2026-10-02)
+
+Learned coreference tokens are alphabetic words. A single Unicode word scan with
+hash-table lookup replaces per-block sorting and regex alternation construction.
+Case sensitivity, offsets, confidence, token updates, and ambiguous-word exclusions
+are unchanged. Added generative equivalence checks against the previous matching
+algorithm and a benchmark including that algorithm as a reference.
+
+Observed verification with the frozen lockfile on Python 3.14.2:
+
+- Coreference tests: 6 passed, including Unicode and generated boundary cases.
+- Suite excluding `test_onnx.py` and `test_bio_decoder.py`, with `--no-cov`:
+  492 passed, 1 skipped because Tesseract is unavailable.
+- Pre-commit, strict mypy, strict docs build, package build, release verifier:
+  passed. Mypy includes the new benchmark (156 source files).
+- Reproducible performance command:
+  `uv run --frozen pytest benchmarks/benchmark_coreference.py --no-cov
+  --benchmark-only --benchmark-max-time=0.1 --benchmark-json=benchmark.json`.
+  Six benchmark cases passed. Timings are machine-dependent and are not a gate
+  or a claim of improved model quality. Small scopes need not be faster.
+- Full ONNX/coverage and supported-platform verification remain pending. A full
+  suite attempt on the sibling Bloom branch terminated during ONNX with exit 137;
+  that failure is not evidence of this branch passing those tests.
+
+Reusable lesson assessment: match learned literal words through word scanning
+and dictionary lookup when semantics allow it; preserve a boundary-equivalence
+test before replacing a dynamically constructed regex. No new global policy is
+needed for this local algorithm substitution.
+
+## Product direction review (2026-10-02)
+
+The proposed development priorities are recorded in
+`docs/decisions/1.35.0_product_review.md`, linked from VISION, ROADMAP and the docs
+navigation. The review maps existing implementation paths to product value,
+acceptance conditions and unresolved evidence. It separates five implemented PRs
+from future proposals; it is not a claim that those proposals have shipped.
+The roadmap's optional-extra list now matches `pyproject.toml`.
+
+Observed checks: strict docs build and `git diff --check` passed. Implementation
+PRs carry their own regression tests and CI evidence. The attempted additional
+privacy validation sandbox failed during network namespace setup, so those
+source-grounded proposals have no new dynamic validation claim.
+
+Reusable lesson assessment: the existing evidence-before-claims policy already
+covers the findings. This review applies it to concrete product priorities rather
+than creating another general standard or duplicating the shared runtime.

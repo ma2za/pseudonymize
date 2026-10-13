@@ -49,7 +49,9 @@ def test_frozen_constructor_and_method_shapes() -> None:
         ("transformer", "KEYWORD_ONLY"),
         ("typed_redaction", "KEYWORD_ONLY"),
         ("bloom_filter", "KEYWORD_ONLY"),
+        ("enable_coreference", "KEYWORD_ONLY"),
     )
+    assert inspect.signature(Pseudonymizer).parameters["enable_coreference"].default is True
     expected = {
         "detect": ("self", "text"),
         "process": ("self", "text", "include_mapping"),

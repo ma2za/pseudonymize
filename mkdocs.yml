@@ -23,6 +23,7 @@ nav:
       - 0.1.0a3: releases/0.1.0a3.md
       - 0.1.0a2: releases/0.1.0a2.md
   - Releasing: releasing.md
+  - Cloud development: codex_cloud.md
   - Security: security.md
   - Threat model: threat-model.md
   - Limitations: limitations.md
@@ -31,6 +32,7 @@ nav:
   - Model Card: model_card.md
   - Contributing: contributing.md
   - Decisions:
+      - Product Review (1.35 development): decisions/1.35.0_product_review.md
       - Dependency-free core: adr/0001-dependency-free-core.md
       - Token format: adr/0002-token-format.md
       - No reversible storage: adr/0003-no-reversible-storage.md

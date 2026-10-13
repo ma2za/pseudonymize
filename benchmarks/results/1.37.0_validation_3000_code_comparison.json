@@ -1,0 +1,378 @@
+{
+  "current_minus_old_F1_percentage_points": 0.4200716422978368,
+  "current_minus_pre_merge_F1_percentage_points": -0.0446786676965516,
+  "notes": [
+    "Older published 2000-row result was 82.37415477084898% on a different sample. The source snapshot scores 88.16214697203879% on the fixed 3000-row sample. This does not isolate every historical configuration difference.",
+    "Frozen source versions retain their frozen dependency sets; both historical snapshots use ONNX Runtime 1.29.0, current main uses 1.30.0.",
+    "Historical evaluator differs only in sampling/optional ensemble controls, not scoring logic; all comparisons use the same local JSONL with no secondary ensemble.",
+    "The older run was paused while the pre-merge comparison completed; evaluation wall times are not comparable.",
+    "No tuning, name-list additions or artifact changes were performed. No independent external generalization claim is made."
+  ],
+  "per_entity_current_minus_old": {
+    "EMAIL": {
+      "false_negatives": 2,
+      "false_positives": 1,
+      "true_positives": -2
+    },
+    "LOCATION": {
+      "false_negatives": 5,
+      "false_positives": -135,
+      "true_positives": -5
+    },
+    "NATIONAL_ID": {
+      "false_negatives": 27,
+      "false_positives": -48,
+      "true_positives": -27
+    },
+    "PAYMENT_CARD": {
+      "false_negatives": 0,
+      "false_positives": 2,
+      "true_positives": 0
+    },
+    "PERSON": {
+      "false_negatives": 9,
+      "false_positives": 6,
+      "true_positives": -9
+    },
+    "PHONE": {
+      "false_negatives": -2,
+      "false_positives": 3,
+      "true_positives": 2
+    },
+    "SECRET": {
+      "false_negatives": 0,
+      "false_positives": -1,
+      "true_positives": 0
+    },
+    "TAX_ID": {
+      "false_negatives": -41,
+      "false_positives": 37,
+      "true_positives": 41
+    }
+  },
+  "purpose": "Explain historical F1 differences using the identical 3000-row sample, unchanged model artifacts, and default benchmark settings in frozen source snapshots",
+  "results": {
+    "before_PR_merges": {
+      "counts": {
+        "false_negatives": 2561,
+        "false_positives": 661,
+        "out_of_scope": 492,
+        "true_positives": 12554
+      },
+      "exact_metrics": {
+        "f1": 0.5312046444121916,
+        "precision": 0.5881880273202089,
+        "recall": 0.4842871319880913
+      },
+      "metrics": {
+        "f1": 0.8862689728203318,
+        "precision": 0.94998108210367,
+        "recall": 0.8305656632484287
+      },
+      "package_commit": "17e8fcc787fcdc96caf16356763e73e6e92e7d5e",
+      "package_version": "1.37.0",
+      "per_entity": {
+        "EMAIL": {
+          "false_negatives": 2,
+          "false_positives": 19,
+          "true_positives": 1658
+        },
+        "IBAN": {
+          "false_negatives": 0,
+          "false_positives": 4,
+          "true_positives": 0
+        },
+        "IP_ADDRESS": {
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "LOCATION": {
+          "false_negatives": 410,
+          "false_positives": 302,
+          "true_positives": 3154
+        },
+        "NATIONAL_ID": {
+          "false_negatives": 135,
+          "false_positives": 111,
+          "true_positives": 2134
+        },
+        "ORGANIZATION": {
+          "false_negatives": 0,
+          "false_positives": 6,
+          "true_positives": 1
+        },
+        "PAYMENT_CARD": {
+          "false_negatives": 38,
+          "false_positives": 23,
+          "true_positives": 634
+        },
+        "PERSON": {
+          "false_negatives": 1878,
+          "false_positives": 67,
+          "true_positives": 3309
+        },
+        "PHONE": {
+          "false_negatives": 38,
+          "false_positives": 20,
+          "true_positives": 1201
+        },
+        "SECRET": {
+          "false_negatives": 0,
+          "false_positives": 6,
+          "true_positives": 0
+        },
+        "TAX_ID": {
+          "false_negatives": 60,
+          "false_positives": 102,
+          "true_positives": 463
+        }
+      },
+      "policy_configuration": {
+        "allow_unverified_checksums": false,
+        "backends": [
+          "rules",
+          "local_onnx_pii"
+        ],
+        "entity_types": [
+          "EMAIL",
+          "IBAN",
+          "IP_ADDRESS",
+          "LOCATION",
+          "NATIONAL_ID",
+          "ORGANIZATION",
+          "PAYMENT_CARD",
+          "PERSON",
+          "PHONE",
+          "SECRET",
+          "TAX_ID",
+          "URL_CREDENTIAL"
+        ],
+        "network_policy": "DENY",
+        "strict_labels": true
+      }
+    },
+    "current_main": {
+      "counts": {
+        "false_negatives": 2566,
+        "false_positives": 669,
+        "out_of_scope": 493,
+        "true_positives": 12549
+      },
+      "exact_metrics": {
+        "f1": 0.5316933347846595,
+        "precision": 0.5887031978145589,
+        "recall": 0.484750248097916
+      },
+      "metrics": {
+        "f1": 0.8858221861433663,
+        "precision": 0.9493871992737176,
+        "recall": 0.8302348660271254
+      },
+      "package_commit": "b3abd0a327ab35721328784e4cd6d6a26f1c6d7e",
+      "package_version": "1.37.0",
+      "per_entity": {
+        "EMAIL": {
+          "false_negatives": 2,
+          "false_positives": 19,
+          "true_positives": 1658
+        },
+        "IBAN": {
+          "false_negatives": 0,
+          "false_positives": 4,
+          "true_positives": 0
+        },
+        "IP_ADDRESS": {
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "LOCATION": {
+          "false_negatives": 413,
+          "false_positives": 305,
+          "true_positives": 3151
+        },
+        "NATIONAL_ID": {
+          "false_negatives": 134,
+          "false_positives": 107,
+          "true_positives": 2135
+        },
+        "ORGANIZATION": {
+          "false_negatives": 0,
+          "false_positives": 6,
+          "true_positives": 1
+        },
+        "PAYMENT_CARD": {
+          "false_negatives": 37,
+          "false_positives": 26,
+          "true_positives": 635
+        },
+        "PERSON": {
+          "false_negatives": 1881,
+          "false_positives": 71,
+          "true_positives": 3306
+        },
+        "PHONE": {
+          "false_negatives": 39,
+          "false_positives": 22,
+          "true_positives": 1200
+        },
+        "SECRET": {
+          "false_negatives": 0,
+          "false_positives": 5,
+          "true_positives": 0
+        },
+        "TAX_ID": {
+          "false_negatives": 60,
+          "false_positives": 103,
+          "true_positives": 463
+        }
+      },
+      "policy_configuration": {
+        "allow_unverified_checksums": false,
+        "backends": [
+          "rules",
+          "local_onnx_pii"
+        ],
+        "entity_types": [
+          "EMAIL",
+          "IBAN",
+          "IP_ADDRESS",
+          "LOCATION",
+          "NATIONAL_ID",
+          "ORGANIZATION",
+          "PAYMENT_CARD",
+          "PERSON",
+          "PHONE",
+          "SECRET",
+          "TAX_ID",
+          "URL_CREDENTIAL"
+        ],
+        "network_policy": "DENY",
+        "strict_labels": true
+      }
+    },
+    "older_1.35_snapshot": {
+      "counts": {
+        "false_negatives": 2566,
+        "false_positives": 804,
+        "out_of_scope": 759,
+        "true_positives": 12549
+      },
+      "exact_metrics": {
+        "f1": 0.5284708431124752,
+        "precision": 0.5817170111287758,
+        "recall": 0.48415481309957
+      },
+      "metrics": {
+        "f1": 0.8816214697203879,
+        "precision": 0.9397888115030331,
+        "recall": 0.8302348660271254
+      },
+      "package_commit": "bc187920609a7557f727bbfcb1906ad977cf01fb",
+      "package_version": "1.35.0",
+      "per_entity": {
+        "EMAIL": {
+          "false_negatives": 0,
+          "false_positives": 18,
+          "true_positives": 1660
+        },
+        "IBAN": {
+          "false_negatives": 0,
+          "false_positives": 4,
+          "true_positives": 0
+        },
+        "IP_ADDRESS": {
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "LOCATION": {
+          "false_negatives": 408,
+          "false_positives": 440,
+          "true_positives": 3156
+        },
+        "NATIONAL_ID": {
+          "false_negatives": 107,
+          "false_positives": 155,
+          "true_positives": 2162
+        },
+        "ORGANIZATION": {
+          "false_negatives": 0,
+          "false_positives": 6,
+          "true_positives": 1
+        },
+        "PAYMENT_CARD": {
+          "false_negatives": 37,
+          "false_positives": 24,
+          "true_positives": 635
+        },
+        "PERSON": {
+          "false_negatives": 1872,
+          "false_positives": 65,
+          "true_positives": 3315
+        },
+        "PHONE": {
+          "false_negatives": 41,
+          "false_positives": 19,
+          "true_positives": 1198
+        },
+        "SECRET": {
+          "false_negatives": 0,
+          "false_positives": 6,
+          "true_positives": 0
+        },
+        "TAX_ID": {
+          "false_negatives": 101,
+          "false_positives": 66,
+          "true_positives": 422
+        }
+      },
+      "policy_configuration": {
+        "allow_unverified_checksums": false,
+        "backends": [
+          "rules",
+          "local_onnx_pii"
+        ],
+        "entity_types": [
+          "EMAIL",
+          "IBAN",
+          "IP_ADDRESS",
+          "LOCATION",
+          "NATIONAL_ID",
+          "ORGANIZATION",
+          "PAYMENT_CARD",
+          "PERSON",
+          "PHONE",
+          "SECRET",
+          "TAX_ID",
+          "URL_CREDENTIAL"
+        ],
+        "network_policy": "DENY",
+        "strict_labels": true
+      }
+    }
+  },
+  "same_model_sha256": {
+    "config": "3503fb27021640b315b1e7636933f7df9c209746251cae4975bdef46be4e8158",
+    "model": "1d02f3829ad90d95dea5e64d35f5528f96d7b223c1e056a96075c6229a484356",
+    "tokenizer": "8373f9cd3d27591e1924426bcc1c8799bc5a9affc4fc857982c5d66668dd1f41"
+  },
+  "same_sample_sha256": "2a80248dfb3b403adae928c5ba0b6c0d3645be0b11bc446190dfceb4285fb33e",
+  "sampling": {
+    "dataset": "ai4privacy/pii-masking-openpii-1.5m",
+    "dataset_revision": "a785eb528e28be2693c3718a27e066970de5dadb",
+    "eligible_english_rows": 40909,
+    "language": "en",
+    "requested_samples": 3000,
+    "sample_sha256": "2a80248dfb3b403adae928c5ba0b6c0d3645be0b11bc446190dfceb4285fb33e",
+    "sampling_method": "Algorithm R reservoir sampling without replacement across the complete English validation subset",
+    "sampling_seconds": 781.3318203700182,
+    "seed": 2918712420,
+    "seed_chosen_before_inference": true,
+    "selected_rows": 3000,
+    "split": "validation",
+    "validation_rows_scanned": 326463
+  },
+  "scoring": "One-to-one positive span overlap with exact entity-type match; exact boundaries separately reported"
+}

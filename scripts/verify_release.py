@@ -2,6 +2,7 @@ import argparse
 import email.message
 import email.parser
 import json
+import math
 import os
 import re
 import tarfile
@@ -23,7 +24,9 @@ EXPECTED_PYTHON_CLASSIFIERS = {
 }
 EXPECTED_DEVELOPMENT_CLASSIFIER = "Development Status :: 5 - Production/Stable"
 EXPECTED_BASE_REQUIREMENTS: frozenset[str] = frozenset()
-EXPECTED_EXTRAS: frozenset[str] = frozenset({"ml", "office", "pdf", "ocr", "remote", "html"})
+EXPECTED_EXTRAS: frozenset[str] = frozenset(
+    {"ml", "office", "pdf", "ocr", "remote", "html", "service"}
+)
 REQUIRED_SDIST_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -159,9 +162,46 @@ def verify_quality_gate_report(report_path: Path) -> None:
     if not report_path.is_file():
         raise ValueError(f"quality gate report not found at {report_path}")
     data = json.loads(report_path.read_text(encoding="utf-8"))
-    if not data.get("passed", False) or data.get("recommendation") != "SHIP":
-        summary = data.get("summary_reasons", ["unspecified failure"])
+    if (
+        not isinstance(data, dict)
+        or data.get("passed") is not True
+        or data.get("recommendation") != "SHIP"
+    ):
+        summary = (
+            data.get("summary_reasons", ["unspecified failure"])
+            if isinstance(data, dict)
+            else ["invalid report"]
+        )
         raise ValueError(f"quality gate failed: {summary}")
+    required = {
+        "pinned_provenance",
+        "paired_f1_delta",
+        "precision_protection",
+        "critical_entities_floor",
+        "external_generalization",
+    }
+    criteria = data.get("criteria")
+    if not isinstance(criteria, dict) or not required <= criteria.keys():
+        raise ValueError("quality gate report is missing required criteria")
+    for name in sorted(required):
+        criterion = criteria[name]
+        if not isinstance(criterion, dict) or criterion.get("passed") is not True:
+            raise ValueError(f"quality gate criterion did not pass: {name}")
+    external_details = criteria["external_generalization"].get("details")
+    if (
+        not isinstance(external_details, dict)
+        or external_details.get("status") == "not_evaluated_in_current_run"
+        or "external_f1" not in external_details
+    ):
+        raise ValueError("quality gate report lacks external evaluation evidence")
+    external_f1 = external_details["external_f1"]
+    if (
+        not isinstance(external_f1, (int, float))
+        or isinstance(external_f1, bool)
+        or not math.isfinite(external_f1)
+        or not 0 <= external_f1 <= 1
+    ):
+        raise ValueError("quality gate report has invalid external evaluation evidence")
     rec = data.get("recommendation")
     print(f"verified quality gate report: candidate approved for shipment ({rec})")
 

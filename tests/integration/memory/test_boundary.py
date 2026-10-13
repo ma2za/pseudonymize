@@ -1,7 +1,12 @@
 from typing import Any
 
+import pytest
+
 from pseudonymize import Pseudonymizer, TransformationMode
+from pseudonymize.detectors.email import EmailDetector
+from pseudonymize.detectors.gazetteer import GazetteerDetector
 from pseudonymize.memory import MemoryBoundary
+from pseudonymize.memory.dawg import DAWG
 
 
 class DummyStore:
@@ -18,9 +23,26 @@ class DummyStore:
         self.data.pop(key, None)
 
 
-def test_memory_boundary_write() -> None:
+@pytest.mark.parametrize(
+    ("detect_names", "expected"),
+    [
+        (False, "The user is Paolo, and his email is <EML_1>."),
+        (True, "The user is <PER_1>, and his email is <EML_1>."),
+    ],
+)
+def test_memory_boundary_write(detect_names: bool, expected: str) -> None:
     store = DummyStore()
-    engine = Pseudonymizer(mode=TransformationMode.NUMBERED)
+    engine = Pseudonymizer(
+        mode=TransformationMode.NUMBERED,
+        detectors=(
+            EmailDetector(),
+            GazetteerDetector(
+                person_dawg=DAWG.from_words(("Paolo",)) if detect_names else None,
+                location_dawg=None,
+                veto_filter=None,
+            ),
+        ),
+    )
     boundary = MemoryBoundary(store=store, engine=engine)
 
     payload = {"memory": "The user is Paolo, and his email is paolo@example.com."}
@@ -28,14 +50,14 @@ def test_memory_boundary_write() -> None:
 
     saved = store.read("session_1")
     assert isinstance(saved, dict)
-    assert saved["memory"] == "The user is Paolo, and his email is <EML_1>."
+    assert saved["memory"] == expected
 
     # Check that another user namespace would generate the same numbered alias sequence locally
     # but theoretically would map to a different context.
     boundary.write("session_2", payload, namespace="user_B")
     saved2 = store.read("session_2")
     assert isinstance(saved2, dict)
-    assert saved2["memory"] == "The user is Paolo, and his email is <EML_1>."
+    assert saved2["memory"] == expected
 
 
 def test_memory_boundary_delete() -> None:

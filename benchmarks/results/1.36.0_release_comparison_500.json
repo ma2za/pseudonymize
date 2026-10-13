@@ -1,0 +1,278 @@
+{
+  "baseline": {
+    "character_masking": {
+      "masked_chars": 28332,
+      "precision": 0.9320350023027831,
+      "recall": 0.7854944689345421,
+      "total_true_chars": 36069
+    },
+    "counts": {
+      "false_negatives": 428,
+      "false_positives": 114,
+      "out_of_scope": 78,
+      "true_positives": 2240
+    },
+    "exact_metrics": {
+      "f1": 0.5439210039086608,
+      "precision": 0.602827177382581,
+      "recall": 0.4955022488755622
+    },
+    "metrics": {
+      "f1": 0.8920748705694943,
+      "precision": 0.9515717926932881,
+      "recall": 0.8395802098950524
+    },
+    "per_entity": {
+      "EMAIL": {
+        "false_negatives": 0,
+        "false_positives": 1,
+        "true_positives": 285
+      },
+      "LOCATION": {
+        "false_negatives": 95,
+        "false_positives": 74,
+        "true_positives": 563
+      },
+      "NATIONAL_ID": {
+        "false_negatives": 10,
+        "false_positives": 28,
+        "true_positives": 406
+      },
+      "PAYMENT_CARD": {
+        "false_negatives": 5,
+        "false_positives": 1,
+        "true_positives": 135
+      },
+      "PERSON": {
+        "false_negatives": 287,
+        "false_positives": 5,
+        "true_positives": 540
+      },
+      "PHONE": {
+        "false_negatives": 5,
+        "false_positives": 1,
+        "true_positives": 229
+      },
+      "TAX_ID": {
+        "false_negatives": 26,
+        "false_positives": 4,
+        "true_positives": 82
+      }
+    }
+  },
+  "baseline_source_commit": "70aea0ed83c09f861b4bf36693f5fe5e9e3dbe1e",
+  "candidate": {
+    "character_masking": {
+      "masked_chars": 28332,
+      "precision": 0.9314221842330199,
+      "recall": 0.7854944689345421,
+      "total_true_chars": 36069
+    },
+    "counts": {
+      "false_negatives": 428,
+      "false_positives": 114,
+      "out_of_scope": 78,
+      "true_positives": 2240
+    },
+    "exact_metrics": {
+      "f1": 0.5435095659329356,
+      "precision": 0.6023711810305518,
+      "recall": 0.49512743628185907
+    },
+    "metrics": {
+      "f1": 0.8920748705694943,
+      "precision": 0.9515717926932881,
+      "recall": 0.8395802098950524
+    },
+    "per_entity": {
+      "EMAIL": {
+        "false_negatives": 0,
+        "false_positives": 1,
+        "true_positives": 285
+      },
+      "LOCATION": {
+        "false_negatives": 95,
+        "false_positives": 74,
+        "true_positives": 563
+      },
+      "NATIONAL_ID": {
+        "false_negatives": 10,
+        "false_positives": 28,
+        "true_positives": 406
+      },
+      "PAYMENT_CARD": {
+        "false_negatives": 5,
+        "false_positives": 1,
+        "true_positives": 135
+      },
+      "PERSON": {
+        "false_negatives": 287,
+        "false_positives": 5,
+        "true_positives": 540
+      },
+      "PHONE": {
+        "false_negatives": 5,
+        "false_positives": 1,
+        "true_positives": 229
+      },
+      "TAX_ID": {
+        "false_negatives": 26,
+        "false_positives": 4,
+        "true_positives": 82
+      }
+    }
+  },
+  "candidate_base_commit": "70aea0ed83c09f861b4bf36693f5fe5e9e3dbe1e",
+  "candidate_staged_patch_sha256": "8ec22688a3120398008c811ad4af4de7b32bb50e9d7c225b4a74c258195e4a1a",
+  "command": "python benchmarks/evaluate_quality.py --ml --samples 500 --dataset-revision a785eb528e28be2693c3718a27e066970de5dadb",
+  "dataset": "ai4privacy/pii-masking-openpii-1.5m",
+  "dataset_revision": "a785eb528e28be2693c3718a27e066970de5dadb",
+  "model_sha256": {
+    "config": "3503fb27021640b315b1e7636933f7df9c209746251cae4975bdef46be4e8158",
+    "model": "1d02f3829ad90d95dea5e64d35f5528f96d7b223c1e056a96075c6229a484356",
+    "tokenizer": "8373f9cd3d27591e1924426bcc1c8799bc5a9affc4fc857982c5d66668dd1f41"
+  },
+  "notes": [
+    "No threshold or model was tuned on this validation sample.",
+    "Typed positive-overlap counts are unchanged. Exact-boundary F1 drops by approximately 0.000411 after the requested possessive consumption; no improvement is claimed.",
+    "Lowercase recovery was removed before evaluating the frozen release candidate."
+  ],
+  "paired_comparison": {
+    "dataset": "ai4privacy/pii-masking-openpii-1.5m",
+    "dataset_revision": "a785eb528e28be2693c3718a27e066970de5dadb",
+    "error_categories": {
+      "boundary_mismatch": {
+        "baseline": 918,
+        "candidate": 919,
+        "delta": 1
+      },
+      "conflict_loss": {
+        "baseline": 387,
+        "candidate": 387,
+        "delta": 0
+      },
+      "label_confusion": {
+        "baseline": 28,
+        "candidate": 28,
+        "delta": 0
+      },
+      "missing_candidate": {
+        "baseline": 13,
+        "candidate": 13,
+        "delta": 0
+      },
+      "threshold_suppression": {
+        "baseline": 0,
+        "candidate": 0,
+        "delta": 0
+      }
+    },
+    "metrics": {
+      "baseline_f1": 0.8920748705694943,
+      "candidate_f1": 0.8920748705694943,
+      "ci_95": [
+        0.0,
+        0.0
+      ],
+      "delta_f1": 0.0,
+      "delta_precision": 0.0,
+      "delta_recall": 0.0,
+      "exact_baseline_f1": 0.5439210039086608,
+      "exact_candidate_f1": 0.5435095659329356,
+      "exact_ci_95": [
+        -0.0012744265080714134,
+        0.0
+      ],
+      "exact_delta_f1": -0.0004114379757251818,
+      "macro_f1_delta": 0.0
+    },
+    "per_entity": {
+      "EMAIL": {
+        "baseline_f1": 0.9982486865148862,
+        "candidate_f1": 0.9982486865148862,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      },
+      "LOCATION": {
+        "baseline_f1": 0.8694980694980695,
+        "candidate_f1": 0.8694980694980695,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      },
+      "NATIONAL_ID": {
+        "baseline_f1": 0.9552941176470587,
+        "candidate_f1": 0.9552941176470587,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      },
+      "PAYMENT_CARD": {
+        "baseline_f1": 0.9782608695652174,
+        "candidate_f1": 0.9782608695652174,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      },
+      "PERSON": {
+        "baseline_f1": 0.7871720116618076,
+        "candidate_f1": 0.7871720116618076,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      },
+      "PHONE": {
+        "baseline_f1": 0.9870689655172414,
+        "candidate_f1": 0.9870689655172414,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      },
+      "TAX_ID": {
+        "baseline_f1": 0.845360824742268,
+        "candidate_f1": 0.845360824742268,
+        "delta_f1": 0.0,
+        "delta_fn": 0,
+        "delta_fp": 0,
+        "delta_tp": 0
+      }
+    },
+    "samples": 500
+  },
+  "policy_configuration": {
+    "allow_unverified_checksums": false,
+    "backends": [
+      "rules",
+      "local_onnx_pii"
+    ],
+    "entity_types": [
+      "EMAIL",
+      "IBAN",
+      "IP_ADDRESS",
+      "LOCATION",
+      "NATIONAL_ID",
+      "ORGANIZATION",
+      "PAYMENT_CARD",
+      "PERSON",
+      "PHONE",
+      "SECRET",
+      "TAX_ID",
+      "URL_CREDENTIAL"
+    ],
+    "network_policy": "DENY",
+    "strict_labels": true
+  },
+  "purpose": "Frozen regression comparison; not independent generalization evidence or a claim of improved detection.",
+  "same_model_hashes": true,
+  "same_row_manifest": true,
+  "samples": 500,
+  "shuffle_seed": 42,
+  "split": "validation"
+}

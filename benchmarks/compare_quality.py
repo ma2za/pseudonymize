@@ -146,22 +146,14 @@ def compare_results(
         b_tp = b_et.get("true_positives", 0)
         b_fp = b_et.get("false_positives", 0)
         b_fn = b_et.get("false_negatives", 0)
-        b_f1 = (
-            (2 * (b_tp / (b_tp + b_fp)) * (b_tp / (b_tp + b_fn)))
-            / ((b_tp / (b_tp + b_fp)) + (b_tp / (b_tp + b_fn)))
-            if (b_tp + b_fp > 0 and b_tp + b_fn > 0)
-            else 0.0
-        )
+        b_denominator = 2 * b_tp + b_fp + b_fn
+        b_f1 = 2 * b_tp / b_denominator if b_denominator else 0.0
 
         c_tp = c_et.get("true_positives", 0)
         c_fp = c_et.get("false_positives", 0)
         c_fn = c_et.get("false_negatives", 0)
-        c_f1 = (
-            (2 * (c_tp / (c_tp + c_fp)) * (c_tp / (c_tp + c_fn)))
-            / ((c_tp / (c_tp + c_fp)) + (c_tp / (c_tp + c_fn)))
-            if (c_tp + c_fp > 0 and c_tp + c_fn > 0)
-            else 0.0
-        )
+        c_denominator = 2 * c_tp + c_fp + c_fn
+        c_f1 = 2 * c_tp / c_denominator if c_denominator else 0.0
 
         per_entity_shifts[et] = {
             "delta_tp": c_tp - b_tp,

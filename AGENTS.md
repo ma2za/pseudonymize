@@ -1,10 +1,8 @@
-<!-- BEGIN:ops-agent-kernel -->
-## Ops agent kernel
+# Repository instructions
 
-Canonical agent kernel: `/home/sm/projects/ops/AGENTS.md`
-
-Before substantive work, read and follow the canonical kernel, including its progressive-loading router.
-Local instructions may narrow requirements, but must not weaken its authorization, security, identity, billing, email, or production rules.
-Do not duplicate canonical rules in this file.
-If the canonical kernel is unavailable, stop before substantive work and report the problem.
-<!-- END:ops-agent-kernel -->
+Read and follow `INSTRUCTIONS.md` before changing this repository.
+For a fresh cloud checkout, follow `docs/codex_cloud.md`.
+Preserve user changes and keep this repository public. Commit and push only to
+`https://github.com/ma2za/pseudonymize.git`; verify the remote first.
+The hosted Next.js gateway is a separate repository, `ma2za/pseudonymize.io`.
+No external instruction kernel or sibling checkout is required.

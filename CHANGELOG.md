@@ -4,6 +4,57 @@ All notable changes follow Keep a Changelog and Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- Optional bounded ONNX case recovery for lowercase PERSON candidates using high-confidence re-inference and constrained BIO decoding. Disabled by default; no name dictionaries or fabricated spans.
+- Python-owned Lambda HTTP service with verified model artifacts, required gateway authentication, ONNX-only person detection, and explicit inference failure. Hosted processing disables coreference expansion so each name occurrence requires model confirmation.
+
+### Fixed
+
+- Reject quality-gate approval when external evaluation is absent or its F1 is invalid,
+  and reject missing or incomparable critical-entity counts. Report which entities
+  actually have evaluated support.
+- Require every quality criterion to pass explicitly when verifying a release report,
+  rejecting incomplete reports and legacy skipped external evaluations.
+
+- Correct one-to-one match accounting in the local benchmark, including empty and
+  disjoint inputs. Explanations now report offsets without copying source values.
+- Keep optional ML imports and root logging configuration out of benchmark imports.
+
+- Invalidate Bloom filter membership caches after insertion so earlier misses cannot hide
+  newly added entries. Validate filter parameters and allocate at least one bit.
+
+- Align README aliases with the emitted token format and execute its Python examples
+  in an integration test. Clarify overlap benchmark scoring and streaming limitations.
+
+### Changed
+
+- Scan coreference words once per block using dictionary lookup instead of rebuilding
+  a regular expression containing every learned token. Preserve case and word boundaries.
+### Fixed
+
+
+
+- Include the hosted-service extra in release verification and isolated installation
+  audits, while keeping service frameworks out of the dependency-free base import.
+
+## [1.36.0] - 2026-10-09
+
+### Added
+- Add `Pseudonymizer(enable_coreference=False)` for workflows that require each
+  name occurrence to be confirmed by the configured backend. The default remains
+  enabled for compatibility.
+
+### Fixed
+- Share PERSON aliases across name casing and straight/curly English possessives,
+  and consume the possessive suffix during pseudonymization and redaction.
+- Keep distinct ONNX name mentions across a sentence-ending period separate.
+- Resolve tax identifier conflicts, improve contextual GST and phone detection,
+  and trim possessive suffixes from ONNX name boundaries.
+
+### Limitations
+- Lowercase name recall remains dependent on the ONNX model. This release does
+  not introduce example-tuned recovery thresholds or promise complete detection.
+
 ## [1.35.0] - 2026-10-03
 
 ### Added
